@@ -1,0 +1,7 @@
+{
+  "name": "Everything Beauty",
+  "description": "An on-demand beauty services marketplace connecting verified professionals with customers, featuring transparent pricing and location-based scheduling.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
