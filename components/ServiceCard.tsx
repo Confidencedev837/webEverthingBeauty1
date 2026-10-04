@@ -107,6 +107,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
           </div>
           <ChevronRight className="w-4 h-4 text-[#6C757D] group-hover/agent:text-rosePink transition-colors" />
         </Link>
+
+        <Link 
+          to={`/services/${service.id}?book=true`}
+          className="mt-4 w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-rosePink dark:hover:bg-rosePink dark:hover:text-white transition-colors"
+        >
+          Book Now
+        </Link>
       </div>
     </motion.div>
   );

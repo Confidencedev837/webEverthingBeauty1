@@ -24,17 +24,20 @@ const About: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-block px-6 py-2 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-full text-xs font-bold uppercase tracking-widest mb-4 sm:mb-6"
+            className="inline-block text-rosePink text-[10px] font-black uppercase tracking-[0.35em] mb-4 sm:mb-6 drop-shadow-[0_0_12px_rgba(255,51,102,0.6)]"
           >
-            Our Journey
+            <span className="flex items-center space-x-2">
+              <Sparkles className="w-4 h-4" />
+              <span>Why Choose Us</span>
+            </span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-5xl md:text-7xl font-serif font-bold mb-4 sm:mb-6 md:mb-8 leading-tight"
+            className="text-5xl md:text-7xl font-serif font-bold mb-4 sm:mb-6 md:mb-8 leading-tight text-[#1A1A1A] dark:text-white"
           >
-            Redefining Beauty <br /> Services, <span className="text-rosePink italic">Together</span>
+            Why <span className="text-rosePink italic">Everything Beauty?</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -42,7 +45,7 @@ const About: React.FC = () => {
             transition={{ delay: 0.4 }}
             className="text-xl text-[#6C757D] dark:text-[#B0B0B0] font-light leading-relaxed max-w-2xl mx-auto"
           >
-            Founded in 2023 by two visionary brothers, Everything Beauty is Nigeria's premier platform for professional on-demand beauty services.
+            We are redefining the standards of on-demand beauty services across Africa, starting with Nigeria.
           </motion.p>
         </div>
       </section>

@@ -100,36 +100,24 @@ const Home: React.FC = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="relative inline-flex items-center gap-4 px-6 py-3 mb-10 overflow-hidden"
-              style={{
-                background: 'rgba(255,138,157,0.06)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,138,157,0.18)',
-                borderRadius: '0.75rem',
-                boxShadow: '0 4px 32px rgba(255,138,157,0.08), inset 0 1px 0 rgba(255,255,255,0.12)'
-              }}
+              className="inline-flex items-center space-x-2 text-rosePink text-[10px] font-black uppercase tracking-[0.35em] mb-8 sm:mb-10 drop-shadow-[0_0_12px_rgba(255,51,102,0.6)]"
             >
-              <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-rosePink/40 to-transparent" />
-              <Sparkles className="w-3.5 h-3.5 text-rosePink flex-shrink-0" />
-              <div className="w-px h-4 bg-rosePink/30" />
-              <span className="text-rosePink text-[9px] font-black uppercase tracking-[0.35em]">
-                Elite On-Demand Beauty
-              </span>
+              <Sparkles className="w-4 h-4" />
+              <span>Elite On-Demand Beauty</span>
             </motion.div>
 
-            <h1 className="w-full text-6xl md:text-6xl lg:text-7xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-8 leading-tight tracking-tighter">
+            <h1 className="w-full text-5xl md:text-5xl lg:text-6xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-6 leading-tight tracking-tighter">
               Timeless <span className="text-rosePink italic">Elegance</span> & <span className="text-rosePink italic">Grooming,</span> Delivered.
             </h1>
 
-            <p className="text-xl md:text-2xl text-[#6C757D] dark:text-[#B0B0B0] mb-14 max-w-xl font-medium leading-relaxed">
+            <p className="text-lg md:text-xl text-[#6C757D] dark:text-[#B0B0B0] mb-10 max-w-xl font-medium leading-relaxed">
               Discover Nigeria's finest beauty professionals and barbers. On-demand, in-shop, or hybrid—instantly.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <Link
                 to="/auth"
-                className="group relative px-8 py-4 sm:px-12 sm:py-6 bg-rosePink text-white rounded-2xl sm:rounded-[2rem] text-lg sm:text-xl font-black hover:bg-[#E57B8D] transition-all transform hover:scale-105 shadow-[0_20px_40px_rgba(255,138,157,0.3)] sm:shadow-[0_30px_60px_rgba(255,138,157,0.4)] text-center overflow-hidden"
+                className="group relative px-6 py-3.5 sm:px-10 sm:py-5 bg-rosePink text-white rounded-2xl sm:rounded-[2rem] text-base sm:text-lg font-black hover:bg-[#E57B8D] transition-all transform hover:scale-105 shadow-[0_20px_40px_rgba(255,138,157,0.3)] sm:shadow-[0_30px_60px_rgba(255,138,157,0.4)] text-center overflow-hidden"
               >
                 <span className="relative z-10">Get Started</span>
                 <motion.div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
@@ -137,7 +125,7 @@ const Home: React.FC = () => {
 
               <Link
                 to="/services"
-                className="px-8 py-4 sm:px-12 sm:py-6 bg-white/50 dark:bg-white/5 backdrop-blur-xl text-[#1A1A1A] dark:text-white border-2 border-transparent hover:border-rosePink rounded-2xl sm:rounded-[2rem] text-lg sm:text-xl font-bold transition-all transform hover:scale-105 text-center shadow-lg sm:shadow-xl"
+                className="px-6 py-3.5 sm:px-10 sm:py-5 bg-white/50 dark:bg-white/5 backdrop-blur-xl text-[#1A1A1A] dark:text-white border-2 border-transparent hover:border-rosePink rounded-2xl sm:rounded-[2rem] text-base sm:text-lg font-bold transition-all transform hover:scale-105 text-center shadow-lg sm:shadow-xl"
               >
                 Explore Services
               </Link>
@@ -267,21 +255,9 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl">
             <motion.div {...fadeInUp}>
-              <div
-                className="relative inline-flex items-center gap-4 px-6 py-3 mb-10 overflow-hidden"
-                style={{
-                  background: 'rgba(255,138,157,0.08)',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                  border: '1px solid rgba(255,138,157,0.25)',
-                  borderRadius: '0.75rem',
-                  boxShadow: '0 8px 40px rgba(255,138,157,0.12), inset 0 1px 0 rgba(255,255,255,0.08)'
-                }}
-              >
-                <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-rosePink/50 to-transparent" />
-                <TrendingUp className="w-3.5 h-3.5 text-rosePink flex-shrink-0" />
-                <div className="w-px h-4 bg-rosePink/40" />
-                <span className="text-rosePink text-[9px] font-black uppercase tracking-[0.35em]">Specialist Network</span>
+              <div className="inline-flex items-center space-x-2 text-rosePink text-[10px] font-black uppercase tracking-[0.35em] mb-10 drop-shadow-[0_0_12px_rgba(255,51,102,0.6)]">
+                <TrendingUp className="w-4 h-4" />
+                <span>Specialist Network</span>
               </div>
               <h2 className="text-6xl md:text-9xl font-serif font-bold text-white mb-10 leading-[0.9] tracking-tighter">
                 Lead the <br />

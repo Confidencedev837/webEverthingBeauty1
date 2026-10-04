@@ -98,22 +98,7 @@ const Services: React.FC = () => {
           </motion.p>
         </header>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-8 p-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
-              <AlertCircle className="w-6 h-6 flex-shrink-0" />
-              <span className="font-medium text-sm">Unable to load services at this moment: {error}</span>
-            </div>
-            <button
-              onClick={loadData}
-              className="px-5 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-all flex items-center space-x-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Retry</span>
-            </button>
-          </div>
-        )}
+
 
         {/* Filters & Search */}
         <section className="mb-6 sm:mb-8 md:mb-12 bg-[#F8F9FA] dark:bg-[#0D0D0D] pb-4">

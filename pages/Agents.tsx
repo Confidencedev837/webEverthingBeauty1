@@ -4,6 +4,13 @@ import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Sparkles, Briefca
 import { Link } from 'react-router-dom';
 import { Agent } from '../types';
 import { getAgents } from '../services/supabaseService';
+import LoadingState from '../components/LoadingState';
+
+export function getInitialsSvg(name: string) {
+  const initials = name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'A';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FF3366" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
 
 const Agents: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -138,22 +145,7 @@ const Agents: React.FC = () => {
           </motion.div>
         </header>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-8 p-6 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-3 text-red-600 dark:text-red-400">
-              <AlertCircle className="w-6 h-6 flex-shrink-0" />
-              <span className="font-medium text-sm">Error querying artists: {error}</span>
-            </div>
-            <button
-              onClick={loadData}
-              className="px-5 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-all flex items-center space-x-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Retry</span>
-            </button>
-          </div>
-        )}
+
 
         {/* Search & Filter Bar */}
         <section className="mb-8 sm:mb-12 md:mb-16 bg-[#F8F9FA] dark:bg-[#0D0D0D] pb-4">
@@ -226,14 +218,8 @@ const Agents: React.FC = () => {
 
         {/* Agents Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-96 bg-white dark:bg-[#1A1A1A] rounded-3xl animate-pulse p-8 border border-[#E9ECEF] dark:border-[#2D2D2D] flex flex-col items-center justify-center">
-                <div className="w-24 h-24 rounded-full bg-gray-200 dark:bg-white/5 mb-4" />
-                <div className="h-4 bg-gray-200 dark:bg-white/5 rounded w-1/2 mb-2" />
-                <div className="h-3 bg-gray-200 dark:bg-white/5 rounded w-1/3" />
-              </div>
-            ))}
+          <div className="mb-12">
+            <LoadingState message="loading agents..." />
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-8 lg:gap-10 mb-12">
@@ -248,11 +234,9 @@ const Agents: React.FC = () => {
                   className="group relative bg-white dark:bg-[#1A1A1A] rounded-3xl md:rounded-[3rem] overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rosePink transition-all duration-500 shadow-lg sm:shadow-xl hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between"
                 >
                   {/* Banner Area */}
-                  <div className="relative h-32 sm:h-40 overflow-hidden bg-gray-900">
-                    {agent.banner ? (
-                      <img src={agent.banner} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-rosePink/20 via-black to-black" />
+                  <div className="relative h-32 sm:h-40 overflow-hidden bg-gradient-to-r from-rosePink/20 via-rosePink/10 to-transparent">
+                    {agent.banner && agent.banner.trim() !== '' && (
+                      <img src={agent.banner} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#1A1A1A] via-transparent to-transparent" />
                   </div>
@@ -261,17 +245,12 @@ const Agents: React.FC = () => {
                   <div className="px-4 sm:px-6 md:px-10 pb-6 sm:pb-8 md:pb-10 -mt-12 sm:-mt-16 relative z-10 text-center flex-grow flex flex-col justify-between">
                     <div>
                       <div className="relative inline-block mb-4 sm:mb-5">
-                        {agent.image ? (
-                          <img
-                            src={agent.image}
-                            className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-[2rem] object-cover border-4 border-white dark:border-[#1A1A1A] shadow-xl transition-transform duration-500 group-hover:scale-105"
-                            alt={agent.name}
-                          />
-                        ) : (
-                          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-[2rem] bg-rosePink/10 text-rosePink flex items-center justify-center border-4 border-white dark:border-[#1A1A1A] shadow-xl mx-auto">
-                            <User className="w-10 h-10" />
-                          </div>
-                        )}
+                        <img
+                          src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
+                          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-[2rem] object-cover border-4 border-white dark:border-[#1A1A1A] shadow-xl transition-transform duration-500 group-hover:scale-105"
+                          alt={agent.name}
+                          onError={(e) => { e.currentTarget.src = getInitialsSvg(agent.name); }}
+                        />
                         {agent.verificationStatus === 'VERIFIED' && (
                           <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 text-white rounded-xl flex items-center justify-center border-2 border-white dark:border-[#1A1A1A] shadow-lg">
                             <ShieldCheck className="w-4 h-4" />
@@ -280,9 +259,16 @@ const Agents: React.FC = () => {
                       </div>
 
                       <h3 className="text-2xl md:text-3xl font-serif font-bold mb-1 group-hover:text-rosePink transition-colors text-[#1A1A1A] dark:text-white line-clamp-1">{agent.name}</h3>
-                      <div className="text-rosePink font-black uppercase tracking-[0.15em] text-[10px] sm:text-[11px] mb-4 flex items-center justify-center">
-                        <Award className="w-3.5 h-3.5 mr-1" /> {agent.specialty}
+                      <div className="text-rosePink font-black uppercase tracking-[0.15em] text-[10px] sm:text-[11px] mb-3 flex items-center justify-center">
+                        <span className="text-[#6C757D] mr-1">Spec:</span> {agent.specialty}
                       </div>
+                      
+                      {agent.bio && (
+                        <div className="mb-4 text-xs text-[#6C757D] dark:text-[#B0B0B0] line-clamp-2 italic px-2">
+                          <span className="font-bold text-[#1A1A1A] dark:text-white not-italic mr-1">Bio:</span>
+                          "{agent.bio}"
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-3 gap-2 mb-6">
                         <div className="text-center">

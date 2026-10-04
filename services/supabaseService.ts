@@ -243,8 +243,7 @@ export async function getAgents(): Promise<{ data: Agent[]; error?: string }> {
     const { data: dbAgents, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_type', 'agent')
-      .order('created_at', { ascending: false });
+      .eq('user_type', 'agent');
 
     if (error) {
       console.error('Database query error [agents]:', error.message);

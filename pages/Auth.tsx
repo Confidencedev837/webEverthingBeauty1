@@ -131,10 +131,10 @@ const Auth: React.FC = () => {
         <div className="w-full max-w-lg">
           <div className="text-center mb-10">
             <h2 className="text-5xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-4">
-              {isLogin ? 'Welcome Back' : 'Join the Elite'}
+              {isLogin ? 'Welcome Back' : 'Create an Account'}
             </h2>
             <p className="text-xl text-[#6C757D] dark:text-[#B0B0B0] font-medium">
-              {isLogin ? 'Access your personalized beauty suite' : 'Register to start your transformation'}
+              {isLogin ? 'Access your personalized beauty suite' : 'Sign up to get started'}
             </p>
           </div>
 
@@ -213,7 +213,7 @@ const Auth: React.FC = () => {
                     <select 
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full p-6 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-[1.5rem] outline-none transition-all font-medium text-lg shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
+                      className="w-full p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-2xl outline-none transition-all font-medium text-base shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
                     >
                       {NIGERIAN_STATES.map(state => (
                         <option key={state} value={state}>{state}</option>
@@ -244,7 +244,7 @@ const Auth: React.FC = () => {
                           <select 
                             value={serviceType}
                             onChange={(e) => setServiceType(e.target.value)}
-                            className="w-full p-6 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-[1.5rem] outline-none transition-all font-medium text-sm shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
+                            className="w-full p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-2xl outline-none transition-all font-medium text-sm shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
                           >
                             <option value="mobile">Mobile (Travel to client)</option>
                             <option value="studio">In-Studio</option>
@@ -296,7 +296,7 @@ const Auth: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 bg-rosePink text-white rounded-[2rem] font-black text-xl hover:bg-[#E57B8D] transition-all transform hover:scale-[1.02] shadow-[0_20px_40px_rgba(255,138,157,0.3)] active:scale-95 flex items-center justify-center space-x-3"
+                className="w-full py-4 sm:py-5 bg-rosePink text-white rounded-2xl font-black text-lg hover:bg-[#E57B8D] transition-all transform hover:scale-[1.02] shadow-[0_15px_30px_rgba(255,138,157,0.3)] active:scale-95 flex items-center justify-center space-x-3"
               >
                 {loading ? (
                   <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
@@ -353,7 +353,7 @@ const Input: React.FC<{
       value={value}
       onChange={onChange}
       required={required}
-      className="w-full p-6 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-[1.5rem] outline-none transition-all font-medium text-lg shadow-inner text-[#1A1A1A] dark:text-white"
+      className="w-full p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-2xl outline-none transition-all font-medium text-base shadow-inner text-[#1A1A1A] dark:text-white"
     />
   </div>
 );

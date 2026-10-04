@@ -43,7 +43,8 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
     { name: 'Home', path: '/', icon: <Home className="w-5 h-5" /> },
     { name: 'Services', path: '/services', icon: <LayoutGrid className="w-5 h-5" /> },
     { name: 'Agents', path: '/agents', icon: <Users className="w-5 h-5" /> },
-    { name: 'About', path: '/about', icon: <Info className="w-5 h-5" /> },
+    { name: 'FAQ', path: '/faq', icon: <MessageSquare className="w-5 h-5" /> },
+    { name: 'Why EB?', path: '/about', icon: <Info className="w-5 h-5" /> },
     { name: 'Contact', path: '/contact', icon: <MessageSquare className="w-5 h-5" /> },
   ];
 
@@ -62,11 +63,11 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
           <div className="flex justify-between items-center h-16 md:h-20">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 group">
-              <div className="w-10 h-10 bg-rosePink rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform">
-                <span className="text-white font-serif font-bold text-xl italic">EB</span>
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform overflow-hidden">
+                <img src="/logo.jpg" alt="Everything Beauty Logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-[#1A1A1A] dark:text-white">
-                Everything<span className="text-rosePink ml-2">Beauty</span>
+                Everything<span className="text-rosePink ml-1">Beauty</span>
               </span>
             </Link>
 
@@ -97,17 +98,12 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                     to={getDashboardPath()}
                     className="flex items-center space-x-2.5 px-3.5 py-2 bg-rosePink/10 hover:bg-rosePink/20 text-rosePink rounded-xl md:rounded-2xl transition-all border border-rosePink/20"
                   >
-                    {currentUser?.avatar ? (
-                      <img
-                        src={currentUser.avatar}
-                        alt={currentUser.name}
-                        className="w-7 h-7 rounded-full object-cover border border-rosePink/30"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-rosePink/20 text-rosePink flex items-center justify-center font-bold text-xs">
-                        <UserIcon className="w-4 h-4" />
-                      </div>
-                    )}
+                    <img
+                      src={currentUser?.avatar && currentUser.avatar.trim() !== '' ? currentUser.avatar : `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FF3366" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`}
+                      alt={currentUser?.name}
+                      className="w-7 h-7 rounded-full object-cover border border-rosePink/30"
+                      onError={(e) => { e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FF3366" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`; }}
+                    />
                     <div className="hidden sm:flex flex-col text-left">
                       <span className="text-xs font-bold leading-tight max-w-[100px] truncate">{currentUser?.name}</span>
                       <span className="text-[9px] uppercase font-black text-[#6C757D] tracking-wider">{role.toLowerCase()}</span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Clock, MapPin, Heart, Share2, Check, ArrowRight, Calendar, Play, ChevronLeft, ChevronRight, MessageSquare, Send, AlertCircle, RefreshCw, User } from 'lucide-react';
 import { Service, Review } from '../types';
@@ -9,6 +9,7 @@ import BookingModal from '../components/BookingModal';
 
 const ServiceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { user, currentUser } = useAuth();
   const [service, setService] = useState<Service | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -51,6 +52,15 @@ const ServiceDetail: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [id]);
+
+  useEffect(() => {
+    if (!loading && service) {
+      const searchParams = new URLSearchParams(location.search);
+      if (searchParams.get('book') === 'true') {
+        setIsBookingOpen(true);
+      }
+    }
+  }, [loading, service, location.search]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +128,7 @@ const ServiceDetail: React.FC = () => {
         <div className="max-w-md mx-auto p-8 bg-white dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
           <AlertCircle className="w-12 h-12 text-rosePink mx-auto mb-4" />
           <h2 className="text-2xl font-serif font-bold mb-2">Service not found</h2>
-          <p className="text-sm text-[#6C757D] mb-6">{error || 'This service record could not be found in the database.'}</p>
+          <p className="text-sm text-[#6C757D] mb-6">This service record could not be found in the database.</p>
           <div className="flex justify-center gap-4">
             <button
               onClick={loadData}
