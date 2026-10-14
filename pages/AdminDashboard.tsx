@@ -58,11 +58,11 @@ const AdminDashboard: React.FC = () => {
   const verifiedAgents = agents.filter(a => a.verificationStatus === VerificationStatus.VERIFIED);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0D0D0D] flex pt-20">
+    <div className="min-h-screen bg-brand-surface dark:bg-[#0D0D0D] flex pt-20">
       {/* Admin Sidebar */}
       <aside className="w-80 bg-[#111] p-10 hidden lg:flex flex-col text-white">
         <div className="flex items-center space-x-3 mb-16">
-          <div className="w-12 h-12 bg-rosePink rounded-2xl flex items-center justify-center shadow-lg shadow-rosePink/30">
+          <div className="w-12 h-12 bg-brand-interactive rounded-2xl flex items-center justify-center shadow-lg shadow-brand-interactive/30">
             <span className="text-2xl font-serif font-bold italic">EB</span>
           </div>
           <span className="text-xl font-serif font-bold tracking-tight uppercase">Admin Panel</span>
@@ -71,21 +71,21 @@ const AdminDashboard: React.FC = () => {
         <nav className="space-y-4 flex-grow">
           <button 
             onClick={() => setActiveTab('verification')} 
-            className={`w-full flex items-center space-x-5 p-5 rounded-2xl font-bold transition-all ${activeTab === 'verification' ? 'bg-rosePink shadow-lg shadow-rosePink/30' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+            className={`w-full flex items-center space-x-5 p-5 rounded-2xl font-bold transition-all ${activeTab === 'verification' ? 'bg-brand-interactive shadow-lg shadow-brand-interactive/30' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
             <ShieldCheck className="w-6 h-6" />
             <span className="text-sm">Verification ({pendingAgents.length})</span>
           </button>
           <button 
             onClick={() => setActiveTab('users')} 
-            className={`w-full flex items-center space-x-5 p-5 rounded-2xl font-bold transition-all ${activeTab === 'users' ? 'bg-rosePink shadow-lg shadow-rosePink/30' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+            className={`w-full flex items-center space-x-5 p-5 rounded-2xl font-bold transition-all ${activeTab === 'users' ? 'bg-brand-interactive shadow-lg shadow-brand-interactive/30' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
             <Users className="w-6 h-6" />
             <span className="text-sm">All Specialists ({agents.length})</span>
           </button>
           <button 
             onClick={() => setActiveTab('analytics')} 
-            className={`w-full flex items-center space-x-5 p-5 rounded-2xl font-bold transition-all ${activeTab === 'analytics' ? 'bg-rosePink shadow-lg shadow-rosePink/30' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+            className={`w-full flex items-center space-x-5 p-5 rounded-2xl font-bold transition-all ${activeTab === 'analytics' ? 'bg-brand-interactive shadow-lg shadow-brand-interactive/30' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
             <BarChart className="w-6 h-6" />
             <span className="text-sm">Platform Stats</span>
@@ -94,7 +94,7 @@ const AdminDashboard: React.FC = () => {
 
         <button 
           onClick={handleLogout}
-          className="flex items-center space-x-4 p-5 text-rosePink font-black uppercase tracking-widest text-[10px] mt-auto hover:bg-rosePink/10 rounded-2xl transition-all"
+          className="flex items-center space-x-4 p-5 text-brand-interactive font-black uppercase tracking-widest text-[10px] mt-auto hover:bg-brand-interactive/10 rounded-2xl transition-all"
         >
           <LogOut className="w-5 h-5" />
           <span>Exit Admin Panel</span>
@@ -116,7 +116,7 @@ const AdminDashboard: React.FC = () => {
           </div>
           <button
             onClick={loadAgents}
-            className="p-4 bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-2xl text-[#6C757D] hover:text-rosePink transition-all"
+            className="p-4 bg-brand-background dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-2xl text-[#6C757D] hover:text-brand-interactive transition-all"
             title="Refresh"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -135,7 +135,7 @@ const AdminDashboard: React.FC = () => {
             {loading ? (
               <div className="space-y-6">
                 {[1, 2].map(i => (
-                  <div key={i} className="h-64 bg-white dark:bg-[#1A1A1A] rounded-[3rem] animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D]" />
+                  <div key={i} className="h-64 bg-brand-background dark:bg-[#1A1A1A] rounded-[3rem] animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D]" />
                 ))}
               </div>
             ) : pendingAgents.length > 0 ? (
@@ -145,7 +145,7 @@ const AdminDashboard: React.FC = () => {
                   initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="bg-white dark:bg-[#1A1A1A] rounded-[4rem] p-12 shadow-2xl border border-[#E9ECEF] dark:border-[#2D2D2D]"
+                  className="bg-brand-background dark:bg-[#1A1A1A] rounded-[4rem] p-12 shadow-2xl border border-[#E9ECEF] dark:border-[#2D2D2D]"
                 >
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-16">
                     <div>
@@ -153,13 +153,13 @@ const AdminDashboard: React.FC = () => {
                         {agent.image ? (
                           <img src={agent.image} className="w-24 h-24 rounded-[2rem] object-cover shadow-xl" alt="" />
                         ) : (
-                          <div className="w-24 h-24 rounded-[2rem] bg-rosePink/10 text-rosePink flex items-center justify-center font-bold">
+                          <div className="w-24 h-24 rounded-[2rem] bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold">
                             <User className="w-10 h-10" />
                           </div>
                         )}
                         <div>
                           <h3 className="text-3xl font-serif font-bold mb-1">{agent.name}</h3>
-                          <div className="text-rosePink font-black uppercase tracking-widest text-[10px]">{agent.specialty}</div>
+                          <div className="text-brand-interactive font-black uppercase tracking-widest text-[10px]">{agent.specialty}</div>
                           <div className="text-xs text-[#6C757D] mt-1 font-mono">ID: {agent.id.slice(0, 8)}</div>
                         </div>
                       </div>
@@ -172,13 +172,13 @@ const AdminDashboard: React.FC = () => {
                            </div>
                          )}
                          <div className="grid grid-cols-2 gap-6">
-                            <div className="p-6 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                            <div className="p-6 bg-brand-surface dark:bg-[#0D0D0D] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
                                <div className="font-bold mb-1 text-xs text-[#6C757D] uppercase">Experience</div>
-                               <div className="text-rosePink font-black text-xl">{agent.experience} Years</div>
+                               <div className="text-brand-interactive font-black text-xl">{agent.experience} Years</div>
                             </div>
-                            <div className="p-6 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                            <div className="p-6 bg-brand-surface dark:bg-[#0D0D0D] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
                                <div className="font-bold mb-1 text-xs text-[#6C757D] uppercase">Location</div>
-                               <div className="text-rosePink font-black text-xl truncate">{agent.location || 'Nigeria'}</div>
+                               <div className="text-brand-interactive font-black text-xl truncate">{agent.location || 'Nigeria'}</div>
                             </div>
                          </div>
                       </div>
@@ -206,7 +206,7 @@ const AdminDashboard: React.FC = () => {
                         <button 
                           disabled={processingId === agent.id}
                           onClick={() => handleReject(agent.id)}
-                          className="flex-1 py-5 bg-[#F8F9FA] dark:bg-[#0D0D0D] text-red-500 border border-red-500/20 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-3 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                          className="flex-1 py-5 bg-brand-surface dark:bg-[#0D0D0D] text-red-500 border border-red-500/20 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-3 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
                         >
                           <XCircle className="w-5 h-5" />
                           <span>Reject</span>
@@ -217,7 +217,7 @@ const AdminDashboard: React.FC = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="bg-white dark:bg-[#1A1A1A] rounded-[3rem] p-16 text-center border border-[#E9ECEF] dark:border-[#2D2D2D]">
+              <div className="bg-brand-background dark:bg-[#1A1A1A] rounded-[3rem] p-16 text-center border border-[#E9ECEF] dark:border-[#2D2D2D]">
                 <ShieldCheck className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h3 className="text-2xl font-serif font-bold mb-2">No Pending Verifications</h3>
                 <p className="text-[#6C757D]">All registered beauty specialists are verified or handled.</p>
@@ -229,13 +229,13 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'users' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {agents.map(agent => (
-              <div key={agent.id} className="bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] p-8 border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl flex flex-col justify-between">
+              <div key={agent.id} className="bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] p-8 border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center space-x-4 mb-6">
                     {agent.image ? (
                       <img src={agent.image} className="w-16 h-16 rounded-2xl object-cover" alt="" />
                     ) : (
-                      <div className="w-16 h-16 rounded-2xl bg-rosePink/10 text-rosePink flex items-center justify-center font-bold">
+                      <div className="w-16 h-16 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold">
                         <User className="w-8 h-8" />
                       </div>
                     )}
@@ -277,15 +277,15 @@ const AdminDashboard: React.FC = () => {
 
         {activeTab === 'analytics' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-10 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+            <div className="p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
               <div className="text-xs font-black uppercase tracking-widest text-[#6C757D] mb-4">Total Registered Specialists</div>
-              <div className="text-5xl font-black font-serif text-rosePink">{agents.length}</div>
+              <div className="text-5xl font-black font-serif text-brand-interactive">{agents.length}</div>
             </div>
-            <div className="p-10 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+            <div className="p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
               <div className="text-xs font-black uppercase tracking-widest text-[#6C757D] mb-4">Verified Specialists</div>
               <div className="text-5xl font-black font-serif text-green-500">{verifiedAgents.length}</div>
             </div>
-            <div className="p-10 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+            <div className="p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
               <div className="text-xs font-black uppercase tracking-widest text-[#6C757D] mb-4">Pending Review</div>
               <div className="text-5xl font-black font-serif text-orange-500">{pendingAgents.length}</div>
             </div>
@@ -297,7 +297,7 @@ const AdminDashboard: React.FC = () => {
 };
 
 const ChecklistItem: React.FC<{ label: string }> = ({ label }) => (
-  <div className="flex items-center space-x-4 p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-2xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
+  <div className="flex items-center space-x-4 p-4 bg-brand-surface dark:bg-[#0D0D0D] rounded-2xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
     <div className="w-5 h-5 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center flex-shrink-0">
       <CheckCircle className="w-3.5 h-3.5" />
     </div>

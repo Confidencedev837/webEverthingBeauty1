@@ -104,7 +104,7 @@ const ServiceDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="pt-24 pb-24 bg-white dark:bg-[#0D0D0D] min-h-screen">
+      <div className="pt-24 pb-24 bg-brand-background dark:bg-[#0D0D0D] min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-6 bg-gray-200 dark:bg-white/5 rounded w-48 mb-8 animate-pulse" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -124,19 +124,19 @@ const ServiceDetail: React.FC = () => {
 
   if (error || !service) {
     return (
-      <div className="min-h-screen pt-32 text-center bg-white dark:bg-[#0D0D0D] px-4">
-        <div className="max-w-md mx-auto p-8 bg-white dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
-          <AlertCircle className="w-12 h-12 text-rosePink mx-auto mb-4" />
+      <div className="min-h-screen pt-32 text-center bg-brand-background dark:bg-[#0D0D0D] px-4">
+        <div className="max-w-md mx-auto p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+          <AlertCircle className="w-12 h-12 text-brand-interactive mx-auto mb-4" />
           <h2 className="text-2xl font-serif font-bold mb-2">Service not found</h2>
           <p className="text-sm text-[#6C757D] mb-6">This service record could not be found in the database.</p>
           <div className="flex justify-center gap-4">
             <button
               onClick={loadData}
-              className="px-6 py-2.5 bg-rosePink text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+              className="px-6 py-2.5 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider"
             >
               Retry
             </button>
-            <Link to="/services" className="px-6 py-2.5 bg-[#F8F9FA] dark:bg-[#252525] rounded-xl text-xs font-bold uppercase tracking-wider text-[#6C757D]">
+            <Link to="/services" className="px-6 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold uppercase tracking-wider text-[#6C757D]">
               All Services
             </Link>
           </div>
@@ -149,13 +149,13 @@ const ServiceDetail: React.FC = () => {
   const currentMedia = gallery[currentMediaIndex] || gallery[0];
 
   return (
-    <div className="pt-24 pb-24 bg-white dark:bg-[#0D0D0D]">
+    <div className="pt-24 pb-24 bg-brand-background dark:bg-[#0D0D0D]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs */}
         <nav className="flex space-x-2 text-sm text-[#6C757D] mb-8">
-          <Link to="/services" className="hover:text-rosePink">Services</Link>
+          <Link to="/services" className="hover:text-brand-interactive">Services</Link>
           <span>/</span>
-          <span className="text-rosePink font-bold">{service.category}</span>
+          <span className="text-brand-interactive font-bold">{service.category}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -195,9 +195,9 @@ const ServiceDetail: React.FC = () => {
                         alt={service.name}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-rosePink p-6 text-center">
+                      <div className="w-full h-full flex flex-col items-center justify-center text-brand-interactive p-6 text-center">
                         <span className="font-serif font-bold text-2xl text-white mb-2">{service.name}</span>
-                        <span className="text-xs font-black uppercase tracking-widest text-rosePink">{service.category}</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-brand-interactive">{service.category}</span>
                       </div>
                     )}
                   </motion.div>
@@ -208,7 +208,7 @@ const ServiceDetail: React.FC = () => {
                   <button
                     onClick={() => setIsSaved(!isSaved)}
                     className={`p-3 sm:p-4 backdrop-blur-md rounded-full border transition-all ${
-                      isSaved ? 'bg-rosePink border-rosePink text-white' : 'bg-white/80 dark:bg-black/50 border-white/20 text-[#1A1A1A] dark:text-white'
+                      isSaved ? 'bg-brand-interactive border-brand-interactive text-white' : 'bg-white/80 dark:bg-black/50 border-white/20 text-[#1A1A1A] dark:text-white'
                     }`}
                   >
                     <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${isSaved ? 'fill-current' : ''}`} />
@@ -219,7 +219,7 @@ const ServiceDetail: React.FC = () => {
                         navigator.share({ title: service.name, url: window.location.href });
                       }
                     }}
-                    className="p-3 sm:p-4 bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-full border border-white/20 text-[#1A1A1A] dark:text-white hover:text-rosePink"
+                    className="p-3 sm:p-4 bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-full border border-white/20 text-[#1A1A1A] dark:text-white hover:text-brand-interactive"
                   >
                     <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
@@ -255,7 +255,7 @@ const ServiceDetail: React.FC = () => {
                         setIsPlaying(item.type === 'video');
                       }}
                       className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 transition-all ${
-                        currentMediaIndex === idx ? 'border-rosePink ring-2 ring-rosePink/30' : 'border-transparent opacity-70 hover:opacity-100'
+                        currentMediaIndex === idx ? 'border-brand-interactive ring-2 ring-brand-interactive/30' : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
                     >
                       {item.type === 'video' ? (
@@ -308,7 +308,7 @@ const ServiceDetail: React.FC = () => {
                   <h3 className="text-2xl font-serif font-bold mb-6 text-[#1A1A1A] dark:text-white">What's Included</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {service.features.map((item, i) => (
-                      <div key={i} className="flex items-center space-x-4 p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-2xl border border-transparent hover:border-rosePink/20 transition-all">
+                      <div key={i} className="flex items-center space-x-4 p-4 bg-brand-surface dark:bg-[#1A1A1A] rounded-2xl border border-transparent hover:border-brand-interactive/20 transition-all">
                         <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 flex-shrink-0">
                           <Check className="w-4 h-4" />
                         </div>
@@ -325,7 +325,7 @@ const ServiceDetail: React.FC = () => {
                   <h3 className="text-3xl font-serif font-bold text-[#1A1A1A] dark:text-white">Client Reviews</h3>
                   <button 
                     onClick={() => setShowReviewForm(!showReviewForm)}
-                    className="text-rosePink font-bold hover:underline flex items-center gap-1.5"
+                    className="text-brand-interactive font-bold hover:underline flex items-center gap-1.5"
                   >
                     <MessageSquare className="w-4 h-4" />
                     <span>{showReviewForm ? 'Cancel Review' : 'Write a review'}</span>
@@ -347,7 +347,7 @@ const ServiceDetail: React.FC = () => {
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
                       onSubmit={handleReviewSubmit}
-                      className="mb-8 p-6 bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-3xl border border-rosePink/20 space-y-4 overflow-hidden"
+                      className="mb-8 p-6 bg-brand-surface dark:bg-[#1A1A1A] rounded-3xl border border-brand-interactive/20 space-y-4 overflow-hidden"
                     >
                       <div className="flex items-center space-x-3">
                         <span className="text-sm font-bold text-[#1A1A1A] dark:text-white">Your Rating:</span>
@@ -370,13 +370,13 @@ const ServiceDetail: React.FC = () => {
                         placeholder="Share your genuine experience with this service..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        className="w-full p-4 bg-white dark:bg-[#0D0D0D] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-2xl text-sm outline-none focus:border-rosePink transition-all h-24 resize-none text-[#1A1A1A] dark:text-white"
+                        className="w-full p-4 bg-brand-background dark:bg-[#0D0D0D] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-2xl text-sm outline-none focus:border-brand-interactive transition-all h-24 resize-none text-[#1A1A1A] dark:text-white"
                       />
 
                       <button
                         type="submit"
                         disabled={submittingReview}
-                        className="px-6 py-3 bg-rosePink text-white rounded-xl font-bold text-sm flex items-center space-x-2 shadow-lg shadow-rosePink/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                        className="px-6 py-3 bg-brand-interactive text-white rounded-xl font-bold text-sm flex items-center space-x-2 shadow-lg shadow-brand-interactive/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
                       >
                         <Send className="w-4 h-4" />
                         <span>{submittingReview ? 'Submitting...' : 'Post Review'}</span>
@@ -388,10 +388,10 @@ const ServiceDetail: React.FC = () => {
                 <div className="space-y-6">
                   {reviews.length > 0 ? (
                     reviews.map(review => (
-                      <div key={review.id} className="p-8 bg-white dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                      <div key={review.id} className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 rounded-full bg-rosePink/10 flex items-center justify-center text-rosePink font-bold overflow-hidden">
+                            <div className="w-12 h-12 rounded-full bg-brand-interactive/10 flex items-center justify-center text-brand-interactive font-bold overflow-hidden">
                               {review.userAvatar ? (
                                 <img src={review.userAvatar} className="w-full h-full object-cover" alt="" />
                               ) : (
@@ -415,7 +415,7 @@ const ServiceDetail: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="p-10 bg-white dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] text-center text-[#6C757D]">
+                    <div className="p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] text-center text-[#6C757D]">
                       <p className="text-sm">No client reviews yet. Be the first to book and share your feedback!</p>
                     </div>
                   )}
@@ -430,27 +430,27 @@ const ServiceDetail: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="p-8 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl"
+                className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl"
               >
                 <div className="mb-8">
                   <div className="text-[#6C757D] text-sm font-bold uppercase tracking-wider mb-2">Service Price</div>
-                  <div className="text-4xl font-serif font-bold text-rosePink">₦{service.price.toLocaleString()}</div>
+                  <div className="text-4xl font-serif font-bold text-brand-interactive">₦{service.price.toLocaleString()}</div>
                 </div>
 
                 <div className="space-y-4 mb-8">
-                  <div className="flex items-center text-sm p-3 rounded-xl bg-[#F8F9FA] dark:bg-[#252525]">
-                    <Check className="w-4 h-4 text-rosePink mr-3" />
+                  <div className="flex items-center text-sm p-3 rounded-xl bg-brand-surface dark:bg-[#252525]">
+                    <Check className="w-4 h-4 text-brand-interactive mr-3" />
                     <span className="text-[#1A1A1A] dark:text-white">Expert consultation included</span>
                   </div>
-                  <div className="flex items-center text-sm p-3 rounded-xl bg-[#F8F9FA] dark:bg-[#252525]">
-                    <Check className="w-4 h-4 text-rosePink mr-3" />
+                  <div className="flex items-center text-sm p-3 rounded-xl bg-brand-surface dark:bg-[#252525]">
+                    <Check className="w-4 h-4 text-brand-interactive mr-3" />
                     <span className="text-[#1A1A1A] dark:text-white">Direct on-demand scheduling</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setIsBookingOpen(true)}
-                  className="w-full py-5 bg-rosePink text-white rounded-2xl font-bold text-xl hover:bg-[#E57B8D] transition-all transform hover:scale-[1.02] shadow-xl shadow-rosePink/20 mb-4 flex items-center justify-center space-x-3"
+                  className="w-full py-5 bg-brand-interactive text-white rounded-2xl font-bold text-xl hover:bg-brand-interactive/90 transition-all transform hover:scale-[1.02] shadow-xl shadow-brand-interactive/20 mb-4 flex items-center justify-center space-x-3"
                 >
                   <Calendar className="w-6 h-6" />
                   <span>Book Appointment</span>
@@ -463,23 +463,23 @@ const ServiceDetail: React.FC = () => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="p-8 bg-rosePink/5 dark:bg-rosePink/10 rounded-[2.5rem] border border-rosePink/15"
+                  className="p-8 bg-brand-interactive/5 dark:bg-brand-interactive/10 rounded-[2.5rem] border border-brand-interactive/15"
                 >
                   <div className="flex items-center mb-6">
                     {service.agentImage ? (
                       <img src={service.agentImage} className="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-[#1A1A1A] mr-4 shadow-md" alt="" />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-rosePink/10 text-rosePink flex items-center justify-center mr-4 font-bold border-4 border-white dark:border-[#1A1A1A] shadow-md">
+                      <div className="w-16 h-16 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-4 font-bold border-4 border-white dark:border-[#1A1A1A] shadow-md">
                         <User className="w-8 h-8" />
                       </div>
                     )}
                     <div>
                       <div className="text-[#6C757D] text-[10px] font-bold uppercase tracking-widest mb-1">Service by</div>
                       <div className="text-xl font-serif font-bold text-[#1A1A1A] dark:text-white">{service.agentName}</div>
-                      <div className="text-xs text-rosePink font-bold">{service.agentSpecialty}</div>
+                      <div className="text-xs text-brand-interactive font-bold">{service.agentSpecialty}</div>
                     </div>
                   </div>
-                  <Link to={`/agent/${service.agentId}`} className="flex items-center text-rosePink font-bold group">
+                  <Link to={`/agent/${service.agentId}`} className="flex items-center text-brand-interactive font-bold group">
                     View Full Artist Profile <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </motion.div>

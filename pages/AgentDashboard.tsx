@@ -111,17 +111,17 @@ const AgentDashboard: React.FC = () => {
 
   if (authLoading || (!user && !bookings.length)) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0D0D0D] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-rosePink/30 border-t-rosePink rounded-full animate-spin" />
+      <div className="min-h-screen bg-brand-surface dark:bg-[#0D0D0D] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-brand-interactive/30 border-t-brand-interactive rounded-full animate-spin" />
       </div>
     );
   }
 
   if (isPendingVerification && !loading && bookings.length === 0 && services.length === 0) {
     return (
-      <div className="min-h-screen pt-32 pb-24 bg-white dark:bg-[#0D0D0D]">
+      <div className="min-h-screen pt-32 pb-24 bg-brand-background dark:bg-[#0D0D0D]">
         <div className="max-w-4xl mx-auto px-6">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#F8F9FA] dark:bg-[#1A1A1A] p-16 rounded-[4rem] border border-orange-500/20 shadow-2xl text-center">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-brand-surface dark:bg-[#1A1A1A] p-16 rounded-[4rem] border border-orange-500/20 shadow-2xl text-center">
             <div className="w-24 h-24 bg-orange-500/10 text-orange-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 border border-orange-500/20 animate-pulse">
               <Clock className="w-12 h-12" />
             </div>
@@ -132,7 +132,7 @@ const AgentDashboard: React.FC = () => {
             <div className="flex justify-center gap-4">
               <button 
                 onClick={() => setView('overview')}
-                className="px-8 py-4 bg-rosePink text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-rosePink/20 hover:scale-105 transition-all"
+                className="px-8 py-4 bg-brand-interactive text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-interactive/20 hover:scale-105 transition-all"
               >
                 Access Studio
               </button>
@@ -174,7 +174,7 @@ const AgentDashboard: React.FC = () => {
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-3xl font-serif font-bold">Recent Bookings</h2>
                 {bookings.length > 0 && (
-                  <button onClick={() => setView('bookings')} className="text-rosePink font-black text-xs uppercase tracking-widest hover:underline">
+                  <button onClick={() => setView('bookings')} className="text-brand-interactive font-black text-xs uppercase tracking-widest hover:underline">
                     View All ({bookings.length})
                   </button>
                 )}
@@ -189,7 +189,7 @@ const AgentDashboard: React.FC = () => {
                   />
                 ))}
                 {bookings.length === 0 && (
-                  <div className="p-12 text-center text-[#6C757D] bg-white dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                  <div className="p-12 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
                     <Calendar className="w-8 h-8 opacity-40 mx-auto mb-3" />
                     <h4 className="font-bold text-lg mb-1">No Booking Requests Yet</h4>
                     <p className="text-xs">Incoming client reservations will appear here in real time.</p>
@@ -206,7 +206,7 @@ const AgentDashboard: React.FC = () => {
               <h2 className="text-3xl font-serif font-bold">All Appointments ({bookings.length})</h2>
               <button 
                 onClick={loadData} 
-                className="p-3 bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-xl text-[#6C757D] hover:text-rosePink transition-all"
+                className="p-3 bg-brand-background dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-xl text-[#6C757D] hover:text-brand-interactive transition-all"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
@@ -222,7 +222,7 @@ const AgentDashboard: React.FC = () => {
                   />
                 ))
               ) : (
-                <div className="p-16 text-center text-[#6C757D] bg-white dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                <div className="p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
                   <p className="text-sm">No appointment records found.</p>
                 </div>
               )}
@@ -237,23 +237,23 @@ const AgentDashboard: React.FC = () => {
                 <h2 className="text-3xl font-serif font-bold">My Published Services</h2>
                 <p className="text-sm text-[#6C757D]">Active services visible to prospective clients</p>
               </div>
-              <button onClick={() => setIsCreateServiceOpen(true)} className="p-4 bg-rosePink text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center space-x-2 shadow-lg shadow-rosePink/20 hover:scale-105 transition-all">
+              <button onClick={() => setIsCreateServiceOpen(true)} className="p-4 bg-brand-interactive text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center space-x-2 shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all">
                 <Plus className="w-4 h-4" /> <span>Add New Service</span>
               </button>
             </div>
             {services.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {services.map(service => (
-                  <div key={service.id} className="bg-white dark:bg-[#1A1A1A] p-6 rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center gap-6 shadow-xl relative overflow-hidden group">
+                  <div key={service.id} className="bg-brand-background dark:bg-[#1A1A1A] p-6 rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center gap-6 shadow-xl relative overflow-hidden group">
                     {service.image ? (
                       <img src={service.image} className="w-24 h-24 rounded-2xl object-cover" alt={service.name} />
                     ) : (
-                      <div className="w-24 h-24 rounded-2xl bg-rosePink/10 text-rosePink flex items-center justify-center font-bold text-xs text-center p-2">
+                      <div className="w-24 h-24 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold text-xs text-center p-2">
                         {service.category}
                       </div>
                     )}
                     <div className="flex-grow">
-                      <span className="text-[10px] text-rosePink font-black uppercase tracking-widest">{service.category}</span>
+                      <span className="text-[10px] text-brand-interactive font-black uppercase tracking-widest">{service.category}</span>
                       <h4 className="text-xl font-serif font-bold mb-1">{service.name}</h4>
                       <div className="text-green-500 font-black text-lg">₦{service.price.toLocaleString()}</div>
                       <div className="flex gap-4 mt-3">
@@ -267,11 +267,11 @@ const AgentDashboard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="p-16 text-center text-[#6C757D] bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
+              <div className="p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
                 <Briefcase className="w-10 h-10 opacity-40 mx-auto mb-3" />
                 <h4 className="font-bold text-lg mb-1">No Services Published</h4>
                 <p className="text-sm mb-6">Create and publish your beauty offerings to begin receiving customer bookings.</p>
-                <button onClick={() => setIsCreateServiceOpen(true)} className="px-6 py-3 bg-rosePink text-white rounded-xl text-xs font-bold uppercase tracking-wider">
+                <button onClick={() => setIsCreateServiceOpen(true)} className="px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider">
                   Create First Service
                 </button>
               </div>
@@ -300,7 +300,7 @@ const AgentDashboard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="p-16 text-center text-[#6C757D] bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
+              <div className="p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
                 <ImageIcon className="w-10 h-10 opacity-40 mx-auto mb-3" />
                 <h4 className="font-bold text-lg mb-1">No Portfolio Media Uploaded</h4>
                 <p className="text-sm">Upload images or transformation videos to your profile to showcase your talent to clients.</p>
@@ -313,21 +313,21 @@ const AgentDashboard: React.FC = () => {
           <section>
             <h2 className="text-3xl font-serif font-bold mb-8">Performance Metrics</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              <div className="p-8 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+              <div className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Briefcase className="w-6 h-6" /></div>
                 </div>
                 <div className="text-4xl font-black mb-1">{services.length}</div>
                 <div className="text-xs text-[#6C757D] font-bold uppercase tracking-widest">Active Services</div>
               </div>
-              <div className="p-8 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+              <div className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-rosePink/10 flex items-center justify-center text-rosePink"><Clock className="w-6 h-6" /></div>
+                  <div className="w-12 h-12 rounded-2xl bg-brand-interactive/10 flex items-center justify-center text-brand-interactive"><Clock className="w-6 h-6" /></div>
                 </div>
                 <div className="text-4xl font-black mb-1">{pendingBookings.length}</div>
                 <div className="text-xs text-[#6C757D] font-bold uppercase tracking-widest">Pending Requests</div>
               </div>
-              <div className="p-8 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+              <div className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-500"><CheckCircle className="w-6 h-6" /></div>
                 </div>
@@ -337,7 +337,7 @@ const AgentDashboard: React.FC = () => {
             </div>
 
             <h3 className="text-2xl font-serif font-bold mb-6">Service Overview</h3>
-            <div className="bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 overflow-hidden">
+            <div className="bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 overflow-hidden">
               {services.length > 0 ? (
                 <table className="w-full text-left">
                   <thead className="border-b border-gray-100 dark:border-gray-800">
@@ -371,12 +371,12 @@ const AgentDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#0D0D0D] flex pt-20">
+    <div className="min-h-screen bg-brand-surface dark:bg-[#0D0D0D] flex pt-20">
       {/* Mobile Menu Toggle */}
       <div className="lg:hidden fixed top-24 right-6 z-40">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-3 bg-white dark:bg-[#1A1A1A] rounded-full shadow-lg border border-[#E9ECEF] dark:border-[#2D2D2D]"
+          className="p-3 bg-brand-background dark:bg-[#1A1A1A] rounded-full shadow-lg border border-[#E9ECEF] dark:border-[#2D2D2D]"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -391,7 +391,7 @@ const AgentDashboard: React.FC = () => {
             exit={{ x: -300, opacity: 0 }}
             className={`
               fixed lg:sticky top-0 lg:top-20 left-0 h-full lg:h-[calc(100vh-80px)] z-50 lg:z-auto
-              w-80 bg-white dark:bg-[#111] border-r border-[#E9ECEF] dark:border-[#2D2D2D] p-10 
+              w-80 bg-brand-background dark:bg-[#111] border-r border-[#E9ECEF] dark:border-[#2D2D2D] p-10 
               lg:flex flex-col shadow-2xl lg:shadow-none
               ${isMobileMenuOpen ? 'flex' : 'hidden lg:flex'}
             `}
@@ -406,7 +406,7 @@ const AgentDashboard: React.FC = () => {
               {currentUser?.avatar ? (
                 <img src={currentUser.avatar} className="w-14 h-14 rounded-2xl object-cover shadow-lg" alt="" />
               ) : (
-                <div className="w-14 h-14 rounded-2xl bg-rosePink/10 text-rosePink flex items-center justify-center font-bold text-lg shadow-lg">
+                <div className="w-14 h-14 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold text-lg shadow-lg">
                   <User className="w-7 h-7" />
                 </div>
               )}
@@ -429,7 +429,7 @@ const AgentDashboard: React.FC = () => {
 
             <button 
               onClick={handleLogout}
-              className="flex items-center space-x-4 p-5 text-rosePink font-black uppercase tracking-widest text-[10px] hover:bg-rosePink/5 rounded-2xl transition-all mt-auto"
+              className="flex items-center space-x-4 p-5 text-brand-interactive font-black uppercase tracking-widest text-[10px] hover:bg-brand-interactive/5 rounded-2xl transition-all mt-auto"
             >
               <LogOut className="w-5 h-5" />
               <span>Log Out</span>
@@ -446,7 +446,7 @@ const AgentDashboard: React.FC = () => {
           </div>
           <button 
             onClick={loadData}
-            className="p-3 bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-xl text-[#6C757D] hover:text-rosePink transition-all"
+            className="p-3 bg-brand-background dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-xl text-[#6C757D] hover:text-brand-interactive transition-all"
             title="Refresh"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -457,10 +457,10 @@ const AgentDashboard: React.FC = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-32 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D]" />
+                <div key={i} className="h-32 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D]" />
               ))}
             </div>
-            <div className="h-64 bg-white dark:bg-[#1A1A1A] rounded-[2rem] animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D]" />
+            <div className="h-64 bg-brand-background dark:bg-[#1A1A1A] rounded-[2rem] animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D]" />
           </div>
         ) : (
           renderContent()
@@ -471,7 +471,7 @@ const AgentDashboard: React.FC = () => {
           {isCreateServiceOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCreateServiceOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative w-full max-w-lg bg-white dark:bg-[#1A1A1A] rounded-[2rem] p-8 shadow-2xl z-10 border border-white/20">
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative w-full max-w-lg bg-brand-background dark:bg-[#1A1A1A] rounded-[2rem] p-8 shadow-2xl z-10 border border-white/20">
                 <h2 className="text-2xl font-serif font-bold mb-6">Create New Service</h2>
                 <form onSubmit={handleCreateService} className="space-y-4">
                   <input 
@@ -480,7 +480,7 @@ const AgentDashboard: React.FC = () => {
                     value={newServiceName}
                     onChange={e => setNewServiceName(e.target.value)}
                     required
-                    className="w-full p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-rosePink outline-none text-[#1A1A1A] dark:text-white" 
+                    className="w-full p-4 bg-brand-surface dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-brand-interactive outline-none text-[#1A1A1A] dark:text-white" 
                   />
                   <div className="grid grid-cols-2 gap-4">
                     <input 
@@ -489,12 +489,12 @@ const AgentDashboard: React.FC = () => {
                       value={newServicePrice}
                       onChange={e => setNewServicePrice(e.target.value)}
                       required
-                      className="w-full p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-rosePink outline-none text-[#1A1A1A] dark:text-white" 
+                      className="w-full p-4 bg-brand-surface dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-brand-interactive outline-none text-[#1A1A1A] dark:text-white" 
                     />
                     <select
                       value={newServiceCategory}
                       onChange={e => setNewServiceCategory(e.target.value)}
-                      className="w-full p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-rosePink outline-none text-[#1A1A1A] dark:text-white"
+                      className="w-full p-4 bg-brand-surface dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-brand-interactive outline-none text-[#1A1A1A] dark:text-white"
                     >
                       <option value="Makeup">Makeup</option>
                       <option value="Hair">Hair Styling</option>
@@ -509,25 +509,25 @@ const AgentDashboard: React.FC = () => {
                     placeholder="Duration in mins (e.g. 60)" 
                     value={newServiceDuration}
                     onChange={e => setNewServiceDuration(e.target.value)}
-                    className="w-full p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-rosePink outline-none text-[#1A1A1A] dark:text-white" 
+                    className="w-full p-4 bg-brand-surface dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-brand-interactive outline-none text-[#1A1A1A] dark:text-white" 
                   />
                   <input 
                     type="url" 
                     placeholder="Media Image or Video URL (optional)" 
                     value={newServiceImageUrl}
                     onChange={e => setNewServiceImageUrl(e.target.value)}
-                    className="w-full p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-rosePink outline-none text-[#1A1A1A] dark:text-white" 
+                    className="w-full p-4 bg-brand-surface dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-brand-interactive outline-none text-[#1A1A1A] dark:text-white" 
                   />
                   <textarea 
                     placeholder="Detailed Description of the service..." 
                     value={newServiceDescription}
                     onChange={e => setNewServiceDescription(e.target.value)}
-                    className="w-full p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-rosePink outline-none h-28 resize-none text-[#1A1A1A] dark:text-white"
+                    className="w-full p-4 bg-brand-surface dark:bg-[#0D0D0D] rounded-xl border border-transparent focus:border-brand-interactive outline-none h-28 resize-none text-[#1A1A1A] dark:text-white"
                   ></textarea>
                   <button 
                     type="submit" 
                     disabled={isCreatingService}
-                    className="w-full py-4 bg-rosePink text-white rounded-xl font-bold shadow-lg shadow-rosePink/20 hover:scale-105 transition-all flex items-center justify-center disabled:opacity-50"
+                    className="w-full py-4 bg-brand-interactive text-white rounded-xl font-bold shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all flex items-center justify-center disabled:opacity-50"
                   >
                     {isCreatingService ? 'Saving Service...' : 'Publish Service'}
                   </button>
@@ -546,16 +546,16 @@ const AgentDashboard: React.FC = () => {
 const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }> = ({ icon, label, active, onClick }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center space-x-5 p-4 rounded-2xl font-bold transition-all text-left ${active ? 'bg-rosePink text-white shadow-xl shadow-rosePink/30' : 'text-[#6C757D] hover:bg-[#F8F9FA] dark:hover:bg-[#1A1A1A] hover:text-[#1A1A1A] dark:hover:text-white'}`}>
+    className={`w-full flex items-center space-x-5 p-4 rounded-2xl font-bold transition-all text-left ${active ? 'bg-brand-interactive text-white shadow-xl shadow-brand-interactive/30' : 'text-[#6C757D] hover:bg-brand-surface dark:hover:bg-[#1A1A1A] hover:text-[#1A1A1A] dark:hover:text-white'}`}>
     <span className="w-5 h-5">{icon}</span>
     <span className="text-sm">{label}</span>
   </button>
 );
 
 const AgentStatCard: React.FC<{ label: string, value: string, highlight?: boolean, highlightColor?: string }> = ({ label, value, highlight, highlightColor }) => (
-  <div className={`bg-white dark:bg-[#1A1A1A] p-8 rounded-[2.5rem] shadow-xl border ${highlight ? 'border-rosePink shadow-rosePink/10' : 'border-[#E9ECEF] dark:border-[#2D2D2D]'}`}>
+  <div className={`bg-brand-background dark:bg-[#1A1A1A] p-8 rounded-[2.5rem] shadow-xl border ${highlight ? 'border-brand-interactive shadow-brand-interactive/10' : 'border-[#E9ECEF] dark:border-[#2D2D2D]'}`}>
     <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6C757D] mb-4">{label}</div>
-    <div className={`text-3xl md:text-4xl font-serif font-black ${highlightColor ? highlightColor : highlight ? 'text-rosePink' : ''}`}>{value}</div>
+    <div className={`text-3xl md:text-4xl font-serif font-black ${highlightColor ? highlightColor : highlight ? 'text-brand-interactive' : ''}`}>{value}</div>
   </div>
 );
 
@@ -575,11 +575,11 @@ const BookingRequestCard: React.FC<{
   };
 
   return (
-    <div className="bg-white dark:bg-[#1A1A1A] p-6 lg:p-8 rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-lg flex flex-col md:flex-row items-center gap-6 group hover:border-rosePink/30 transition-all">
+    <div className="bg-brand-background dark:bg-[#1A1A1A] p-6 lg:p-8 rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-lg flex flex-col md:flex-row items-center gap-6 group hover:border-brand-interactive/30 transition-all">
       {booking.customerAvatar ? (
         <img src={booking.customerAvatar} className="w-16 h-16 rounded-2xl object-cover" alt="" />
       ) : (
-        <div className="w-16 h-16 rounded-2xl bg-rosePink/10 text-rosePink flex items-center justify-center font-bold">
+        <div className="w-16 h-16 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold">
           <User className="w-8 h-8" />
         </div>
       )}
@@ -588,7 +588,7 @@ const BookingRequestCard: React.FC<{
           <h4 className="font-bold text-lg text-[#1A1A1A] dark:text-white">{booking.customerName}</h4>
           <span className="md:ml-2 text-[10px] bg-gray-100 dark:bg-white/10 px-2 py-1 rounded-lg text-gray-500 font-bold uppercase tracking-wider">#{booking.id.slice(0, 8)}</span>
         </div>
-        <p className="text-sm text-rosePink font-bold mb-2">{booking.serviceName}</p>
+        <p className="text-sm text-brand-interactive font-bold mb-2">{booking.serviceName}</p>
         <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs text-[#6C757D]">
           <span className="flex items-center"><Calendar className="w-3 h-3 mr-1" /> {booking.date || 'Flexible'}</span>
           <span className="flex items-center"><Clock className="w-3 h-3 mr-1" /> {booking.time || 'Flexible'}</span>
@@ -622,7 +622,7 @@ const BookingRequestCard: React.FC<{
           <button 
             disabled={updating}
             onClick={() => handleAction(BookingStatus.COMPLETED)} 
-            className="px-6 py-3 bg-rosePink text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-rosePink/90 transition-colors shadow-lg shadow-rosePink/20 flex items-center"
+            className="px-6 py-3 bg-brand-interactive text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-interactive/90 transition-colors shadow-lg shadow-brand-interactive/20 flex items-center"
           >
             <CheckCircle className="w-4 h-4 mr-2" /> Mark Complete
           </button>

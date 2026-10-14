@@ -8,7 +8,7 @@ import LoadingState from '../components/LoadingState';
 
 export function getInitialsSvg(name: string) {
   const initials = name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'A';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FF3366" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
@@ -96,7 +96,7 @@ const Agents: React.FC = () => {
   };
 
   return (
-    <div className="pt-16 sm:pt-20 md:pt-24 pb-12 sm:pb-16 md:pb-24 min-h-screen bg-[#F8F9FA] dark:bg-[#0D0D0D]">
+    <div className="pt-16 sm:pt-20 md:pt-24 pb-12 sm:pb-16 md:pb-24 min-h-screen bg-brand-surface dark:bg-[#0D0D0D]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
         <header className="mb-8 sm:mb-12 md:mb-16 text-center lg:text-left flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-10 md:gap-12">
@@ -104,7 +104,7 @@ const Agents: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center px-4 py-2 bg-rosePink/10 text-rosePink rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-sm"
+              className="inline-flex items-center px-4 py-2 bg-brand-interactive/10 text-brand-interactive rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-6 shadow-sm"
             >
               <Users className="w-4 h-4 mr-2" /> Elite Professionals
             </motion.div>
@@ -113,7 +113,7 @@ const Agents: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-4 sm:mb-6 leading-tight text-[#1A1A1A] dark:text-white"
             >
-              Meet Verified <span className="text-rosePink italic">Beauty</span> Specialists
+              Meet Verified <span className="text-brand-interactive italic">Beauty</span> Specialists
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, x: -30 }}
@@ -132,11 +132,11 @@ const Agents: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 w-full lg:w-auto"
           >
-            <div className="p-4 sm:p-6 md:p-8 bg-white dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-lg sm:shadow-xl border border-transparent hover:border-rosePink/20 transition-all text-center">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-serif font-black text-rosePink mb-1 sm:mb-2">{agents.length}</div>
+            <div className="p-4 sm:p-6 md:p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-lg sm:shadow-xl border border-transparent hover:border-brand-interactive/20 transition-all text-center">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-serif font-black text-brand-interactive mb-1 sm:mb-2">{agents.length}</div>
               <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[#6C757D]">Active Artists</div>
             </div>
-            <div className="p-4 sm:p-6 md:p-8 bg-rosePink text-white rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-lg sm:shadow-xl shadow-rosePink/20 transition-all text-center">
+            <div className="p-4 sm:p-6 md:p-8 bg-brand-interactive text-white rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-lg sm:shadow-xl shadow-brand-interactive/20 transition-all text-center">
               <div className="text-2xl sm:text-3xl md:text-4xl font-serif font-black mb-1 sm:mb-2">
                 {averageRating > 0 ? `${averageRating} ★` : 'Top Rated'}
               </div>
@@ -148,11 +148,11 @@ const Agents: React.FC = () => {
 
 
         {/* Search & Filter Bar */}
-        <section className="mb-8 sm:mb-12 md:mb-16 bg-[#F8F9FA] dark:bg-[#0D0D0D] pb-4">
+        <section className="mb-8 sm:mb-12 md:mb-16 bg-brand-surface dark:bg-[#0D0D0D] pb-4">
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
             {/* Search Bar */}
             <div className="relative group">
-              <Search className="absolute left-3 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-[#6C757D] group-focus-within:text-rosePink transition-colors" />
+              <Search className="absolute left-3 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-[#6C757D] group-focus-within:text-brand-interactive transition-colors" />
               <input
                 type="text"
                 placeholder="Search beauty specialists by name, specialty, location..."
@@ -161,22 +161,22 @@ const Agents: React.FC = () => {
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 sm:pl-12 md:pl-14 pr-3 sm:pr-4 py-3 sm:py-3.5 bg-white dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-xl md:rounded-2xl outline-none transition-all shadow-lg text-sm md:text-base font-medium text-[#1A1A1A] dark:text-white"
+                className="w-full pl-10 sm:pl-12 md:pl-14 pr-3 sm:pr-4 py-3 sm:py-3.5 bg-brand-background dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-xl md:rounded-2xl outline-none transition-all shadow-lg text-sm md:text-base font-medium text-[#1A1A1A] dark:text-white"
               />
             </div>
 
             {/* Sort & Filter Controls */}
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center space-x-3 bg-white dark:bg-[#1A1A1A] px-4 py-2 rounded-full shadow-md border border-rosePink/20">
-                <div className="bg-rosePink/10 p-1.5 rounded-full">
-                  <MapPin className="w-4 h-4 text-rosePink" />
+              <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2 rounded-full shadow-md border border-brand-interactive/20">
+                <div className="bg-brand-interactive/10 p-1.5 rounded-full">
+                  <MapPin className="w-4 h-4 text-brand-interactive" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] uppercase font-black text-[#6C757D] tracking-widest leading-none mb-0.5">Filter & Sort</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-rosePink transition-colors appearance-none pr-4"
+                    className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
                   >
                     <option value="relevance">Relevance</option>
                     <option value="rating">Highest Rated</option>
@@ -186,7 +186,7 @@ const Agents: React.FC = () => {
               </div>
 
               <div className="text-xs text-[#6C757D] font-bold">
-                Showing <span className="text-rosePink font-black">{filteredAgents.length}</span> artists
+                Showing <span className="text-brand-interactive font-black">{filteredAgents.length}</span> artists
               </div>
             </div>
 
@@ -203,8 +203,8 @@ const Agents: React.FC = () => {
                       }}
                       className={`px-3 sm:px-5 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-sm font-black transition-all whitespace-nowrap ${
                         selectedSpecialty.toLowerCase() === spec.toLowerCase() 
-                          ? 'bg-rosePink text-white shadow-lg' 
-                          : 'text-[#6C757D] hover:text-rosePink'
+                          ? 'bg-brand-interactive text-white shadow-lg' 
+                          : 'text-[#6C757D] hover:text-brand-interactive'
                       }`}
                     >
                       {spec}
@@ -231,10 +231,10 @@ const Agents: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                   viewport={{ once: true }}
-                  className="group relative bg-white dark:bg-[#1A1A1A] rounded-3xl md:rounded-[3rem] overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rosePink transition-all duration-500 shadow-lg sm:shadow-xl hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between"
+                  className="group relative bg-brand-background dark:bg-[#1A1A1A] rounded-3xl md:rounded-[3rem] overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all duration-500 shadow-lg sm:shadow-xl hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between"
                 >
                   {/* Banner Area */}
-                  <div className="relative h-32 sm:h-40 overflow-hidden bg-gradient-to-r from-rosePink/20 via-rosePink/10 to-transparent">
+                  <div className="relative h-32 sm:h-40 overflow-hidden bg-gradient-to-r from-brand-interactive/20 via-brand-interactive/10 to-transparent">
                     {agent.banner && agent.banner.trim() !== '' && (
                       <img src={agent.banner} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     )}
@@ -258,8 +258,8 @@ const Agents: React.FC = () => {
                         )}
                       </div>
 
-                      <h3 className="text-2xl md:text-3xl font-serif font-bold mb-1 group-hover:text-rosePink transition-colors text-[#1A1A1A] dark:text-white line-clamp-1">{agent.name}</h3>
-                      <div className="text-rosePink font-black uppercase tracking-[0.15em] text-[10px] sm:text-[11px] mb-3 flex items-center justify-center">
+                      <h3 className="text-2xl md:text-3xl font-serif font-bold mb-1 group-hover:text-brand-interactive transition-colors text-[#1A1A1A] dark:text-white line-clamp-1">{agent.name}</h3>
+                      <div className="text-brand-interactive font-black uppercase tracking-[0.15em] text-[10px] sm:text-[11px] mb-3 flex items-center justify-center">
                         <span className="text-[#6C757D] mr-1">Spec:</span> {agent.specialty}
                       </div>
                       
@@ -291,7 +291,7 @@ const Agents: React.FC = () => {
 
                     <Link
                       to={`/agent/${agent.id}`}
-                      className="w-full py-3.5 md:py-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white rounded-2xl font-black text-xs hover:bg-rosePink hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-inner mt-auto"
+                      className="w-full py-3.5 md:py-4 bg-brand-surface dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white rounded-2xl font-black text-xs hover:bg-brand-interactive hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-inner mt-auto"
                     >
                       <span>View Artist Profile</span>
                       <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
@@ -300,8 +300,8 @@ const Agents: React.FC = () => {
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-white dark:bg-[#1A1A1A] rounded-3xl md:rounded-[4rem] border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 shadow-lg">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-rosePink/10 rounded-full flex items-center justify-center mx-auto mb-6 text-rosePink">
+              <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-brand-background dark:bg-[#1A1A1A] rounded-3xl md:rounded-[4rem] border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 shadow-lg">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-brand-interactive/10 rounded-full flex items-center justify-center mx-auto mb-6 text-brand-interactive">
                   <Search className="w-8 h-8 sm:w-10 sm:h-10" />
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold mb-2">No beauty specialists found</h3>
@@ -313,7 +313,7 @@ const Agents: React.FC = () => {
                 {agents.length > 0 && (
                   <button
                     onClick={() => { setSearch(''); setSelectedSpecialty('All'); }}
-                    className="px-6 py-3 bg-rosePink text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-rosePink/20 hover:scale-105 transition-all"
+                    className="px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all"
                   >
                     Reset Filters
                   </button>
@@ -324,7 +324,7 @@ const Agents: React.FC = () => {
         )}
 
         {/* Join CTA for Agents */}
-        <section className="mt-16 sm:mt-24 md:mt-32 p-6 sm:p-10 md:p-16 lg:p-24 bg-rosePink rounded-[3rem] md:rounded-[4rem] lg:rounded-[5rem] text-white relative overflow-hidden shadow-xl shadow-rosePink/30">
+        <section className="mt-16 sm:mt-24 md:mt-32 p-6 sm:p-10 md:p-16 lg:p-24 bg-brand-interactive rounded-[3rem] md:rounded-[4rem] lg:rounded-[5rem] text-white relative overflow-hidden shadow-xl shadow-brand-interactive/30">
           <div className="absolute top-0 right-0 w-1/2 h-full bg-white/10 -skew-x-12 translate-x-32 hidden md:block" />
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 sm:gap-12 md:gap-16">
             <div>
@@ -335,7 +335,7 @@ const Agents: React.FC = () => {
               <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-white/80 mb-6 sm:mb-8 md:mb-12 font-medium leading-relaxed">
                 Join our vetted community and receive bookings from high-end clientele nationwide with zero hassle.
               </p>
-              <Link to="/auth" className="inline-flex items-center px-6 sm:px-8 md:px-10 lg:px-12 py-3 sm:py-4 md:py-5 lg:py-6 bg-white text-rosePink rounded-2xl md:rounded-[2rem] font-black text-sm sm:text-base md:text-lg lg:text-xl hover:bg-[#F8F9FA] transition-all transform hover:scale-105 shadow-xl">
+              <Link to="/auth" className="inline-flex items-center px-6 sm:px-8 md:px-10 lg:px-12 py-3 sm:py-4 md:py-5 lg:py-6 bg-brand-background text-brand-interactive rounded-2xl md:rounded-[2rem] font-black text-sm sm:text-base md:text-lg lg:text-xl hover:bg-brand-surface transition-all transform hover:scale-105 shadow-xl">
                 Become a Partner <Sparkles className="ml-2 sm:ml-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </Link>
             </div>
@@ -343,8 +343,8 @@ const Agents: React.FC = () => {
               <div className="relative w-80 h-80">
                 <div className="absolute inset-0 bg-white/10 rounded-full animate-ping" />
                 <div className="absolute inset-4 bg-white/20 rounded-full animate-pulse" />
-                <div className="absolute inset-12 bg-white rounded-full flex items-center justify-center shadow-2xl">
-                  <Sparkles className="w-24 h-24 text-rosePink" />
+                <div className="absolute inset-12 bg-brand-background rounded-full flex items-center justify-center shadow-2xl">
+                  <Sparkles className="w-24 h-24 text-brand-interactive" />
                 </div>
               </div>
             </div>
@@ -360,7 +360,7 @@ const Agents: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-4 bg-rosePink text-white rounded-full shadow-[0_10px_20px_rgba(255,138,157,0.4)] hover:bg-[#E57B8D] transition-all transform hover:-translate-y-1"
+            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-full shadow-[0_10px_20px_rgba(108,53,166,0.4)] hover:bg-brand-interactive/90 transition-all transform hover:-translate-y-1"
           >
             <ArrowUp className="w-6 h-6" />
           </motion.button>

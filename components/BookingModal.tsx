@@ -77,7 +77,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-white dark:bg-[#161616] rounded-3xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10"
+            className="relative w-full max-w-lg bg-brand-background dark:bg-[#161616] rounded-3xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10"
           >
             <div className="p-6 overflow-y-auto max-h-[90vh]">
               <div className="flex justify-between items-center mb-6">
@@ -97,12 +97,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
               {!isSuccess ? (
                 <form onSubmit={handleConfirm} className="space-y-6">
                   {/* Service Summary */}
-                  <div className="flex items-center p-4 bg-[#F8F9FA] dark:bg-white/5 rounded-2xl border border-[#E9ECEF] dark:border-white/10">
+                  <div className="flex items-center p-4 bg-brand-surface dark:bg-white/5 rounded-2xl border border-[#E9ECEF] dark:border-white/10">
                     <img src={service.image} className="w-16 h-16 rounded-xl object-cover mr-4 shadow-sm" alt="" />
                     <div>
                       <h4 className="font-serif font-bold text-base text-[#1A1A1A] dark:text-white">{service.name}</h4>
                       <p className="text-xs text-[#6C757D] font-medium">with {service.agentName}</p>
-                      <p className="text-sm font-bold text-rosePink mt-0.5">₦{service.price.toLocaleString()}</p>
+                      <p className="text-sm font-bold text-brand-interactive mt-0.5">₦{service.price.toLocaleString()}</p>
                     </div>
                   </div>
 
@@ -110,25 +110,25 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
-                        <CalendarIcon className="w-3.5 h-3.5 mr-1 text-rosePink" /> DATE
+                        <CalendarIcon className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> DATE
                       </label>
                       <input 
                         type="date" 
                         required 
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
-                        className="w-full p-3 bg-[#F8F9FA] dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm outline-none focus:border-rosePink transition-all text-[#1A1A1A] dark:text-white" 
+                        className="w-full p-3 bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm outline-none focus:border-brand-interactive transition-all text-[#1A1A1A] dark:text-white" 
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
-                        <Clock className="w-3.5 h-3.5 mr-1 text-rosePink" /> TIME
+                        <Clock className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> TIME
                       </label>
                       <select 
                         required 
                         value={time}
                         onChange={(e) => setTime(e.target.value)}
-                        className="w-full p-3 bg-[#F8F9FA] dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm outline-none focus:border-rosePink transition-all text-[#1A1A1A] dark:text-white"
+                        className="w-full p-3 bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm outline-none focus:border-brand-interactive transition-all text-[#1A1A1A] dark:text-white"
                       >
                         <option value="9:00 AM">9:00 AM</option>
                         <option value="11:00 AM">11:00 AM</option>
@@ -143,7 +143,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                   {/* Location */}
                   <div className="space-y-2">
                     <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
-                      <MapPin className="w-3.5 h-3.5 mr-1 text-rosePink" /> CLIENT ADDRESS
+                      <MapPin className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> CLIENT ADDRESS
                     </label>
                     <input 
                       type="text" 
@@ -151,38 +151,38 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                       required 
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full p-3 bg-[#F8F9FA] dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm outline-none focus:border-rosePink transition-all text-[#1A1A1A] dark:text-white" 
+                      className="w-full p-3 bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm outline-none focus:border-brand-interactive transition-all text-[#1A1A1A] dark:text-white" 
                     />
                   </div>
 
                   {/* Requests */}
                   <div className="space-y-2">
                     <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
-                      <MessageSquare className="w-3.5 h-3.5 mr-1 text-rosePink" /> NOTES & PREFERENCES
+                      <MessageSquare className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> NOTES & PREFERENCES
                     </label>
                     <textarea 
                       placeholder="Skin allergies, hair texture, preferred styles, gate code..." 
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full p-3 bg-[#F8F9FA] dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm h-20 resize-none outline-none focus:border-rosePink transition-all text-[#1A1A1A] dark:text-white"
+                      className="w-full p-3 bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm h-20 resize-none outline-none focus:border-brand-interactive transition-all text-[#1A1A1A] dark:text-white"
                     />
                   </div>
 
                   {/* Pricing Summary */}
-                  <div className="p-4 bg-rosePink/5 rounded-2xl border border-rosePink/10 space-y-2">
+                  <div className="p-4 bg-brand-interactive/5 rounded-2xl border border-brand-interactive/10 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-[#6C757D]">Base Service</span>
                       <span className="font-bold">₦{service.price.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-[#6C757D] flex items-center">
-                        Travel & Sanitation <Info className="w-3 h-3 ml-1 text-rosePink" />
+                        Travel & Sanitation <Info className="w-3 h-3 ml-1 text-brand-interactive" />
                       </span>
                       <span className="font-bold">₦{travelFee.toLocaleString()}</span>
                     </div>
-                    <div className="pt-2 border-t border-rosePink/20 flex justify-between font-bold text-base">
+                    <div className="pt-2 border-t border-brand-interactive/20 flex justify-between font-bold text-base">
                       <span>Total Amount</span>
-                      <span className="text-rosePink font-black">₦{totalAmount.toLocaleString()}</span>
+                      <span className="text-brand-interactive font-black">₦{totalAmount.toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -197,7 +197,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                     <button 
                       type="submit" 
                       disabled={isLoading}
-                      className="flex-[2] py-3.5 bg-rosePink text-white rounded-xl font-bold flex items-center justify-center space-x-2 shadow-lg shadow-rosePink/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                      className="flex-[2] py-3.5 bg-brand-interactive text-white rounded-xl font-bold flex items-center justify-center space-x-2 shadow-lg shadow-brand-interactive/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                     >
                       {isLoading ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

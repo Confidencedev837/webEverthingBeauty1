@@ -11,8 +11,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --rose-pink: #FF8A9D;
-            --blush-pink: #FFE6EA;
+            --color-brand-primary: #32104D;     /* Deep Plum */
+            --color-brand-interactive: #6C35A6; /* Royal Violet */
+            --color-brand-accent: #A78BCE;      /* Soft Lavender */
+            --color-brand-surface: #F3EDF8;     /* Lavender Mist */
+            --color-brand-background: #FDFBFF;  /* Pearl White */
+        }
+        /* Royal Violet text on dark surfaces lacks contrast; use Soft Lavender there */
+        .dark .text-brand-interactive {
+            color: var(--color-brand-accent);
+        }
+        :focus-visible {
+            outline: 2px solid var(--color-brand-interactive);
+            outline-offset: 2px;
+        }
+        .dark :focus-visible {
+            outline-color: var(--color-brand-accent);
         }
         body {
             font-family: 'Montserrat', sans-serif;
@@ -33,7 +47,7 @@
             background: #1a1a1a;
         }
         ::-webkit-scrollbar-thumb {
-            background: var(--rose-pink);
+            background: var(--color-brand-interactive);
             border-radius: 4px;
         }
         /* .glass {
@@ -63,8 +77,11 @@
             theme: {
                 extend: {
                     colors: {
-                        rosePink: '#FF8A9D',
-                        blushPink: '#FFE6EA',
+                        'brand-primary': '#32104D',
+                        'brand-interactive': '#6C35A6',
+                        'brand-accent': '#A78BCE',
+                        'brand-surface': '#F3EDF8',
+                        'brand-background': '#FDFBFF',
                     },
                     fontFamily: {
                         sans: ['Montserrat', 'sans-serif'],
@@ -88,7 +105,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-white text-[#1A1A1A] dark:bg-[#0D0D0D] dark:text-white overflow-x-hidden">
+<body class="bg-brand-background text-[#1A1A1A] dark:bg-[#0D0D0D] dark:text-white overflow-x-hidden">
     <div id="root"></div>
 <script type="module" src="/index.tsx"></script>
 </body>

@@ -13,7 +13,7 @@ const About: React.FC = () => {
   };
 
   return (
-    <div className="pt-16 sm:pt-20 md:pt-24 bg-white dark:bg-[#0D0D0D]">
+    <div className="pt-16 sm:pt-20 md:pt-24 bg-brand-background dark:bg-[#0D0D0D]">
       {/* Hero */}
       <section className="relative min-h-[60vh] sm:h-[55vh] md:h-[60vh] flex items-center justify-center text-center overflow-hidden py-12 sm:py-0">
         <div className="absolute inset-0 z-0 scale-110">
@@ -24,7 +24,7 @@ const About: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-block text-rosePink text-[10px] font-black uppercase tracking-[0.35em] mb-4 sm:mb-6 drop-shadow-[0_0_12px_rgba(255,51,102,0.6)]"
+            className="inline-block text-brand-interactive text-[10px] font-black uppercase tracking-[0.35em] mb-4 sm:mb-6 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]"
           >
             <span className="flex items-center space-x-2">
               <Sparkles className="w-4 h-4" />
@@ -37,7 +37,7 @@ const About: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="text-5xl md:text-7xl font-serif font-bold mb-4 sm:mb-6 md:mb-8 leading-tight text-[#1A1A1A] dark:text-white"
           >
-            Why <span className="text-rosePink italic">Everything Beauty?</span>
+            Why <span className="text-brand-interactive italic">Everything Beauty?</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 30 }}
@@ -51,11 +51,11 @@ const About: React.FC = () => {
       </section>
 
       {/* Our Story */}
-      <section className="py-12 sm:py-16 md:py-24 bg-[#F8F9FA] dark:bg-[#1A1A1A]">
+      <section className="py-12 sm:py-16 md:py-24 bg-brand-surface dark:bg-[#1A1A1A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 lg:gap-20 items-center">
             <motion.div {...fadeInUp} className="relative">
-              <div className="absolute -top-10 -left-10 w-40 h-40 bg-rosePink/10 rounded-full blur-3xl animate-pulse hidden sm:block" />
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-brand-interactive/10 rounded-full blur-3xl animate-pulse hidden sm:block" />
               <img src="https://picsum.photos/seed/story/800/800" className="relative rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-xl sm:shadow-2xl z-10" alt="Founder team" />
             </motion.div>
             <div>
@@ -79,8 +79,8 @@ const About: React.FC = () => {
       {/* Mission & Vision */}
       <section className="py-12 sm:py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
-          <motion.div {...fadeInUp} className="p-6 sm:p-8 md:p-12 bg-white dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[3rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-lg sm:shadow-xl text-center">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 md:mb-8">
+          <motion.div {...fadeInUp} className="p-6 sm:p-8 md:p-12 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[3rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-lg sm:shadow-xl text-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 md:mb-8">
               <Target className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
             </div>
             <h3 className="text-3xl font-serif font-bold mb-6">Our Mission</h3>
@@ -88,7 +88,7 @@ const About: React.FC = () => {
               To revolutionize beauty service delivery through cutting-edge technology, community empowerment, and an unwavering commitment to trust.
             </p>
           </motion.div>
-          <motion.div {...fadeInUp} transition={{ delay: 0.2 }} className="p-6 sm:p-8 md:p-12 bg-rosePink text-white rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-lg sm:shadow-xl shadow-rosePink/20 text-center">
+          <motion.div {...fadeInUp} transition={{ delay: 0.2 }} className="p-6 sm:p-8 md:p-12 bg-brand-interactive text-white rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-lg sm:shadow-xl shadow-brand-interactive/20 text-center">
             <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/20 text-white rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-4 sm:mb-6 md:mb-8">
               <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
             </div>
@@ -101,10 +101,10 @@ const About: React.FC = () => {
       </section>
 
       {/* Values */}
-      <section className="py-12 sm:py-16 md:py-24 bg-[#F8F9FA] dark:bg-[#1A1A1A]">
+      <section className="py-12 sm:py-16 md:py-24 bg-brand-surface dark:bg-[#1A1A1A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8 sm:mb-12 md:mb-16">
           <motion.h2 {...fadeInUp} className="text-4xl md:text-5xl font-serif font-bold mb-4">Our Core Values</motion.h2>
-          <div className="w-24 h-1 bg-rosePink mx-auto mb-8 rounded-full" />
+          <div className="w-24 h-1 bg-brand-interactive mx-auto mb-8 rounded-full" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {[
@@ -119,9 +119,9 @@ const About: React.FC = () => {
               key={i}
               {...fadeInUp}
               transition={{ delay: i * 0.1 }}
-              className="p-6 sm:p-8 md:p-10 bg-white dark:bg-[#252525] rounded-xl sm:rounded-2xl md:rounded-[2rem] border border-transparent hover:border-rosePink/20 transition-all text-center group shadow-sm"
+              className="p-6 sm:p-8 md:p-10 bg-brand-background dark:bg-[#252525] rounded-xl sm:rounded-2xl md:rounded-[2rem] border border-transparent hover:border-brand-interactive/20 transition-all text-center group shadow-sm"
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#F8F9FA] dark:bg-[#1A1A1A] text-rosePink rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 group-hover:bg-rosePink group-hover:text-white transition-all">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-surface dark:bg-[#1A1A1A] text-brand-interactive rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 group-hover:bg-brand-interactive group-hover:text-white transition-all">
                 {val.icon}
               </div>
               <h4 className="text-xl font-bold mb-2">{val.title}</h4>
@@ -135,13 +135,13 @@ const About: React.FC = () => {
       <section className="py-12 sm:py-16 md:py-24 text-center">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <motion.div {...fadeInUp} className="flex flex-col items-center">
-            <MapPin className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-rosePink mb-4 sm:mb-6 md:mb-8" />
+            <MapPin className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-brand-interactive mb-4 sm:mb-6 md:mb-8" />
             <h2 className="text-4xl font-serif font-bold mb-6">Expanding Nationwide</h2>
             <p className="text-lg text-[#6C757D] dark:text-[#B0B0B0] leading-relaxed mb-12">
               Currently serving major hubs including Lagos, Abuja, and Port Harcourt. We are rapidly expanding to bring Everything Beauty to your doorstep, wherever you are in Nigeria.
             </p>
             <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-              <Link to="/auth" className="px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 bg-rosePink text-white rounded-full font-bold text-lg hover:bg-[#E57B8D] transition-all shadow-lg sm:shadow-xl shadow-rosePink/20">
+              <Link to="/auth" className="px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 bg-brand-interactive text-white rounded-full font-bold text-lg hover:bg-brand-interactive/90 transition-all shadow-lg sm:shadow-xl shadow-brand-interactive/20">
                 Join our Mission
               </Link>
             </div>

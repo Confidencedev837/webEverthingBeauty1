@@ -42,12 +42,12 @@ const StatBlock: React.FC<StatBlockProps> = ({ number, label, suffix = '', micro
   return (
     <div 
       ref={ref} 
-      className="flex flex-col items-center text-center p-8 bg-white dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-rosePink/30 transition-all duration-500 hover:scale-105 shadow-xl hover:shadow-[0_0_40px_rgba(255,138,157,0.4)] dark:hover:shadow-[0_0_50px_rgba(255,138,157,0.25)] group"
+      className="flex flex-col items-center text-center p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-brand-interactive/30 transition-all duration-500 hover:scale-105 shadow-xl hover:shadow-[0_0_40px_rgba(108,53,166,0.4)] dark:hover:shadow-[0_0_50px_rgba(108,53,166,0.25)] group"
     >
-      <div className="text-rosePink mb-6 w-14 h-14 flex items-center justify-center bg-blushPink dark:bg-rosePink/10 rounded-2xl group-hover:rotate-12 transition-transform duration-300 shadow-[0_0_15px_rgba(255,138,157,0.3)]">
+      <div className="text-brand-interactive mb-6 w-14 h-14 flex items-center justify-center bg-brand-surface dark:bg-brand-interactive/10 rounded-2xl group-hover:rotate-12 transition-transform duration-300 shadow-[0_0_15px_rgba(108,53,166,0.3)]">
         {icon}
       </div>
-      <motion.h3 className="text-4xl md:text-5xl font-bold text-rosePink mb-2 tracking-tight drop-shadow-[0_0_10px_rgba(255,138,157,0.3)]">
+      <motion.h3 className="text-4xl md:text-5xl font-bold text-brand-interactive mb-2 tracking-tight drop-shadow-[0_0_10px_rgba(108,53,166,0.3)]">
         <motion.span>{displayValue}</motion.span>
       </motion.h3>
       <p className="text-lg font-bold text-[#1A1A1A] dark:text-white mb-4 uppercase tracking-widest text-[10px]">

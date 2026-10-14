@@ -28,7 +28,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
       viewport={{ once: true }}
-      className="group bg-white dark:bg-[#1A1A1A] rounded-3xl overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rosePink transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-2 flex flex-col h-full"
+      className="group bg-brand-background dark:bg-[#1A1A1A] rounded-3xl overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-2 flex flex-col h-full"
     >
       <Link to={`/services/${service.id}`} className="relative h-56 overflow-hidden block bg-gray-950">
         {hasVideo && videoSrc && !videoError ? (
@@ -44,7 +44,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
             />
             {/* Video Indicator Badge */}
             <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur-md rounded-lg text-white text-[10px] font-black uppercase tracking-wider flex items-center space-x-1.5 shadow-md">
-              <VideoIcon className="w-3 h-3 text-rosePink animate-pulse" />
+              <VideoIcon className="w-3 h-3 text-brand-interactive animate-pulse" />
               <span>Video</span>
             </div>
           </div>
@@ -56,20 +56,20 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
             alt={service.name} 
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-rosePink/20 via-black to-black text-rosePink p-6 text-center">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand-interactive/20 via-black to-black text-brand-interactive p-6 text-center">
             <span className="font-serif font-bold text-lg text-white mb-1">{service.name}</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-rosePink/80">{service.category}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-brand-interactive/80">{service.category}</span>
           </div>
         )}
 
-        <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md rounded-full text-[10px] font-bold tracking-wider uppercase text-rosePink shadow-sm">
+        <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md rounded-full text-[10px] font-bold tracking-wider uppercase text-brand-interactive shadow-sm">
           {service.category}
         </div>
       </Link>
       
       <div className="p-6 flex flex-col flex-grow">
         <Link to={`/services/${service.id}`}>
-          <h3 className="text-xl font-serif font-bold mb-2 group-hover:text-rosePink transition-colors line-clamp-1">{service.name}</h3>
+          <h3 className="text-xl font-serif font-bold mb-2 group-hover:text-brand-interactive transition-colors line-clamp-1">{service.name}</h3>
         </Link>
         <p className="text-sm text-[#6C757D] dark:text-[#B0B0B0] line-clamp-2 mb-4">
           {service.description || 'Professional on-demand beauty treatment.'}
@@ -85,19 +85,19 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
               <span className="text-[#6C757D]">({service.reviewCount})</span>
             )}
           </div>
-          <div className="text-lg font-bold text-rosePink">
+          <div className="text-lg font-bold text-brand-interactive">
             ₦{service.price.toLocaleString()}
           </div>
         </div>
 
         <Link 
           to={`/agent/${service.agentId}`}
-          className="flex items-center p-3 rounded-2xl bg-[#F8F9FA] dark:bg-[#252525] border border-transparent hover:border-rosePink/20 transition-all group/agent"
+          className="flex items-center p-3 rounded-2xl bg-brand-surface dark:bg-[#252525] border border-transparent hover:border-brand-interactive/20 transition-all group/agent"
         >
           {service.agentImage ? (
             <img src={service.agentImage} className="w-10 h-10 rounded-full object-cover mr-3 border-2 border-white dark:border-[#1A1A1A]" alt={service.agentName} />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-rosePink/10 text-rosePink flex items-center justify-center mr-3 font-bold text-xs border border-rosePink/20">
+            <div className="w-10 h-10 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-3 font-bold text-xs border border-brand-interactive/20">
               <User className="w-4 h-4" />
             </div>
           )}
@@ -105,12 +105,12 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
             <div className="text-xs font-bold text-[#1A1A1A] dark:text-white truncate max-w-[130px]">{service.agentName}</div>
             <div className="text-[10px] text-[#6C757D] dark:text-[#B0B0B0] truncate max-w-[130px]">{service.agentSpecialty}</div>
           </div>
-          <ChevronRight className="w-4 h-4 text-[#6C757D] group-hover/agent:text-rosePink transition-colors" />
+          <ChevronRight className="w-4 h-4 text-[#6C757D] group-hover/agent:text-brand-interactive transition-colors" />
         </Link>
 
         <Link 
           to={`/services/${service.id}?book=true`}
-          className="mt-4 w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-rosePink dark:hover:bg-rosePink dark:hover:text-white transition-colors"
+          className="mt-4 w-full py-3 bg-black dark:bg-brand-background text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-brand-interactive dark:hover:bg-brand-interactive dark:hover:text-white transition-colors"
         >
           Book Now
         </Link>

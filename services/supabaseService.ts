@@ -1,10 +1,10 @@
 import { supabase } from '../lib/supabase';
-import { 
-  Service, 
-  Agent, 
-  Booking, 
-  Review, 
-  BookingStatus, 
+import {
+  Service,
+  Agent,
+  Booking,
+  Review,
+  BookingStatus,
   VerificationStatus,
   ServiceGalleryItem
 } from '../types';
@@ -101,8 +101,8 @@ export async function getServices(): Promise<{ data: Service[]; error?: string }
 
     const formattedServices: Service[] = dbServices.map((s: any) => {
       const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
-      const images: string[] = Array.isArray(s.image_url) 
-        ? s.image_url.filter(Boolean) 
+      const images: string[] = Array.isArray(s.image_url)
+        ? s.image_url.filter(Boolean)
         : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
 
       const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
@@ -196,8 +196,8 @@ export async function getServiceById(id: string): Promise<{ data: Service | null
     }
 
     const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
-    const images: string[] = Array.isArray(s.image_url) 
-      ? s.image_url.filter(Boolean) 
+    const images: string[] = Array.isArray(s.image_url)
+      ? s.image_url.filter(Boolean)
       : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
 
     const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
@@ -257,7 +257,7 @@ export async function getAgents(): Promise<{ data: Agent[]; error?: string }> {
     // Fetch services to map agent service IDs
     const { data: services } = await supabase.from('services').select('id, agent_id');
 
-    // Fetch reviews to calculate agent average ratings
+
     const { data: allReviews } = await supabase.from('reviews').select('service_id, rating');
 
     const agentRatings: Record<string, { total: number; count: number }> = {};

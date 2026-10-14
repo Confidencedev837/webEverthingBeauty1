@@ -52,7 +52,7 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="pt-16 sm:pt-20 md:pt-24 bg-[#F8F9FA] dark:bg-[#0D0D0D]">
+    <div className="pt-16 sm:pt-20 md:pt-24 bg-brand-surface dark:bg-[#0D0D0D]">
       {/* Hero Header */}
       <section className="py-12 sm:py-16 md:py-20 text-center max-w-4xl mx-auto px-4 sm:px-6">
         <motion.h1
@@ -78,10 +78,10 @@ const Contact: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            className="lg:col-span-3 bg-white dark:bg-[#1A1A1A] p-6 sm:p-8 md:p-12 lg:p-16 rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-lg sm:shadow-xl md:shadow-2xl border border-[#E9ECEF] dark:border-[#2D2D2D]"
+            className="lg:col-span-3 bg-brand-background dark:bg-[#1A1A1A] p-6 sm:p-8 md:p-12 lg:p-16 rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-lg sm:shadow-xl md:shadow-2xl border border-[#E9ECEF] dark:border-[#2D2D2D]"
           >
             <div className="mb-8 sm:mb-10 md:mb-12">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6">
                 <Send className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-2">Send us a Message</h2>
@@ -92,18 +92,18 @@ const Contact: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest">Name *</label>
-                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Your full name" required className="w-full p-3 sm:p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-rosePink transition-all" />
+                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Your full name" required className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest">Email *</label>
-                  <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="hello@company.com" required className="w-full p-3 sm:p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-rosePink transition-all" />
+                  <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="hello@company.com" required className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all" />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest flex items-center">
                   <Tag className="w-3 h-3 mr-1" /> Subject
                 </label>
-                <select value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} className="w-full p-3 sm:p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-rosePink transition-all appearance-none">
+                <select value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all appearance-none">
                   <option>General Inquiry</option>
                   <option>Technical Support</option>
                   <option>Partnership</option>
@@ -114,9 +114,9 @@ const Contact: React.FC = () => {
                 <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest flex items-center">
                   <MessageSquare className="w-3 h-3 mr-1" /> Message *
                 </label>
-                <textarea value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} placeholder="How can we help you?" required className="w-full p-3 sm:p-4 bg-[#F8F9FA] dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-rosePink transition-all h-32 sm:h-40 resize-none"></textarea>
+                <textarea value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} placeholder="How can we help you?" required className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all h-32 sm:h-40 resize-none"></textarea>
               </div>
-              <button type="submit" disabled={isSubmitting} className="w-full py-3 sm:py-4 md:py-5 bg-rosePink text-white rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg md:text-xl hover:bg-[#E57B8D] transition-all transform hover:scale-[1.01] shadow-lg sm:shadow-xl shadow-rosePink/20 flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+              <button type="submit" disabled={isSubmitting} className="w-full py-3 sm:py-4 md:py-5 bg-brand-interactive text-white rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg md:text-xl hover:bg-brand-interactive/90 transition-all transform hover:scale-[1.01] shadow-lg sm:shadow-xl shadow-brand-interactive/20 flex items-center justify-center gap-2 sm:gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
                 {isSubmitting ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4 sm:w-5 sm:h-5" />}
                 <span>{isSubmitting ? 'Sending...' : 'Send Message'}</span>
               </button>
@@ -129,30 +129,30 @@ const Contact: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              className="p-6 sm:p-8 md:p-10 bg-white dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[3rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm"
+              className="p-6 sm:p-8 md:p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[3rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm"
             >
               <h3 className="text-xl sm:text-2xl font-serif font-bold mb-6 sm:mb-8">Contact Information</h3>
               <div className="space-y-6 sm:space-y-8">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 flex-shrink-0 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 flex-shrink-0 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-2xl flex items-center justify-center">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="font-bold mb-1">Email Us</div>
-                    <a href="mailto:support@everythingbeauty.com" className="text-[#6C757D] hover:text-rosePink transition-colors">support@everythingbeauty.com</a>
+                    <a href="mailto:support@everythingbeauty.com" className="text-[#6C757D] hover:text-brand-interactive transition-colors">support@everythingbeauty.com</a>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 flex-shrink-0 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 flex-shrink-0 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-2xl flex items-center justify-center">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="font-bold mb-1">Call Us</div>
-                    <a href="tel:+2348001234567" className="text-[#6C757D] hover:text-rosePink transition-colors">+234 (0) 800 123 4567</a>
+                    <a href="tel:+2348001234567" className="text-[#6C757D] hover:text-brand-interactive transition-colors">+234 (0) 800 123 4567</a>
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 flex-shrink-0 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 flex-shrink-0 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-2xl flex items-center justify-center">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
@@ -161,7 +161,7 @@ const Contact: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 flex-shrink-0 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 flex-shrink-0 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-2xl flex items-center justify-center">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
@@ -207,7 +207,7 @@ const Contact: React.FC = () => {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="p-6 sm:p-8 md:p-10 bg-rosePink text-white rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-lg sm:shadow-xl shadow-rosePink/20"
+              className="p-6 sm:p-8 md:p-10 bg-brand-interactive text-white rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-lg sm:shadow-xl shadow-brand-interactive/20"
             >
               <h3 className="text-xl sm:text-2xl font-serif font-bold mb-4 sm:mb-6">Connect With Us</h3>
               <p className="text-sm sm:text-base mb-6 sm:mb-8 text-white/90">Join our growing community of beauty lovers and professionals.</p>
@@ -224,7 +224,7 @@ const Contact: React.FC = () => {
                     href={social.href}
                     target={social.href !== "#" ? "_blank" : undefined}
                     rel="noopener noreferrer"
-                    className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl sm:rounded-2xl bg-white/20 hover:bg-white text-white ${social.color} transition-all group shadow-sm`}
+                    className={`w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl sm:rounded-2xl bg-white/20 hover:bg-brand-background text-white ${social.color} transition-all group shadow-sm`}
                   >
                     <social.Icon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
                   </a>
@@ -237,15 +237,15 @@ const Contact: React.FC = () => {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-6 sm:p-8 md:p-10 bg-white dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[3rem] border border-rosePink/20 flex flex-col items-center text-center"
+              className="p-6 sm:p-8 md:p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[3rem] border border-brand-interactive/20 flex flex-col items-center text-center"
             >
               {/* ... same content ... */}
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blushPink dark:bg-rosePink/10 text-rosePink rounded-full flex items-center justify-center mb-3 sm:mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-full flex items-center justify-center mb-3 sm:mb-4">
                 <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 rotate-90" />
               </div>
               <h4 className="font-bold mb-2">Have questions?</h4>
               <p className="text-sm text-[#6C757D] mb-4 sm:mb-6">Our FAQ might have exactly what you need.</p>
-              <Link to="/#faq" className="text-rosePink font-bold flex items-center group">
+              <Link to="/#faq" className="text-brand-interactive font-bold flex items-center group">
                 Go to FAQ <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </Link>
             </motion.div>

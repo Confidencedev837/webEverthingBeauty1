@@ -78,7 +78,7 @@ const Services: React.FC = () => {
   const totalPages = Math.ceil(filteredServices.length / ITEMS_PER_PAGE) || 1;
 
   return (
-    <div className="pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-24 min-h-screen bg-[#F8F9FA] dark:bg-[#0D0D0D]">
+    <div className="pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-24 min-h-screen bg-brand-surface dark:bg-[#0D0D0D]">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <header className="mb-6 sm:mb-8 md:mb-12">
           <motion.h1
@@ -101,7 +101,7 @@ const Services: React.FC = () => {
 
 
         {/* Filters & Search */}
-        <section className="mb-6 sm:mb-8 md:mb-12 bg-[#F8F9FA] dark:bg-[#0D0D0D] pb-4">
+        <section className="mb-6 sm:mb-8 md:mb-12 bg-brand-surface dark:bg-[#0D0D0D] pb-4">
           {/* Search Bar */}
           <div className="mb-3 sm:mb-4 relative">
             <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#6C757D]" />
@@ -113,22 +113,22 @@ const Services: React.FC = () => {
                 setSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 text-sm sm:text-base bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-xl sm:rounded-2xl outline-none focus:border-rosePink transition-all shadow-sm text-[#1A1A1A] dark:text-white"
+              className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 text-sm sm:text-base bg-brand-background dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all shadow-sm text-[#1A1A1A] dark:text-white"
             />
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             {/* Sort Control */}
-            <div className="flex items-center space-x-3 bg-white dark:bg-[#1A1A1A] px-4 py-2 rounded-full shadow-sm border border-rosePink/20 w-fit">
-              <div className="bg-rosePink/10 p-1.5 rounded-full">
-                <MapPin className="w-4 h-4 text-rosePink" />
+            <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2 rounded-full shadow-sm border border-brand-interactive/20 w-fit">
+              <div className="bg-brand-interactive/10 p-1.5 rounded-full">
+                <MapPin className="w-4 h-4 text-brand-interactive" />
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-black text-[#6C757D] tracking-widest leading-none mb-0.5">Order by</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-rosePink transition-colors appearance-none pr-4"
+                  className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
                 >
                   <option value="relevance">Relevance & Popularity</option>
                   <option value="rating">Top Rated</option>
@@ -139,14 +139,14 @@ const Services: React.FC = () => {
             </div>
 
             <div className="text-xs text-[#6C757D] font-bold">
-              Showing <span className="text-rosePink font-black">{filteredServices.length}</span> services
+              Showing <span className="text-brand-interactive font-black">{filteredServices.length}</span> services
             </div>
           </div>
 
           {/* Category Filters */}
           {categories.length > 1 && (
             <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              <div className="flex bg-white dark:bg-[#1A1A1A] p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+              <div className="flex bg-brand-background dark:bg-[#1A1A1A] p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
                 {categories.map(cat => (
                   <button
                     key={cat}
@@ -156,8 +156,8 @@ const Services: React.FC = () => {
                     }}
                     className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
                       selectedCategory.toLowerCase() === cat.toLowerCase() 
-                        ? 'bg-rosePink text-white shadow-md' 
-                        : 'text-[#6C757D] hover:text-rosePink'
+                        ? 'bg-brand-interactive text-white shadow-md' 
+                        : 'text-[#6C757D] hover:text-brand-interactive'
                     }`}
                   >
                     {cat}
@@ -172,7 +172,7 @@ const Services: React.FC = () => {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="h-80 bg-white dark:bg-[#1A1A1A] rounded-3xl animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D] p-6 flex flex-col justify-between">
+              <div key={i} className="h-80 bg-brand-background dark:bg-[#1A1A1A] rounded-3xl animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D] p-6 flex flex-col justify-between">
                 <div className="w-full h-44 bg-gray-200 dark:bg-white/5 rounded-2xl mb-4" />
                 <div className="space-y-3">
                   <div className="h-4 bg-gray-200 dark:bg-white/5 rounded w-3/4" />
@@ -189,8 +189,8 @@ const Services: React.FC = () => {
                 <ServiceCard key={service.id} service={service} index={idx} />
               ))
             ) : (
-              <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-white dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-8">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#FFE6EA] dark:bg-rosePink/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-rosePink">
+              <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-brand-background dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-8">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-brand-surface dark:bg-brand-interactive/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-brand-interactive">
                   <Search className="w-8 h-8 sm:w-10 sm:h-10" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-serif font-bold mb-2">No services found</h3>
@@ -202,7 +202,7 @@ const Services: React.FC = () => {
                 {services.length > 0 && (
                   <button
                     onClick={() => { setSearch(''); setSelectedCategory('All'); }}
-                    className="mt-6 px-6 py-3 bg-rosePink text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-rosePink/20 hover:scale-105 transition-all"
+                    className="mt-6 px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all"
                   >
                     Reset Filters
                   </button>
@@ -221,7 +221,7 @@ const Services: React.FC = () => {
                 window.scrollTo({ top: 300, behavior: 'smooth' });
               }}
               disabled={currentPage === 1}
-              className="p-3 rounded-full bg-white dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-rosePink hover:text-white transition-all"
+              className="p-3 rounded-full bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white transition-all"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -234,7 +234,7 @@ const Services: React.FC = () => {
                 window.scrollTo({ top: 300, behavior: 'smooth' });
               }}
               disabled={currentPage === totalPages}
-              className="p-3 rounded-full bg-white dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-rosePink hover:text-white transition-all"
+              className="p-3 rounded-full bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white transition-all"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -250,7 +250,7 @@ const Services: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-4 bg-rosePink text-white rounded-full shadow-[0_10px_20px_rgba(255,138,157,0.4)] hover:bg-[#E57B8D] hover:shadow-[0_15px_30px_rgba(255,138,157,0.5)] transition-all transform hover:-translate-y-1"
+            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-full shadow-[0_10px_20px_rgba(108,53,166,0.4)] hover:bg-brand-interactive/90 hover:shadow-[0_15px_30px_rgba(108,53,166,0.5)] transition-all transform hover:-translate-y-1"
           >
             <ArrowUp className="w-6 h-6" />
           </motion.button>

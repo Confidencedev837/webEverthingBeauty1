@@ -16,7 +16,7 @@ const Legal: React.FC = () => {
     if (pathname.includes('privacy')) {
       return {
         title: 'Privacy Policy',
-        icon: <Lock className="w-12 h-12 text-rosePink" />,
+        icon: <Lock className="w-12 h-12 text-brand-interactive" />,
         sections: [
           { subtitle: "Information Collection", text: "We collect personal identification information including name, email address, phone number, and precise geolocation. This data is essential for connecting you with beauty professionals in your area and processing secure transactions." },
           { subtitle: "Data Usage", text: "Your data is used to personalize your experience, process bookings, send appointment reminders, and improve our platform security. We employ advanced encryption to ensure your data remains confidential." },
@@ -27,7 +27,7 @@ const Legal: React.FC = () => {
     if (pathname.includes('terms')) {
       return {
         title: 'Terms of Service',
-        icon: <FileText className="w-12 h-12 text-rosePink" />,
+        icon: <FileText className="w-12 h-12 text-brand-interactive" />,
         sections: [
           { subtitle: "Agreement to Terms", text: "By using the Everything Beauty platform, you agree to abide by these Terms of Service. If you do not agree, please do not use our services. We reserve the right to modify these terms at any time." },
           { subtitle: "The Marketplace Model", text: "Everything Beauty operates as a marketplace connecting customers with independent beauty professionals. While we vet all agents, the specific contract for beauty services is strictly between the customer and the professional agent." },
@@ -37,7 +37,7 @@ const Legal: React.FC = () => {
     }
     return {
       title: 'Partner Agreement',
-      icon: <Shield className="w-12 h-12 text-rosePink" />,
+      icon: <Shield className="w-12 h-12 text-brand-interactive" />,
       sections: [
         { subtitle: "Professional Standards", text: "As an Everything Beauty Partner, you represent that you are a qualified professional holding all necessary licenses and insurance required by local laws. You agree to provide services with the highest level of professionalism and hygiene." },
         { subtitle: "Platform Fees", text: "Our platform provides marketing, scheduling, and secure payment processing. In exchange, Everything Beauty retains a standard service commission from each successful booking. Commission rates are disclosed upon successful vetting." },
@@ -49,15 +49,15 @@ const Legal: React.FC = () => {
   const data = getContent();
 
   return (
-    <div className="pt-32 pb-24 bg-[#F8F9FA] dark:bg-[#0D0D0D] min-h-screen">
+    <div className="pt-32 pb-24 bg-brand-surface dark:bg-[#0D0D0D] min-h-screen">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-[#1A1A1A] rounded-[4rem] p-12 md:p-24 shadow-2xl border border-[#E9ECEF] dark:border-rosePink/20"
+          className="bg-brand-background dark:bg-[#1A1A1A] rounded-[4rem] p-12 md:p-24 shadow-2xl border border-[#E9ECEF] dark:border-brand-interactive/20"
         >
           <div className="mb-16 flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-10">
-            <div className="p-6 bg-blushPink dark:bg-rosePink/10 rounded-[2rem] shadow-lg shadow-rosePink/20">
+            <div className="p-6 bg-brand-surface dark:bg-brand-interactive/10 rounded-[2rem] shadow-lg shadow-brand-interactive/20">
               {data.icon}
             </div>
             <div>
@@ -76,7 +76,7 @@ const Legal: React.FC = () => {
                  className="group"
                >
                  <div className="flex items-center space-x-4 mb-6">
-                    <CheckCircle2 className="text-rosePink w-6 h-6" />
+                    <CheckCircle2 className="text-brand-interactive w-6 h-6" />
                     <h2 className="text-2xl font-serif font-bold">{sec.subtitle}</h2>
                  </div>
                  <p className="text-xl text-[#6C757D] dark:text-[#B0B0B0] leading-relaxed">
@@ -86,10 +86,10 @@ const Legal: React.FC = () => {
              ))}
           </div>
 
-          <div className="mt-24 p-10 bg-[#F8F9FA] dark:bg-[#0D0D0D] rounded-[3rem] border-2 border-dashed border-rosePink/30 text-center">
+          <div className="mt-24 p-10 bg-brand-surface dark:bg-[#0D0D0D] rounded-[3rem] border-2 border-dashed border-brand-interactive/30 text-center">
              <h4 className="text-xl font-bold mb-4">Have questions about these terms?</h4>
              <p className="text-[#6C757D] mb-8">Our legal and support teams are available to clarify any points of our agreement.</p>
-             <Link to="/contact" className="inline-flex items-center text-rosePink font-bold text-lg group">
+             <Link to="/contact" className="inline-flex items-center text-brand-interactive font-bold text-lg group">
                 Contact Legal Support <ChevronRight className="ml-2 group-hover:translate-x-2 transition-transform" />
              </Link>
           </div>

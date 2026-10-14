@@ -88,12 +88,12 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-white dark:bg-[#0D0D0D] pt-20">
+    <div className="min-h-screen flex bg-brand-background dark:bg-[#0D0D0D] pt-20">
       {/* Brand Side */}
-      <div className="hidden lg:flex w-1/2 bg-rosePink relative overflow-hidden items-center justify-center p-24 text-white">
+      <div className="hidden lg:flex w-1/2 bg-brand-interactive relative overflow-hidden items-center justify-center p-24 text-white">
         <div className="absolute inset-0 z-0">
           <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover opacity-70 grayscale" alt="Background" />
-          <div className="absolute inset-0 bg-gradient-to-br from-rosePink via-rosePink/80 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-interactive via-brand-interactive/80 to-black/40" />
         </div>
         <div className="relative z-10 max-w-xl">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
@@ -146,9 +146,9 @@ const Auth: React.FC = () => {
           )}
 
           {!isLogin && (
-            <div className="relative flex p-2 bg-[#F8F9FA] dark:bg-[#1A1A1A] rounded-[2rem] shadow-inner border border-[#E9ECEF] dark:border-[#2D2D2D] mb-8">
+            <div className="relative flex p-2 bg-brand-surface dark:bg-[#1A1A1A] rounded-[2rem] shadow-inner border border-[#E9ECEF] dark:border-[#2D2D2D] mb-8">
               <div
-                className={`absolute inset-2 w-[calc(50%-8px)] bg-rosePink rounded-[1.5rem] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-lg ${userType === 'agent' ? 'translate-x-full' : ''}`}
+                className={`absolute inset-2 w-[calc(50%-8px)] bg-brand-interactive rounded-[1.5rem] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-lg ${userType === 'agent' ? 'translate-x-full' : ''}`}
               />
               <button
                 type="button"
@@ -207,13 +207,13 @@ const Auth: React.FC = () => {
                   {/* City/State Selection */}
                   <div className="space-y-3">
                     <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 uppercase tracking-[0.15em]">
-                      <span className="text-rosePink"><MapPin className="w-4 h-4" /></span>
+                      <span className="text-brand-interactive"><MapPin className="w-4 h-4" /></span>
                       <span>City / State</span>
                     </label>
                     <select 
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-2xl outline-none transition-all font-medium text-base shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
+                      className="w-full p-4 bg-brand-surface dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-2xl outline-none transition-all font-medium text-base shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
                     >
                       {NIGERIAN_STATES.map(state => (
                         <option key={state} value={state}>{state}</option>
@@ -238,13 +238,13 @@ const Auth: React.FC = () => {
                         />
                         <div className="space-y-3">
                           <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 uppercase tracking-[0.15em]">
-                            <span className="text-rosePink"><Briefcase className="w-4 h-4" /></span>
+                            <span className="text-brand-interactive"><Briefcase className="w-4 h-4" /></span>
                             <span>Service Type</span>
                           </label>
                           <select 
                             value={serviceType}
                             onChange={(e) => setServiceType(e.target.value)}
-                            className="w-full p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-2xl outline-none transition-all font-medium text-sm shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
+                            className="w-full p-4 bg-brand-surface dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-2xl outline-none transition-all font-medium text-sm shadow-inner appearance-none text-[#1A1A1A] dark:text-white"
                           >
                             <option value="mobile">Mobile (Travel to client)</option>
                             <option value="studio">In-Studio</option>
@@ -288,7 +288,7 @@ const Auth: React.FC = () => {
                 />
                 {isLogin && (
                   <div className="text-right">
-                    <button type="button" className="text-sm text-rosePink font-black hover:underline uppercase tracking-widest">Forgot password?</button>
+                    <button type="button" className="text-sm text-brand-interactive font-black hover:underline uppercase tracking-widest">Forgot password?</button>
                   </div>
                 )}
               </div>
@@ -296,7 +296,7 @@ const Auth: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 sm:py-5 bg-rosePink text-white rounded-2xl font-black text-lg hover:bg-[#E57B8D] transition-all transform hover:scale-[1.02] shadow-[0_15px_30px_rgba(255,138,157,0.3)] active:scale-95 flex items-center justify-center space-x-3"
+                className="w-full py-4 sm:py-5 bg-brand-interactive text-white rounded-2xl font-black text-lg hover:bg-brand-interactive/90 transition-all transform hover:scale-[1.02] shadow-[0_15px_30px_rgba(108,53,166,0.3)] active:scale-95 flex items-center justify-center space-x-3"
               >
                 {loading ? (
                   <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
@@ -319,7 +319,7 @@ const Auth: React.FC = () => {
                       setIsLogin(!isLogin);
                       setErrorMsg(null);
                     }}
-                    className="ml-3 text-rosePink font-black hover:underline uppercase tracking-wider"
+                    className="ml-3 text-brand-interactive font-black hover:underline uppercase tracking-wider"
                   >
                     {isLogin ? 'Sign Up' : 'Log In'}
                   </button>
@@ -344,7 +344,7 @@ const Input: React.FC<{
 }> = ({ icon, label, type = 'text', placeholder, value, onChange, required }) => (
   <div className="space-y-3">
     <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 uppercase tracking-[0.15em]">
-      <span className="text-rosePink">{icon}</span>
+      <span className="text-brand-interactive">{icon}</span>
       <span>{label}</span>
     </label>
     <input
@@ -353,7 +353,7 @@ const Input: React.FC<{
       value={value}
       onChange={onChange}
       required={required}
-      className="w-full p-4 bg-[#F8F9FA] dark:bg-[#1A1A1A] border-2 border-transparent focus:border-rosePink rounded-2xl outline-none transition-all font-medium text-base shadow-inner text-[#1A1A1A] dark:text-white"
+      className="w-full p-4 bg-brand-surface dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-2xl outline-none transition-all font-medium text-base shadow-inner text-[#1A1A1A] dark:text-white"
     />
   </div>
 );

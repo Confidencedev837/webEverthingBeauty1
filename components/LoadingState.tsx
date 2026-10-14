@@ -13,13 +13,13 @@ const LoadingState: React.FC<LoadingStateProps> = ({ message = 'Loading...' }) =
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 rounded-full border-[3px] border-dotted border-rosePink/50"
+          className="absolute inset-0 rounded-full border-[3px] border-dotted border-brand-interactive/50"
         />
         {/* Inner dotted hollow halo that spins opposite */}
         <motion.div
           animate={{ rotate: -360 }}
           transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-2 rounded-full border-[2px] border-dotted border-rosePink/30"
+          className="absolute inset-2 rounded-full border-[2px] border-dotted border-brand-interactive/30"
         />
         
         {/* Center Logo in squircle with bounce/pulse */}
@@ -33,7 +33,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({ message = 'Loading...' }) =
             repeat: Infinity, 
             ease: "easeInOut" 
           }}
-          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shadow-lg shadow-rosePink/30 z-10 bg-white"
+          className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shadow-lg shadow-brand-interactive/30 z-10 bg-brand-background"
         >
           <img src="/logo.jpg" alt="Everything Beauty Logo" className="w-full h-full object-cover" />
         </motion.div>

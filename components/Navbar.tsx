@@ -66,8 +66,8 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform overflow-hidden">
                 <img src="/logo.jpg" alt="Everything Beauty Logo" className="w-full h-full object-cover" />
               </div>
-              <span className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-[#1A1A1A] dark:text-white">
-                Everything<span className="text-rosePink ml-1">Beauty</span>
+              <span className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-brand-primary dark:text-white">
+                Everything<span className="text-brand-interactive ml-1">Beauty</span>
               </span>
             </Link>
 
@@ -78,8 +78,8 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                   key={link.path}
                   to={link.path}
                   className={({ isActive }) =>
-                    `text-sm font-bold uppercase tracking-widest transition-colors hover:text-rosePink ${
-                      isActive ? 'text-rosePink' : 'text-[#6C757D] dark:text-[#B0B0B0]'
+                    `text-sm font-bold uppercase tracking-widest transition-colors hover:text-brand-interactive ${
+                      isActive ? 'text-brand-interactive' : 'text-[#6C757D] dark:text-[#B0B0B0]'
                     }`
                   }
                 >
@@ -96,13 +96,13 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                 <div className="flex items-center space-x-3">
                   <Link
                     to={getDashboardPath()}
-                    className="flex items-center space-x-2.5 px-3.5 py-2 bg-rosePink/10 hover:bg-rosePink/20 text-rosePink rounded-xl md:rounded-2xl transition-all border border-rosePink/20"
+                    className="flex items-center space-x-2.5 px-3.5 py-2 bg-brand-interactive/10 hover:bg-brand-interactive/20 text-brand-interactive rounded-xl md:rounded-2xl transition-all border border-brand-interactive/20"
                   >
                     <img
-                      src={currentUser?.avatar && currentUser.avatar.trim() !== '' ? currentUser.avatar : `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FF3366" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`}
+                      src={currentUser?.avatar && currentUser.avatar.trim() !== '' ? currentUser.avatar : `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`}
                       alt={currentUser?.name}
-                      className="w-7 h-7 rounded-full object-cover border border-rosePink/30"
-                      onError={(e) => { e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#FF3366" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`; }}
+                      className="w-7 h-7 rounded-full object-cover border border-brand-interactive/30"
+                      onError={(e) => { e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`; }}
                     />
                     <div className="hidden sm:flex flex-col text-left">
                       <span className="text-xs font-bold leading-tight max-w-[100px] truncate">{currentUser?.name}</span>
@@ -113,7 +113,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                   <button
                     onClick={handleSignOut}
                     title="Sign Out"
-                    className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl text-[#6C757D] hover:text-rosePink transition-colors"
+                    className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl text-[#6C757D] hover:text-brand-interactive transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
                   </button>
@@ -122,13 +122,13 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                 <>
                   <Link 
                     to="/auth" 
-                    className="hidden md:block text-sm font-bold text-[#1A1A1A] dark:text-white hover:text-rosePink transition-colors"
+                    className="hidden md:block text-sm font-bold text-[#1A1A1A] dark:text-white hover:text-brand-interactive transition-colors"
                   >
                     Log In
                   </Link>
                   <Link 
                     to="/auth" 
-                    className="p-2 md:px-5 md:py-2.5 bg-rosePink text-white rounded-xl md:rounded-2xl font-bold text-sm shadow-lg shadow-rosePink/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-1.5"
+                    className="p-2 md:px-5 md:py-2.5 bg-brand-interactive text-white rounded-xl md:rounded-2xl font-bold text-sm shadow-lg shadow-brand-interactive/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-1.5"
                   >
                     <Sparkles className="w-4 h-4 md:hidden" />
                     <span className="hidden md:inline">Join Elite</span>
@@ -149,7 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
               to={link.path}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-                  isActive ? 'text-rosePink' : 'text-[#6C757D] dark:text-[#B0B0B0]'
+                  isActive ? 'text-brand-interactive' : 'text-[#6C757D] dark:text-[#B0B0B0]'
                 }`
               }
             >
@@ -164,7 +164,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
               to={getDashboardPath()}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-                  isActive ? 'text-rosePink' : 'text-[#6C757D] dark:text-[#B0B0B0]'
+                  isActive ? 'text-brand-interactive' : 'text-[#6C757D] dark:text-[#B0B0B0]'
                 }`
               }
             >

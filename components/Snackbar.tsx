@@ -67,8 +67,8 @@ const SnackbarItem: React.FC<{ snackbar: SnackbarMessage; onClose: () => void }>
             case 'error':
                 return 'bg-[#FF3B30] text-white shadow-[#FF3B30]/30'; // Bright Red
             case 'info':
-                // Info Pink and Green as requested
-                return 'bg-gradient-to-r from-rosePink to-[#2ECC71] text-white shadow-rosePink/30';
+                // Info: brand violet to green
+                return 'bg-gradient-to-r from-brand-interactive to-[#2ECC71] text-white shadow-brand-interactive/30';
             case 'warning':
                 return 'bg-[#FFCC00] text-black shadow-[#FFCC00]/30';
             default:
