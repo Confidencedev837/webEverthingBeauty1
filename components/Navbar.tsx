@@ -140,35 +140,67 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
       </nav>
 
       {/* --- BOTTOM NAVIGATION (Mobile Only) --- */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#0D0D0D]/90 backdrop-blur-lg border-t border-[#E9ECEF] dark:border-[#2D2D2D] pb-safe">
-        <div className="flex justify-around items-center h-16 px-2">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              className={({ isActive }) =>
-                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-                  isActive ? 'text-brand-interactive' : 'text-[#6C757D] dark:text-[#B0B0B0]'
-                }`
-              }
-            >
-              {link.icon}
-              <span className="text-[10px] font-bold tracking-tighter">
-                {link.name}
-              </span>
-            </NavLink>
-          ))}
-          {user && (
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#0D0D0D]/95 backdrop-blur-xl border-t border-[#E9ECEF] dark:border-[#2D2D2D] pb-safe shadow-lg">
+        <div className="flex justify-around items-center h-16 px-3">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all ${
+                isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+              }`
+            }
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] tracking-tight">Home</span>
+          </NavLink>
+
+          <NavLink
+            to="/services"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all ${
+                isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+              }`
+            }
+          >
+            <LayoutGrid className="w-5 h-5" />
+            <span className="text-[10px] tracking-tight">Services</span>
+          </NavLink>
+
+          <NavLink
+            to="/agents"
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all ${
+                isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+              }`
+            }
+          >
+            <Users className="w-5 h-5" />
+            <span className="text-[10px] tracking-tight">Agents</span>
+          </NavLink>
+
+          {user ? (
             <NavLink
               to={getDashboardPath()}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-                  isActive ? 'text-brand-interactive' : 'text-[#6C757D] dark:text-[#B0B0B0]'
+                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all ${
+                  isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
                 }`
               }
             >
               <UserIcon className="w-5 h-5" />
-              <span className="text-[10px] font-bold tracking-tighter">Dashboard</span>
+              <span className="text-[10px] tracking-tight">Dashboard</span>
+            </NavLink>
+          ) : (
+            <NavLink
+              to="/auth"
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all ${
+                  isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+                }`
+              }
+            >
+              <UserIcon className="w-5 h-5" />
+              <span className="text-[10px] tracking-tight">Log In</span>
             </NavLink>
           )}
         </div>

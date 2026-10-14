@@ -8,9 +8,10 @@ import { isVideoUrl } from '../services/supabaseService';
 interface ServiceCardProps {
   service: Service;
   index: number;
+  onBook?: (service: Service) => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => {
   const [videoError, setVideoError] = useState(false);
   const [imgError, setImgError] = useState(false);
 
@@ -108,12 +109,22 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
           <ChevronRight className="w-4 h-4 text-[#6C757D] group-hover/agent:text-brand-interactive transition-colors" />
         </Link>
 
-        <Link 
-          to={`/services/${service.id}?book=true`}
-          className="mt-4 w-full py-3 bg-black dark:bg-brand-background text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-brand-interactive dark:hover:bg-brand-interactive dark:hover:text-white transition-colors"
-        >
-          Book Now
-        </Link>
+        {onBook ? (
+          <button 
+            type="button"
+            onClick={() => onBook(service)}
+            className="mt-4 w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-brand-interactive dark:hover:bg-brand-interactive dark:hover:text-white transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+          >
+            Book Now
+          </button>
+        ) : (
+          <Link 
+            to={`/services/${service.id}?book=true`}
+            className="mt-4 w-full py-3 bg-black dark:bg-brand-background text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-brand-interactive dark:hover:bg-brand-interactive dark:hover:text-white transition-colors"
+          >
+            Book Now
+          </Link>
+        )}
       </div>
     </motion.div>
   );

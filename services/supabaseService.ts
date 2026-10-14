@@ -625,26 +625,80 @@ export async function createService(payload: {
   category: string;
   durationMins?: number;
   imageUrl?: string[];
-}): Promise<boolean> {
+  features?: string[];
+}): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
-    const { error } = await supabase.from('services').insert({
-      agent_id: payload.agentId,
-      name: payload.name,
-      description: payload.description,
-      price: payload.price,
-      category: payload.category,
-      duration_mins: payload.durationMins || 60,
-      image_url: payload.imageUrl || []
-    });
+    const { data, error } = await supabase
+      .from('services')
+      .insert({
+        agent_id: payload.agentId,
+        name: payload.name,
+        description: payload.description,
+        price: payload.price,
+        category: payload.category,
+        duration_mins: payload.durationMins || 60,
+        image_url: payload.imageUrl || [],
+        features: payload.features || []
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error('createService error:', error.message);
-      return false;
+      return { success: false, error: error.message };
     }
-    return true;
-  } catch (err) {
+    return { success: true, data };
+  } catch (err: any) {
     console.error('createService exception:', err);
-    return false;
+    return { success: false, error: err?.message || 'Failed to create service' };
+  }
+}
+
+export async function updateAgentProfile(
+  userId: string,
+  updates: {
+    fullName?: string;
+    avatarUrl?: string;
+    bannerUrl?: string;
+    specialization?: string;
+    location?: string;
+    yearsExp?: number;
+    serviceType?: string;
+    bio?: string;
+    phone?: string;
+    gallery?: Array<{ type: 'image' | 'video'; url: string; thumbnail?: string }>;
+  }
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  try {
+    const dbUpdates: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    };
+    if (updates.fullName !== undefined) dbUpdates.full_name = updates.fullName;
+    if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
+    if (updates.bannerUrl !== undefined) dbUpdates.banner_url = updates.bannerUrl;
+    if (updates.specialization !== undefined) dbUpdates.specialization = updates.specialization;
+    if (updates.location !== undefined) dbUpdates.location = updates.location;
+    if (updates.yearsExp !== undefined) dbUpdates.years_exp = updates.yearsExp;
+    if (updates.serviceType !== undefined) dbUpdates.service_type = updates.serviceType;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+    if (updates.gallery !== undefined) dbUpdates.gallery = updates.gallery;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(dbUpdates)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('updateAgentProfile error:', error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true, data };
+  } catch (err: any) {
+    console.error('updateAgentProfile exception:', err);
+    return { success: false, error: err?.message || 'Failed to update profile' };
   }
 }
 

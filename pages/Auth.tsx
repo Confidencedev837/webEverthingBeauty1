@@ -47,8 +47,7 @@ const Auth: React.FC = () => {
         const res = await signIn(email, password);
         if (res.success) {
           if (res.role === UserRole.ADMIN) navigate('/admin/dashboard');
-          else if (res.role === UserRole.AGENT) navigate('/agent/dashboard');
-          else navigate('/customer/dashboard');
+          else navigate('/');
         } else {
           setErrorMsg(res.error || 'Failed to sign in. Please verify your credentials.');
         }
@@ -60,8 +59,7 @@ const Auth: React.FC = () => {
           serviceType: userType === 'agent' ? serviceType : undefined
         });
         if (res.success) {
-          if (userType === 'agent') navigate('/agent/dashboard');
-          else navigate('/customer/dashboard');
+          navigate('/');
         } else {
           setErrorMsg(res.error || 'Failed to register account.');
         }

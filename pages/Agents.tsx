@@ -137,8 +137,9 @@ const Agents: React.FC = () => {
               <div className="text-[9px] sm:text-[10px] font-bold text-[#6C757D]">Active Artists</div>
             </div>
             <div className="p-4 sm:p-6 md:p-8 bg-brand-interactive text-white rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-lg sm:shadow-xl shadow-brand-interactive/20 transition-all text-center">
-              <div className="text-2xl sm:text-3xl md:text-4xl font-serif font-black mb-1 sm:mb-2">
-                {averageRating > 0 ? `${averageRating} ★` : 'Top Rated'}
+              <div className="text-2xl sm:text-3xl md:text-4xl font-serif font-black mb-1 sm:mb-2 flex items-center justify-center space-x-1.5">
+                <span>{averageRating > 0 ? averageRating : 'Top Rated'}</span>
+                {averageRating > 0 && <Star className="w-5 h-5 sm:w-6 sm:h-6 fill-white text-white inline" />}
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold opacity-80">Quality Standard</div>
             </div>
