@@ -65,7 +65,7 @@ const AdminDashboard: React.FC = () => {
           <div className="w-12 h-12 bg-brand-interactive rounded-2xl flex items-center justify-center shadow-lg shadow-brand-interactive/30">
             <span className="text-2xl font-serif font-bold italic">EB</span>
           </div>
-          <span className="text-xl font-serif font-bold tracking-tight uppercase">Admin Panel</span>
+          <span className="text-xl font-serif font-bold tracking-tight">Admin Panel</span>
         </div>
         
         <nav className="space-y-4 flex-grow">
@@ -94,7 +94,7 @@ const AdminDashboard: React.FC = () => {
 
         <button 
           onClick={handleLogout}
-          className="flex items-center space-x-4 p-5 text-brand-interactive font-black uppercase tracking-widest text-[10px] mt-auto hover:bg-brand-interactive/10 rounded-2xl transition-all"
+          className="flex items-center space-x-4 p-5 text-brand-interactive font-black text-[10px] mt-auto hover:bg-brand-interactive/10 rounded-2xl transition-all"
         >
           <LogOut className="w-5 h-5" />
           <span>Exit Admin Panel</span>
@@ -159,7 +159,7 @@ const AdminDashboard: React.FC = () => {
                         )}
                         <div>
                           <h3 className="text-3xl font-serif font-bold mb-1">{agent.name}</h3>
-                          <div className="text-brand-interactive font-black uppercase tracking-widest text-[10px]">{agent.specialty}</div>
+                          <div className="text-brand-interactive font-black text-[10px]">{agent.specialty}</div>
                           <div className="text-xs text-[#6C757D] mt-1 font-mono">ID: {agent.id.slice(0, 8)}</div>
                         </div>
                       </div>
@@ -167,17 +167,17 @@ const AdminDashboard: React.FC = () => {
                       <div className="space-y-8">
                          {agent.bio && (
                            <div>
-                              <div className="text-[10px] font-black uppercase tracking-widest text-[#6C757D] mb-2">Specialist Bio</div>
+                              <div className="text-[10px] font-black text-[#6C757D] mb-2">Specialist Bio</div>
                               <p className="text-base italic text-[#6C757D] dark:text-[#B0B0B0] leading-relaxed">"{agent.bio}"</p>
                            </div>
                          )}
                          <div className="grid grid-cols-2 gap-6">
                             <div className="p-6 bg-brand-surface dark:bg-[#0D0D0D] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                               <div className="font-bold mb-1 text-xs text-[#6C757D] uppercase">Experience</div>
+                               <div className="font-bold mb-1 text-xs text-[#6C757D]">Experience</div>
                                <div className="text-brand-interactive font-black text-xl">{agent.experience} Years</div>
                             </div>
                             <div className="p-6 bg-brand-surface dark:bg-[#0D0D0D] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                               <div className="font-bold mb-1 text-xs text-[#6C757D] uppercase">Location</div>
+                               <div className="font-bold mb-1 text-xs text-[#6C757D]">Location</div>
                                <div className="text-brand-interactive font-black text-xl truncate">{agent.location || 'Nigeria'}</div>
                             </div>
                          </div>
@@ -186,7 +186,7 @@ const AdminDashboard: React.FC = () => {
 
                     <div className="flex flex-col justify-between">
                       <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-[#6C757D] mb-6">Credential Review</div>
+                        <div className="text-[10px] font-black text-[#6C757D] mb-6">Credential Review</div>
                         <div className="space-y-3 mb-10">
                           <ChecklistItem label="Professional Identity & Profile Complete" />
                           <ChecklistItem label="Service Location / Mode Specified" />
@@ -198,7 +198,7 @@ const AdminDashboard: React.FC = () => {
                         <button 
                           disabled={processingId === agent.id}
                           onClick={() => handleVerify(agent.id)}
-                          className="flex-1 py-5 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-3 shadow-xl shadow-green-600/20 hover:bg-green-700 transition-all disabled:opacity-50"
+                          className="flex-1 py-5 bg-green-600 text-white rounded-2xl font-black text-xs flex items-center justify-center space-x-3 shadow-xl shadow-green-600/20 hover:bg-green-700 transition-all disabled:opacity-50"
                         >
                           <CheckCircle className="w-5 h-5" />
                           <span>{processingId === agent.id ? 'Updating...' : 'Approve & Verify'}</span>
@@ -206,7 +206,7 @@ const AdminDashboard: React.FC = () => {
                         <button 
                           disabled={processingId === agent.id}
                           onClick={() => handleReject(agent.id)}
-                          className="flex-1 py-5 bg-brand-surface dark:bg-[#0D0D0D] text-red-500 border border-red-500/20 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-3 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                          className="flex-1 py-5 bg-brand-surface dark:bg-[#0D0D0D] text-red-500 border border-red-500/20 rounded-2xl font-black text-xs flex items-center justify-center space-x-3 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
                         >
                           <XCircle className="w-5 h-5" />
                           <span>Reject</span>
@@ -241,7 +241,7 @@ const AdminDashboard: React.FC = () => {
                     )}
                     <div>
                       <h4 className="text-lg font-bold">{agent.name}</h4>
-                      <span className={`text-[10px] px-2 py-1 rounded-lg font-black uppercase tracking-widest ${agent.verificationStatus === VerificationStatus.VERIFIED ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
+                      <span className={`text-[10px] px-2 py-1 rounded-lg font-black ${agent.verificationStatus === VerificationStatus.VERIFIED ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
                         {agent.verificationStatus}
                       </span>
                     </div>
@@ -256,7 +256,7 @@ const AdminDashboard: React.FC = () => {
                   {agent.verificationStatus !== VerificationStatus.VERIFIED && (
                     <button 
                       onClick={() => handleVerify(agent.id)}
-                      className="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider"
+                      className="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold text-xs"
                     >
                       Approve
                     </button>
@@ -264,7 +264,7 @@ const AdminDashboard: React.FC = () => {
                   {agent.verificationStatus !== VerificationStatus.REJECTED && (
                     <button 
                       onClick={() => handleReject(agent.id)}
-                      className="flex-1 py-3 bg-gray-100 dark:bg-white/10 text-red-500 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-red-500 hover:text-white transition-all"
+                      className="flex-1 py-3 bg-gray-100 dark:bg-white/10 text-red-500 rounded-xl font-bold text-xs hover:bg-red-500 hover:text-white transition-all"
                     >
                       Reject / Suspend
                     </button>
@@ -278,15 +278,15 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'analytics' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
-              <div className="text-xs font-black uppercase tracking-widest text-[#6C757D] mb-4">Total Registered Specialists</div>
+              <div className="text-xs font-black text-[#6C757D] mb-4">Total Registered Specialists</div>
               <div className="text-5xl font-black font-serif text-brand-interactive">{agents.length}</div>
             </div>
             <div className="p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
-              <div className="text-xs font-black uppercase tracking-widest text-[#6C757D] mb-4">Verified Specialists</div>
+              <div className="text-xs font-black text-[#6C757D] mb-4">Verified Specialists</div>
               <div className="text-5xl font-black font-serif text-green-500">{verifiedAgents.length}</div>
             </div>
             <div className="p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
-              <div className="text-xs font-black uppercase tracking-widest text-[#6C757D] mb-4">Pending Review</div>
+              <div className="text-xs font-black text-[#6C757D] mb-4">Pending Review</div>
               <div className="text-5xl font-black font-serif text-orange-500">{pendingAgents.length}</div>
             </div>
           </div>

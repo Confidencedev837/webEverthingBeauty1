@@ -8,8 +8,7 @@ import {
   MessageSquare, 
   User as UserIcon,
   LogOut,
-  ShieldCheck,
-  Sparkles
+  ShieldCheck
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { ThemeMode, UserRole } from '../types';
@@ -78,7 +77,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                   key={link.path}
                   to={link.path}
                   className={({ isActive }) =>
-                    `text-sm font-bold uppercase tracking-widest transition-colors hover:text-brand-interactive ${
+                    `text-sm font-bold transition-colors hover:text-brand-interactive ${
                       isActive ? 'text-brand-interactive' : 'text-[#6C757D] dark:text-[#B0B0B0]'
                     }`
                   }
@@ -106,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                     />
                     <div className="hidden sm:flex flex-col text-left">
                       <span className="text-xs font-bold leading-tight max-w-[100px] truncate">{currentUser?.name}</span>
-                      <span className="text-[9px] uppercase font-black text-[#6C757D] tracking-wider">{role.toLowerCase()}</span>
+                      <span className="text-[9px] font-black text-[#6C757D]">{role.toLowerCase()}</span>
                     </div>
                   </Link>
 
@@ -130,7 +129,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                     to="/auth" 
                     className="p-2 md:px-5 md:py-2.5 bg-brand-interactive text-white rounded-xl md:rounded-2xl font-bold text-sm shadow-lg shadow-brand-interactive/20 hover:scale-105 active:scale-95 transition-all flex items-center space-x-1.5"
                   >
-                    <Sparkles className="w-4 h-4 md:hidden" />
+                    <span className="md:hidden text-xs font-black">Join</span>
                     <span className="hidden md:inline">Join Elite</span>
                   </Link>
                 </>
@@ -154,7 +153,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
               }
             >
               {link.icon}
-              <span className="text-[10px] font-bold uppercase tracking-tighter">
+              <span className="text-[10px] font-bold tracking-tighter">
                 {link.name}
               </span>
             </NavLink>
@@ -169,7 +168,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
               }
             >
               <UserIcon className="w-5 h-5" />
-              <span className="text-[10px] font-bold uppercase tracking-tighter">Dashboard</span>
+              <span className="text-[10px] font-bold tracking-tighter">Dashboard</span>
             </NavLink>
           )}
         </div>

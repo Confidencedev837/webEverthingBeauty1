@@ -132,11 +132,11 @@ const ServiceDetail: React.FC = () => {
           <div className="flex justify-center gap-4">
             <button
               onClick={loadData}
-              className="px-6 py-2.5 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+              className="px-6 py-2.5 bg-brand-interactive text-white rounded-xl text-xs font-bold"
             >
               Retry
             </button>
-            <Link to="/services" className="px-6 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold uppercase tracking-wider text-[#6C757D]">
+            <Link to="/services" className="px-6 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold text-[#6C757D]">
               All Services
             </Link>
           </div>
@@ -197,7 +197,7 @@ const ServiceDetail: React.FC = () => {
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center text-brand-interactive p-6 text-center">
                         <span className="font-serif font-bold text-2xl text-white mb-2">{service.name}</span>
-                        <span className="text-xs font-black uppercase tracking-widest text-brand-interactive">{service.category}</span>
+                        <span className="text-xs font-black text-brand-interactive">{service.category}</span>
                       </div>
                     )}
                   </motion.div>
@@ -433,7 +433,7 @@ const ServiceDetail: React.FC = () => {
                 className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl"
               >
                 <div className="mb-8">
-                  <div className="text-[#6C757D] text-sm font-bold uppercase tracking-wider mb-2">Service Price</div>
+                  <div className="text-[#6C757D] text-sm font-bold mb-2">Service Price</div>
                   <div className="text-4xl font-serif font-bold text-brand-interactive">₦{service.price.toLocaleString()}</div>
                 </div>
 
@@ -474,7 +474,7 @@ const ServiceDetail: React.FC = () => {
                       </div>
                     )}
                     <div>
-                      <div className="text-[#6C757D] text-[10px] font-bold uppercase tracking-widest mb-1">Service by</div>
+                      <div className="text-[#6C757D] text-[10px] font-bold mb-1">Service by</div>
                       <div className="text-xl font-serif font-bold text-[#1A1A1A] dark:text-white">{service.agentName}</div>
                       <div className="text-xs text-brand-interactive font-bold">{service.agentSpecialty}</div>
                     </div>

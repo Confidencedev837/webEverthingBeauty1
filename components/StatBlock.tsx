@@ -50,7 +50,7 @@ const StatBlock: React.FC<StatBlockProps> = ({ number, label, suffix = '', micro
       <motion.h3 className="text-4xl md:text-5xl font-bold text-brand-interactive mb-2 tracking-tight drop-shadow-[0_0_10px_rgba(108,53,166,0.3)]">
         <motion.span>{displayValue}</motion.span>
       </motion.h3>
-      <p className="text-lg font-bold text-[#1A1A1A] dark:text-white mb-4 uppercase tracking-widest text-[10px]">
+      <p className="text-lg font-bold text-[#1A1A1A] dark:text-white mb-4 text-[10px]">
         {label}
       </p>
       <div className="h-12 overflow-hidden relative w-full border-t border-[#E9ECEF] dark:border-[#2D2D2D] pt-4">

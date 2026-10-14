@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { Users, CheckCircle, Heart, Star, Search, Calendar, Sparkles, ChevronRight, ArrowRight, Shield, MapPin, Briefcase, Camera, Instagram, Quote, Zap, Globe, MessageSquare, Handshake, TrendingUp } from 'lucide-react';
+import { Users, CheckCircle, Heart, Star, Search, Calendar, ChevronRight, ArrowRight, Shield, MapPin, Briefcase, Camera, Instagram, Quote, Zap, Globe, MessageSquare, Handshake, TrendingUp } from 'lucide-react';
 import StatBlock from '../components/StatBlock';
+import Typewriter, { TypewriterPhrase } from '../components/Typewriter';
 import { getPlatformMetrics, PlatformMetrics } from '../services/supabaseService';
 
 const HERO_IMAGES = [
@@ -10,6 +11,15 @@ const HERO_IMAGES = [
   'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=1920&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1920&auto=format&fit=crop',
 ];
+
+const HERO_PHRASES: TypewriterPhrase[] = [
+  ['Book a makeup artist ', 'in under 60 seconds.'],
+  ['Verified professionals ', 'come to your doorstep.'],
+  ['Hair. Nails. Glow. ', 'On-demand, anywhere.'],
+  ['Skip the salon. ', 'Beauty comes to you.'],
+];
+
+const INDUSTRY_PHRASE: TypewriterPhrase[] = [['Lead the\n', 'Industry.']];
 
 const Home: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -100,14 +110,14 @@ const Home: React.FC = () => {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="inline-flex items-center space-x-2 text-brand-interactive text-[10px] font-black uppercase tracking-[0.35em] mb-8 sm:mb-10 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]"
+              className="inline-flex items-center space-x-2 text-brand-interactive text-[10px] font-black tracking-[0.35em] mb-8 sm:mb-10 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]"
             >
-              <Sparkles className="w-4 h-4" />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-interactive inline-block" />
               <span>Elite On-Demand Beauty</span>
             </motion.div>
 
-            <h1 className="w-full text-5xl md:text-5xl lg:text-6xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-6 leading-tight tracking-tighter">
-              Timeless <span className="text-brand-interactive italic">Elegance</span> & <span className="text-brand-interactive italic">Grooming,</span> Delivered.
+            <h1 className="w-full min-h-[3.75em] md:min-h-[2.5em] text-5xl md:text-5xl lg:text-6xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-6 leading-tight tracking-tighter">
+              <Typewriter phrases={HERO_PHRASES} loop />
             </h1>
 
             <p className="text-lg md:text-xl text-[#6C757D] dark:text-[#B0B0B0] mb-10 max-w-xl font-medium leading-relaxed">
@@ -149,7 +159,7 @@ const Home: React.FC = () => {
               number={metrics.totalServices}
               suffix=""
               label="Available Services"
-              icon={<Sparkles />}
+              icon={<Zap />}
               microTexts={["Hair, Makeup, Nails, Skincare", "Instant Booking Available"]}
             />
             <StatBlock
@@ -176,7 +186,7 @@ const Home: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-24">
-            <motion.p {...fadeInUp} className="text-brand-interactive font-black uppercase tracking-[0.5em] text-[10px] mb-4">The Mastery Process</motion.p>
+            <motion.p {...fadeInUp} className="text-brand-interactive font-black tracking-[0.5em] text-[10px] mb-4">The Mastery Process</motion.p>
             <motion.h2 {...fadeInUp} className="text-6xl md:text-8xl font-serif font-bold">Simply Effortless</motion.h2>
           </div>
 
@@ -210,7 +220,7 @@ const Home: React.FC = () => {
                 step: "04",
                 title: "Radiate",
                 desc: "Your specialist arrives and delivers your transformation.",
-                icon: <Sparkles className="w-8 h-8" />
+                icon: <Zap className="w-8 h-8" />
               }
             ].map((item, idx) => (
               <motion.div
@@ -255,24 +265,19 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl">
             <motion.div {...fadeInUp}>
-              <div className="inline-flex items-center space-x-2 text-brand-interactive text-[10px] font-black uppercase tracking-[0.35em] mb-10 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]">
-                <TrendingUp className="w-4 h-4" />
-                <span>Specialist Network</span>
-              </div>
               <h2 className="text-6xl md:text-9xl font-serif font-bold text-white mb-10 leading-[0.9] tracking-tighter">
-                Lead the <br />
-                <span className="text-brand-interactive italic">Industry.</span>
+                <Typewriter phrases={INDUSTRY_PHRASE} startOnView typeSpeed={90} accentClassName="text-brand-accent" />
               </h2>
               <p className="text-2xl text-white/70 mb-16 leading-relaxed font-medium">
                 Monetize your services with complete control over your schedule, portfolio, and pricing.
               </p>
 
-              <div className="flex flex-col md:flex-row gap-8">
-                <Link to="/auth" className="group flex-1 px-12 py-7 bg-brand-interactive text-white rounded-[2.5rem] font-black text-2xl flex items-center justify-center space-x-4 hover:bg-brand-interactive/90 transition-all transform hover:scale-105 shadow-[0_30px_60px_rgba(108,53,166,0.5)]">
+              <div className="flex flex-col md:flex-row gap-6">
+                <Link to="/auth" className="group flex-1 px-8 py-5 bg-brand-interactive text-white rounded-[2rem] font-black text-lg flex items-center justify-center space-x-3 hover:bg-brand-interactive/90 transition-all transform hover:scale-105 shadow-[0_20px_40px_rgba(108,53,166,0.5)]">
                   <span>Become a Partner</span>
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-3 transition-transform duration-500" />
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-3 transition-transform duration-500" />
                 </Link>
-                <Link to="/services" className="flex-1 px-12 py-7 bg-white/5 backdrop-blur-2xl text-white border-2 border-white/20 rounded-[2.5rem] font-bold text-2xl hover:bg-white/10 transition-all transform hover:scale-105 flex items-center justify-center text-center shadow-2xl">
+                <Link to="/services" className="flex-1 px-8 py-5 bg-white/5 backdrop-blur-2xl text-white border-2 border-white/20 rounded-[2rem] font-bold text-lg hover:bg-white/10 transition-all transform hover:scale-105 flex items-center justify-center text-center shadow-2xl">
                   Explore Services
                 </Link>
               </div>

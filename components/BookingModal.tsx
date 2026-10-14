@@ -109,7 +109,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                   {/* Date & Time */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
+                      <label className="text-xs font-black text-[#6C757D] flex items-center">
                         <CalendarIcon className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> DATE
                       </label>
                       <input 
@@ -121,7 +121,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
+                      <label className="text-xs font-black text-[#6C757D] flex items-center">
                         <Clock className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> TIME
                       </label>
                       <select 
@@ -142,7 +142,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
 
                   {/* Location */}
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
+                    <label className="text-xs font-black text-[#6C757D] flex items-center">
                       <MapPin className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> CLIENT ADDRESS
                     </label>
                     <input 
@@ -157,7 +157,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
 
                   {/* Requests */}
                   <div className="space-y-2">
-                    <label className="text-xs font-black text-[#6C757D] flex items-center uppercase tracking-wider">
+                    <label className="text-xs font-black text-[#6C757D] flex items-center">
                       <MessageSquare className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> NOTES & PREFERENCES
                     </label>
                     <textarea 

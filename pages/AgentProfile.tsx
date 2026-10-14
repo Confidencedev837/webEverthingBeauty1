@@ -69,11 +69,11 @@ const AgentProfile: React.FC = () => {
           <div className="flex justify-center gap-4">
             <button
               onClick={loadData}
-              className="px-6 py-2.5 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+              className="px-6 py-2.5 bg-brand-interactive text-white rounded-xl text-xs font-bold"
             >
               Retry
             </button>
-            <Link to="/agents" className="px-6 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold uppercase tracking-wider text-[#6C757D]">
+            <Link to="/agents" className="px-6 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold text-[#6C757D]">
               All Specialists
             </Link>
           </div>
@@ -112,8 +112,8 @@ const AgentProfile: React.FC = () => {
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-serif font-bold mb-1 text-[#1A1A1A] dark:text-white">{agent.name}</h1>
                 <div className="flex items-center justify-center space-x-1.5 mb-4 text-xs sm:text-sm">
-                  <span className="text-[#6C757D] font-medium uppercase tracking-widest text-[10px] sm:text-xs">Specialization:</span>
-                  <span className="text-brand-interactive font-bold uppercase tracking-widest text-[10px] sm:text-xs">{agent.specialty}</span>
+                  <span className="text-[#6C757D] font-medium text-[10px] sm:text-xs">Specialization:</span>
+                  <span className="text-brand-interactive font-bold text-[10px] sm:text-xs">{agent.specialty}</span>
                 </div>
                 
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-6 sm:mb-8">
@@ -134,15 +134,15 @@ const AgentProfile: React.FC = () => {
                 <div className="w-full grid grid-cols-3 gap-2 sm:gap-3 mb-6 sm:mb-8 border-y border-[#E9ECEF] dark:border-[#2D2D2D] py-5">
                   <div className="flex flex-col items-center justify-center">
                     <span className="text-2xl sm:text-3xl font-serif font-black text-[#1A1A1A] dark:text-white mb-1">{agent.experience}<span className="text-brand-interactive text-lg sm:text-xl">y</span></span>
-                    <span className="text-[9px] sm:text-[10px] text-[#6C757D] uppercase font-bold tracking-wider">Experience</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#6C757D] font-bold">Experience</span>
                   </div>
                   <div className="flex flex-col items-center justify-center border-x border-[#E9ECEF] dark:border-[#2D2D2D]">
                     <span className="text-2xl sm:text-3xl font-serif font-black text-[#1A1A1A] dark:text-white mb-1">{services.length}</span>
-                    <span className="text-[9px] sm:text-[10px] text-[#6C757D] uppercase font-bold tracking-wider">Services</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#6C757D] font-bold">Services</span>
                   </div>
                   <div className="flex flex-col items-center justify-center">
                     <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-[#1A1A1A] dark:text-white mb-1.5" />
-                    <span className="text-[9px] sm:text-[10px] text-[#6C757D] uppercase font-bold tracking-wider truncate w-full px-1">{agent.location || 'N/A'}</span>
+                    <span className="text-[9px] sm:text-[10px] text-[#6C757D] font-bold truncate w-full px-1">{agent.location || 'N/A'}</span>
                   </div>
                 </div>
 
@@ -196,7 +196,7 @@ const AgentProfile: React.FC = () => {
                         {service.image ? (
                           <img src={service.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={service.name} />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center font-bold text-brand-interactive tracking-widest uppercase text-sm">
+                          <div className="w-full h-full flex items-center justify-center font-bold text-brand-interactive text-sm">
                             {service.category}
                           </div>
                         )}
@@ -206,7 +206,7 @@ const AgentProfile: React.FC = () => {
                       </div>
                       <div className="p-6">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-[10px] uppercase tracking-widest font-bold text-brand-interactive bg-brand-interactive/10 px-3 py-1 rounded-full">{service.category}</span>
+                          <span className="text-[10px] font-bold text-brand-interactive bg-brand-interactive/10 px-3 py-1 rounded-full">{service.category}</span>
                           <div className="flex items-center text-xs bg-brand-surface dark:bg-[#252525] px-3 py-1 rounded-full">
                             <Star className={`w-3.5 h-3.5 mr-1.5 ${service.rating > 0 ? 'text-yellow-500 fill-current' : 'text-gray-400'}`} />
                             <span className="font-bold text-[#1A1A1A] dark:text-white">{service.rating > 0 ? service.rating : 'New'}</span>

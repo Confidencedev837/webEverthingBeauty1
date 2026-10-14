@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User as UserIcon, Briefcase, Mail, Phone, Lock, MapPin, Sparkles, Check, ChevronRight, ArrowRight, Upload, Calendar, AlertCircle } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { User as UserIcon, Briefcase, Mail, Phone, Lock, MapPin, Scissors, Check, ArrowRight, Calendar, AlertCircle, Eye, EyeOff, KeyRound, ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
+
+type AuthView = 'login' | 'signup' | 'forgot';
 
 const NIGERIAN_STATES = [
   "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", "Cross River",
@@ -16,14 +18,19 @@ const Auth: React.FC = () => {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<AuthView>('login');
   const [userType, setUserType] = useState<'customer' | 'agent'>('customer');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   // Form Fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+
+  const isLogin = view === 'login';
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState('Lagos');
@@ -35,40 +42,26 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setErrorMsg(null);
     setLoading(true);
-
     try {
       if (isLogin) {
-        // Handle login
         const res = await signIn(email, password);
         if (res.success) {
-          if (res.role === UserRole.ADMIN) {
-            navigate('/admin/dashboard');
-          } else if (res.role === UserRole.AGENT) {
-            navigate('/agent/dashboard');
-          } else {
-            navigate('/customer/dashboard');
-          }
+          if (res.role === UserRole.ADMIN) navigate('/admin/dashboard');
+          else if (res.role === UserRole.AGENT) navigate('/agent/dashboard');
+          else navigate('/customer/dashboard');
         } else {
           setErrorMsg(res.error || 'Failed to sign in. Please verify your credentials.');
         }
       } else {
-        // Handle signup
         const res = await signUp(email, password, {
-          fullName,
-          userType,
-          phone,
-          location,
+          fullName, userType, phone, location,
           specialization: userType === 'agent' ? specialization : undefined,
           yearsExp: userType === 'agent' ? parseInt(yearsExp) || 0 : undefined,
           serviceType: userType === 'agent' ? serviceType : undefined
         });
-
         if (res.success) {
-          if (userType === 'agent') {
-            navigate('/agent/dashboard');
-          } else {
-            navigate('/customer/dashboard');
-          }
+          if (userType === 'agent') navigate('/agent/dashboard');
+          else navigate('/customer/dashboard');
         } else {
           setErrorMsg(res.error || 'Failed to register account.');
         }
@@ -78,6 +71,15 @@ const Auth: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg(null);
+    await new Promise(r => setTimeout(r, 1200));
+    setLoading(false);
+    setForgotSuccess(true);
   };
 
   const fadeInUp = {
@@ -129,6 +131,43 @@ const Auth: React.FC = () => {
       {/* Form Side */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-20 overflow-y-auto">
         <div className="w-full max-w-lg">
+          <AnimatePresence mode="wait">
+
+          {/* ── FORGOT PASSWORD VIEW ── */}
+          {view === 'forgot' && (
+            <motion.div key="forgot" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
+              <button onClick={() => { setView('login'); setForgotSuccess(false); setErrorMsg(null); }} className="flex items-center space-x-2 text-sm font-black text-[#6C757D] hover:text-brand-interactive transition-colors mb-10 group">
+                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /><span>Back to Login</span>
+              </button>
+              {forgotSuccess ? (
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">
+                  <div className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-8"><Check className="w-12 h-12 text-green-500" /></div>
+                  <h2 className="text-4xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-4">Check your inbox</h2>
+                  <p className="text-lg text-[#6C757D] dark:text-[#B0B0B0] font-medium leading-relaxed mb-8">We sent a reset link to<br /><span className="text-brand-interactive font-black">{forgotEmail}</span></p>
+                  <p className="text-sm text-[#6C757D] font-medium">Did not receive it? <button onClick={() => setForgotSuccess(false)} className="text-brand-interactive font-black hover:underline">Resend</button></p>
+                </motion.div>
+              ) : (
+                <>
+                  <div className="mb-10">
+                    <div className="w-16 h-16 rounded-2xl bg-brand-interactive/10 flex items-center justify-center mb-6"><KeyRound className="w-8 h-8 text-brand-interactive" /></div>
+                    <h2 className="text-5xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-3">Forgot Password?</h2>
+                    <p className="text-lg text-[#6C757D] dark:text-[#B0B0B0] font-medium">No worries. Enter your email and we will send a reset link.</p>
+                  </div>
+                  {errorMsg && <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-2xl flex items-center space-x-3 text-red-600 dark:text-red-400 text-sm"><AlertCircle className="w-5 h-5 flex-shrink-0" /><span>{errorMsg}</span></div>}
+                  <form onSubmit={handleForgotPassword} className="space-y-6">
+                    <Input icon={<Mail />} label="Email Address" type="email" placeholder="yourname@gmail.com" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} required />
+                    <button type="submit" disabled={loading} className="w-full py-4 sm:py-5 bg-brand-interactive text-white rounded-2xl font-black text-lg hover:bg-brand-interactive/90 transition-all transform hover:scale-[1.02] shadow-[0_15px_30px_rgba(108,53,166,0.3)] active:scale-95 flex items-center justify-center space-x-3">
+                      {loading ? <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" /> : <><span>Send Reset Link</span><ArrowRight className="w-6 h-6" /></>}
+                    </button>
+                  </form>
+                </>
+              )}
+            </motion.div>
+          )}
+
+          {/* ── LOGIN / SIGNUP VIEW ── */}
+          {view !== 'forgot' && (
+          <motion.div key={view} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
           <div className="text-center mb-10">
             <h2 className="text-5xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-4">
               {isLogin ? 'Welcome Back' : 'Create an Account'}
@@ -147,35 +186,17 @@ const Auth: React.FC = () => {
 
           {!isLogin && (
             <div className="relative flex p-2 bg-brand-surface dark:bg-[#1A1A1A] rounded-[2rem] shadow-inner border border-[#E9ECEF] dark:border-[#2D2D2D] mb-8">
-              <div
-                className={`absolute inset-2 w-[calc(50%-8px)] bg-brand-interactive rounded-[1.5rem] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-lg ${userType === 'agent' ? 'translate-x-full' : ''}`}
-              />
-              <button
-                type="button"
-                onClick={() => setUserType('customer')}
-                className={`relative z-10 flex-1 flex items-center justify-center space-x-3 py-4 rounded-[1.5rem] transition-colors duration-500 font-black text-sm uppercase tracking-widest ${userType === 'customer' ? 'text-white' : 'text-[#6C757D]'}`}
-              >
-                <UserIcon className="w-5 h-5" />
-                <span>Customer</span>
+              <div className={`absolute inset-2 w-[calc(50%-8px)] bg-brand-interactive rounded-[1.5rem] transition-all duration-500 shadow-lg ${userType === 'agent' ? 'translate-x-full' : ''}`} />
+              <button type="button" onClick={() => setUserType('customer')} className={`relative z-10 flex-1 flex items-center justify-center space-x-3 py-4 rounded-[1.5rem] transition-colors duration-500 font-black text-sm ${userType === 'customer' ? 'text-white' : 'text-[#6C757D]'}`}>
+                <UserIcon className="w-5 h-5" /><span>Customer</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setUserType('agent')}
-                className={`relative z-10 flex-1 flex items-center justify-center space-x-3 py-4 rounded-[1.5rem] transition-colors duration-500 font-black text-sm uppercase tracking-widest ${userType === 'agent' ? 'text-white' : 'text-[#6C757D]'}`}
-              >
-                <Briefcase className="w-5 h-5" />
-                <span>Beauty Agent</span>
+              <button type="button" onClick={() => setUserType('agent')} className={`relative z-10 flex-1 flex items-center justify-center space-x-3 py-4 rounded-[1.5rem] transition-colors duration-500 font-black text-sm ${userType === 'agent' ? 'text-white' : 'text-[#6C757D]'}`}>
+                <Briefcase className="w-5 h-5" /><span>Beauty Agent</span>
               </button>
             </div>
           )}
 
-          <AnimatePresence mode="wait">
-            <motion.form
-              key={`${isLogin}-${userType}`}
-              {...fadeInUp}
-              onSubmit={handleAuth}
-              className="space-y-6"
-            >
+          <form onSubmit={handleAuth} className="space-y-6">
               {!isLogin && (
                 <>
                   <Input 
@@ -190,7 +211,7 @@ const Auth: React.FC = () => {
                     icon={<Mail />}
                     label="Email Address"
                     type="email"
-                    placeholder="jane@everythingbeauty.com"
+                    placeholder="yourname@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -206,7 +227,7 @@ const Auth: React.FC = () => {
 
                   {/* City/State Selection */}
                   <div className="space-y-3">
-                    <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 uppercase tracking-[0.15em]">
+                    <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 tracking-[0.15em]">
                       <span className="text-brand-interactive"><MapPin className="w-4 h-4" /></span>
                       <span>City / State</span>
                     </label>
@@ -237,7 +258,7 @@ const Auth: React.FC = () => {
                           onChange={(e) => setYearsExp(e.target.value)}
                         />
                         <div className="space-y-3">
-                          <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 uppercase tracking-[0.15em]">
+                          <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 tracking-[0.15em]">
                             <span className="text-brand-interactive"><Briefcase className="w-4 h-4" /></span>
                             <span>Service Type</span>
                           </label>
@@ -253,10 +274,10 @@ const Auth: React.FC = () => {
                         </div>
                       </div>
 
-                      <Input 
-                        icon={<Sparkles />} 
-                        label="Specialization" 
-                        placeholder="Bridal Makeup, Hair Styling, Barbing" 
+                      <Input
+                        icon={<Scissors />}
+                        label="Specialization"
+                        placeholder="Bridal Makeup, Hair Styling, Barbing"
                         value={specialization}
                         onChange={(e) => setSpecialization(e.target.value)}
                       />
@@ -269,7 +290,8 @@ const Auth: React.FC = () => {
                 <Input
                   icon={<Mail />}
                   label="Email"
-                  placeholder="jane@everythingbeauty.com"
+                  type="email"
+                  placeholder="yourname@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -277,18 +299,18 @@ const Auth: React.FC = () => {
               )}
 
               <div className="space-y-1">
-                <Input
-                  icon={<Lock />}
+                <PasswordInput
                   label="Password"
-                  type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  show={showPassword}
+                  onToggle={() => setShowPassword(v => !v)}
                   required
                 />
                 {isLogin && (
-                  <div className="text-right">
-                    <button type="button" className="text-sm text-brand-interactive font-black hover:underline uppercase tracking-widest">Forgot password?</button>
+                  <div className="text-right pt-1">
+                    <button type="button" onClick={() => { setView('forgot'); setErrorMsg(null); }} className="text-sm text-brand-interactive font-black hover:underline">Forgot password?</button>
                   </div>
                 )}
               </div>
@@ -315,17 +337,17 @@ const Auth: React.FC = () => {
                   {isLogin ? "Don't have an account?" : "Already a member?"}
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsLogin(!isLogin);
-                      setErrorMsg(null);
-                    }}
-                    className="ml-3 text-brand-interactive font-black hover:underline uppercase tracking-wider"
+                    onClick={() => { setView(isLogin ? 'signup' : 'login'); setErrorMsg(null); }}
+                    className="ml-3 text-brand-interactive font-black hover:underline"
                   >
                     {isLogin ? 'Sign Up' : 'Log In'}
                   </button>
                 </p>
               </div>
-            </motion.form>
+            </form>
+          </motion.div>
+          )}
+
           </AnimatePresence>
         </div>
       </div>
@@ -343,7 +365,7 @@ const Input: React.FC<{
   required?: boolean;
 }> = ({ icon, label, type = 'text', placeholder, value, onChange, required }) => (
   <div className="space-y-3">
-    <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 uppercase tracking-[0.15em]">
+    <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 tracking-[0.15em]">
       <span className="text-brand-interactive">{icon}</span>
       <span>{label}</span>
     </label>
@@ -353,8 +375,44 @@ const Input: React.FC<{
       value={value}
       onChange={onChange}
       required={required}
-      className="w-full p-4 bg-brand-surface dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-2xl outline-none transition-all font-medium text-base shadow-inner text-[#1A1A1A] dark:text-white"
+      className="w-full p-4 bg-brand-surface dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-2xl outline-none transition-all font-medium text-base shadow-inner text-[#1A1A1A] dark:text-white placeholder:text-[#ADB5BD]"
     />
+  </div>
+);
+
+const PasswordInput: React.FC<{
+  label: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  show: boolean;
+  onToggle: () => void;
+  required?: boolean;
+}> = ({ label, placeholder, value, onChange, show, onToggle, required }) => (
+  <div className="space-y-3">
+    <label className="text-xs font-black text-[#6C757D] flex items-center space-x-2 tracking-[0.15em]">
+      <span className="text-brand-interactive"><Lock className="w-4 h-4" /></span>
+      <span>{label}</span>
+    </label>
+    <div className="relative">
+      <input
+        type={show ? 'text' : 'password'}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        required={required}
+        className="w-full p-4 pr-14 bg-brand-surface dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-2xl outline-none transition-all font-medium text-base shadow-inner text-[#1A1A1A] dark:text-white placeholder:text-[#ADB5BD]"
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        tabIndex={-1}
+        aria-label={show ? 'Hide password' : 'Show password'}
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6C757D] hover:text-brand-interactive transition-colors p-1"
+      >
+        {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+      </button>
+    </div>
   </div>
 );
 

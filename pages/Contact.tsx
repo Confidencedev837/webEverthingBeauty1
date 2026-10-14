@@ -91,16 +91,16 @@ const Contact: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest">Name *</label>
+                  <label className="text-xs font-bold text-[#6C757D]">Name *</label>
                   <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Your full name" required className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest">Email *</label>
+                  <label className="text-xs font-bold text-[#6C757D]">Email *</label>
                   <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="hello@company.com" required className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest flex items-center">
+                <label className="text-xs font-bold text-[#6C757D] flex items-center">
                   <Tag className="w-3 h-3 mr-1" /> Subject
                 </label>
                 <select value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all appearance-none">
@@ -111,7 +111,7 @@ const Contact: React.FC = () => {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-[#6C757D] uppercase tracking-widest flex items-center">
+                <label className="text-xs font-bold text-[#6C757D] flex items-center">
                   <MessageSquare className="w-3 h-3 mr-1" /> Message *
                 </label>
                 <textarea value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} placeholder="How can we help you?" required className="w-full p-3 sm:p-4 bg-brand-surface dark:bg-[#0D0D0D] border border-transparent rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all h-32 sm:h-40 resize-none"></textarea>
@@ -180,7 +180,7 @@ const Contact: React.FC = () => {
               transition={{ delay: 0.15 }}
               className="p-6 sm:p-8 bg-[#F0F2F5] dark:bg-[#252525] rounded-3xl border border-dashed border-[#ADB5BD] dark:border-[#495057]"
             >
-              <h4 className="font-bold mb-4 uppercase tracking-widest text-[#6C757D] text-xs">Test Notifications</h4>
+              <h4 className="font-bold mb-4 text-[#6C757D] text-xs">Test Notifications</h4>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => showSnackbar('Payment successful!', 'success')}

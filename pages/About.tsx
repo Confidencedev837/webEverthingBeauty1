@@ -24,7 +24,7 @@ const About: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-block text-brand-interactive text-[10px] font-black uppercase tracking-[0.35em] mb-4 sm:mb-6 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]"
+            className="inline-block text-brand-interactive text-[10px] font-black tracking-[0.35em] mb-4 sm:mb-6 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]"
           >
             <span className="flex items-center space-x-2">
               <Sparkles className="w-4 h-4" />

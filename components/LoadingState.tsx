@@ -42,7 +42,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({ message = 'Loading...' }) =
       <motion.p 
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="text-[#6C757D] dark:text-[#B0B0B0] font-medium text-base sm:text-lg italic tracking-wider uppercase"
+        className="text-[#6C757D] dark:text-[#B0B0B0] font-medium text-base sm:text-lg italic"
       >
         {message}
       </motion.p>

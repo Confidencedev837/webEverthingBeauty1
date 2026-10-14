@@ -42,7 +42,7 @@ const FAQ: React.FC = () => {
       <section className="pt-32 pb-16 sm:pt-40 sm:pb-24 px-4 sm:px-6 relative z-10 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           <motion.div {...fadeInUp}>
-            <div className="inline-flex items-center space-x-2 text-brand-interactive text-[10px] font-black uppercase tracking-[0.35em] mb-6 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]">
+            <div className="inline-flex items-center space-x-2 text-brand-interactive text-[10px] font-black tracking-[0.35em] mb-6 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]">
               <Sparkles className="w-4 h-4" />
               <span>Clarity & Transparency</span>
             </div>

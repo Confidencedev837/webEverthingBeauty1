@@ -124,7 +124,7 @@ const Services: React.FC = () => {
                 <MapPin className="w-4 h-4 text-brand-interactive" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] uppercase font-black text-[#6C757D] tracking-widest leading-none mb-0.5">Order by</span>
+                <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Order by</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -202,7 +202,7 @@ const Services: React.FC = () => {
                 {services.length > 0 && (
                   <button
                     onClick={() => { setSearch(''); setSelectedCategory('All'); }}
-                    className="mt-6 px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all"
+                    className="mt-6 px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all"
                   >
                     Reset Filters
                   </button>

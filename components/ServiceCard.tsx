@@ -43,7 +43,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
             {/* Video Indicator Badge */}
-            <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur-md rounded-lg text-white text-[10px] font-black uppercase tracking-wider flex items-center space-x-1.5 shadow-md">
+            <div className="absolute bottom-3 right-3 px-2.5 py-1 bg-black/70 backdrop-blur-md rounded-lg text-white text-[10px] font-black flex items-center space-x-1.5 shadow-md">
               <VideoIcon className="w-3 h-3 text-brand-interactive animate-pulse" />
               <span>Video</span>
             </div>
@@ -58,11 +58,11 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index }) => {
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand-interactive/20 via-black to-black text-brand-interactive p-6 text-center">
             <span className="font-serif font-bold text-lg text-white mb-1">{service.name}</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-brand-interactive/80">{service.category}</span>
+            <span className="text-[10px] font-black text-brand-interactive/80">{service.category}</span>
           </div>
         )}
 
-        <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md rounded-full text-[10px] font-bold tracking-wider uppercase text-brand-interactive shadow-sm">
+        <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md rounded-full text-[10px] font-bold text-brand-interactive shadow-sm">
           {service.category}
         </div>
       </Link>

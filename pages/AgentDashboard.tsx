@@ -132,13 +132,13 @@ const AgentDashboard: React.FC = () => {
             <div className="flex justify-center gap-4">
               <button 
                 onClick={() => setView('overview')}
-                className="px-8 py-4 bg-brand-interactive text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-brand-interactive/20 hover:scale-105 transition-all"
+                className="px-8 py-4 bg-brand-interactive text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-interactive/20 hover:scale-105 transition-all"
               >
                 Access Studio
               </button>
               <button 
                 onClick={handleLogout}
-                className="px-8 py-4 bg-gray-100 dark:bg-white/10 text-[#1A1A1A] dark:text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-gray-200 transition-all"
+                className="px-8 py-4 bg-gray-100 dark:bg-white/10 text-[#1A1A1A] dark:text-white rounded-2xl font-black text-sm hover:bg-gray-200 transition-all"
               >
                 Sign Out
               </button>
@@ -174,7 +174,7 @@ const AgentDashboard: React.FC = () => {
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-3xl font-serif font-bold">Recent Bookings</h2>
                 {bookings.length > 0 && (
-                  <button onClick={() => setView('bookings')} className="text-brand-interactive font-black text-xs uppercase tracking-widest hover:underline">
+                  <button onClick={() => setView('bookings')} className="text-brand-interactive font-black text-xs hover:underline">
                     View All ({bookings.length})
                   </button>
                 )}
@@ -237,7 +237,7 @@ const AgentDashboard: React.FC = () => {
                 <h2 className="text-3xl font-serif font-bold">My Published Services</h2>
                 <p className="text-sm text-[#6C757D]">Active services visible to prospective clients</p>
               </div>
-              <button onClick={() => setIsCreateServiceOpen(true)} className="p-4 bg-brand-interactive text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center space-x-2 shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all">
+              <button onClick={() => setIsCreateServiceOpen(true)} className="p-4 bg-brand-interactive text-white rounded-2xl font-black text-xs flex items-center space-x-2 shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all">
                 <Plus className="w-4 h-4" /> <span>Add New Service</span>
               </button>
             </div>
@@ -253,7 +253,7 @@ const AgentDashboard: React.FC = () => {
                       </div>
                     )}
                     <div className="flex-grow">
-                      <span className="text-[10px] text-brand-interactive font-black uppercase tracking-widest">{service.category}</span>
+                      <span className="text-[10px] text-brand-interactive font-black">{service.category}</span>
                       <h4 className="text-xl font-serif font-bold mb-1">{service.name}</h4>
                       <div className="text-green-500 font-black text-lg">₦{service.price.toLocaleString()}</div>
                       <div className="flex gap-4 mt-3">
@@ -271,7 +271,7 @@ const AgentDashboard: React.FC = () => {
                 <Briefcase className="w-10 h-10 opacity-40 mx-auto mb-3" />
                 <h4 className="font-bold text-lg mb-1">No Services Published</h4>
                 <p className="text-sm mb-6">Create and publish your beauty offerings to begin receiving customer bookings.</p>
-                <button onClick={() => setIsCreateServiceOpen(true)} className="px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-wider">
+                <button onClick={() => setIsCreateServiceOpen(true)} className="px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold">
                   Create First Service
                 </button>
               </div>
@@ -318,21 +318,21 @@ const AgentDashboard: React.FC = () => {
                   <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500"><Briefcase className="w-6 h-6" /></div>
                 </div>
                 <div className="text-4xl font-black mb-1">{services.length}</div>
-                <div className="text-xs text-[#6C757D] font-bold uppercase tracking-widest">Active Services</div>
+                <div className="text-xs text-[#6C757D] font-bold">Active Services</div>
               </div>
               <div className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-brand-interactive/10 flex items-center justify-center text-brand-interactive"><Clock className="w-6 h-6" /></div>
                 </div>
                 <div className="text-4xl font-black mb-1">{pendingBookings.length}</div>
-                <div className="text-xs text-[#6C757D] font-bold uppercase tracking-widest">Pending Requests</div>
+                <div className="text-xs text-[#6C757D] font-bold">Pending Requests</div>
               </div>
               <div className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-500"><CheckCircle className="w-6 h-6" /></div>
                 </div>
                 <div className="text-4xl font-black mb-1">{completedBookings.length}</div>
-                <div className="text-xs text-[#6C757D] font-bold uppercase tracking-widest">Completed Sessions</div>
+                <div className="text-xs text-[#6C757D] font-bold">Completed Sessions</div>
               </div>
             </div>
 
@@ -342,10 +342,10 @@ const AgentDashboard: React.FC = () => {
                 <table className="w-full text-left">
                   <thead className="border-b border-gray-100 dark:border-gray-800">
                     <tr>
-                      <th className="pb-4 text-xs font-black uppercase tracking-widest text-[#6C757D]">Service Name</th>
-                      <th className="pb-4 text-xs font-black uppercase tracking-widest text-[#6C757D]">Price</th>
-                      <th className="pb-4 text-xs font-black uppercase tracking-widest text-[#6C757D]">Category</th>
-                      <th className="pb-4 text-xs font-black uppercase tracking-widest text-[#6C757D]">Rating</th>
+                      <th className="pb-4 text-xs font-black text-[#6C757D]">Service Name</th>
+                      <th className="pb-4 text-xs font-black text-[#6C757D]">Price</th>
+                      <th className="pb-4 text-xs font-black text-[#6C757D]">Category</th>
+                      <th className="pb-4 text-xs font-black text-[#6C757D]">Rating</th>
                     </tr>
                   </thead>
                   <tbody className="text-sm">
@@ -412,7 +412,7 @@ const AgentDashboard: React.FC = () => {
               )}
               <div>
                 <div className="font-bold text-lg leading-tight truncate max-w-[150px]">{currentUser?.name}</div>
-                <div className="flex items-center text-[10px] text-green-500 font-black uppercase tracking-widest mt-1">
+                <div className="flex items-center text-[10px] text-green-500 font-black mt-1">
                   <ShieldCheck className="w-3 h-3 mr-1" /> 
                   {currentUser?.verificationStatus === VerificationStatus.VERIFIED ? 'Verified' : 'Pending Review'}
                 </div>
@@ -429,7 +429,7 @@ const AgentDashboard: React.FC = () => {
 
             <button 
               onClick={handleLogout}
-              className="flex items-center space-x-4 p-5 text-brand-interactive font-black uppercase tracking-widest text-[10px] hover:bg-brand-interactive/5 rounded-2xl transition-all mt-auto"
+              className="flex items-center space-x-4 p-5 text-brand-interactive font-black text-[10px] hover:bg-brand-interactive/5 rounded-2xl transition-all mt-auto"
             >
               <LogOut className="w-5 h-5" />
               <span>Log Out</span>
@@ -554,7 +554,7 @@ const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active?: boo
 
 const AgentStatCard: React.FC<{ label: string, value: string, highlight?: boolean, highlightColor?: string }> = ({ label, value, highlight, highlightColor }) => (
   <div className={`bg-brand-background dark:bg-[#1A1A1A] p-8 rounded-[2.5rem] shadow-xl border ${highlight ? 'border-brand-interactive shadow-brand-interactive/10' : 'border-[#E9ECEF] dark:border-[#2D2D2D]'}`}>
-    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6C757D] mb-4">{label}</div>
+    <div className="text-[10px] font-black tracking-[0.2em] text-[#6C757D] mb-4">{label}</div>
     <div className={`text-3xl md:text-4xl font-serif font-black ${highlightColor ? highlightColor : highlight ? 'text-brand-interactive' : ''}`}>{value}</div>
   </div>
 );
@@ -586,7 +586,7 @@ const BookingRequestCard: React.FC<{
       <div className="flex-grow text-center md:text-left">
         <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
           <h4 className="font-bold text-lg text-[#1A1A1A] dark:text-white">{booking.customerName}</h4>
-          <span className="md:ml-2 text-[10px] bg-gray-100 dark:bg-white/10 px-2 py-1 rounded-lg text-gray-500 font-bold uppercase tracking-wider">#{booking.id.slice(0, 8)}</span>
+          <span className="md:ml-2 text-[10px] bg-gray-100 dark:bg-white/10 px-2 py-1 rounded-lg text-gray-500 font-bold">#{booking.id.slice(0, 8)}</span>
         </div>
         <p className="text-sm text-brand-interactive font-bold mb-2">{booking.serviceName}</p>
         <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs text-[#6C757D]">
@@ -604,31 +604,31 @@ const BookingRequestCard: React.FC<{
           <button 
             disabled={updating}
             onClick={() => handleAction(BookingStatus.CONFIRMED)} 
-            className="flex-1 md:flex-none px-6 py-3 bg-green-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20"
+            className="flex-1 md:flex-none px-6 py-3 bg-green-500 text-white rounded-xl font-bold text-xs hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20"
           >
             {updating ? 'Updating...' : 'Accept'}
           </button>
           <button 
             disabled={updating}
             onClick={() => handleAction(BookingStatus.CANCELLED)} 
-            className="flex-1 md:flex-none px-6 py-3 bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-gray-200 transition-colors"
+            className="flex-1 md:flex-none px-6 py-3 bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white rounded-xl font-bold text-xs hover:bg-gray-200 transition-colors"
           >
             Reject
           </button>
         </div>
       ) : showActions && booking.status === BookingStatus.CONFIRMED ? (
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-center">
-          <div className="px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-green-100 text-green-600 mb-2 sm:mb-0">Confirmed</div>
+          <div className="px-6 py-2 rounded-xl text-xs font-black bg-green-100 text-green-600 mb-2 sm:mb-0">Confirmed</div>
           <button 
             disabled={updating}
             onClick={() => handleAction(BookingStatus.COMPLETED)} 
-            className="px-6 py-3 bg-brand-interactive text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-brand-interactive/90 transition-colors shadow-lg shadow-brand-interactive/20 flex items-center"
+            className="px-6 py-3 bg-brand-interactive text-white rounded-xl font-bold text-xs hover:bg-brand-interactive/90 transition-colors shadow-lg shadow-brand-interactive/20 flex items-center"
           >
             <CheckCircle className="w-4 h-4 mr-2" /> Mark Complete
           </button>
         </div>
       ) : (
-        <div className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest relative overflow-hidden ${
+        <div className={`px-6 py-2 rounded-xl text-xs font-black relative overflow-hidden ${
           booking.status === BookingStatus.CONFIRMED ? 'bg-green-100 text-green-600' :
           booking.status === BookingStatus.COMPLETED ? 'bg-blue-100 text-blue-600' :
           booking.status === BookingStatus.CANCELLED ? 'bg-red-100 text-red-500' :

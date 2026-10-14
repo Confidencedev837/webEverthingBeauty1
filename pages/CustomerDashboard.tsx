@@ -129,7 +129,7 @@ const CustomerDashboard: React.FC = () => {
 
             <button 
               onClick={handleLogout}
-              className="flex items-center space-x-4 p-5 text-brand-interactive font-black uppercase tracking-widest text-[10px] hover:bg-brand-interactive/5 rounded-2xl transition-all mt-auto"
+              className="flex items-center space-x-4 p-5 text-brand-interactive font-black text-[10px] hover:bg-brand-interactive/5 rounded-2xl transition-all mt-auto"
             >
               <LogOut className="w-5 h-5" />
               <span>Log Out</span>
@@ -153,7 +153,7 @@ const CustomerDashboard: React.FC = () => {
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <Link to="/services" className="px-10 py-5 bg-brand-interactive text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-brand-interactive/20 hover:scale-105 transition-all">
+            <Link to="/services" className="px-10 py-5 bg-brand-interactive text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-interactive/20 hover:scale-105 transition-all">
               Book New Service
             </Link>
           </div>
@@ -184,14 +184,14 @@ const CustomerDashboard: React.FC = () => {
           <div className="flex space-x-6 mb-8 border-b border-[#E9ECEF] dark:border-[#2D2D2D]">
             <button
               onClick={() => setActiveTab('active')}
-              className={`pb-4 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'active' ? 'text-brand-interactive border-b-4 border-brand-interactive' : 'text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white'
+              className={`pb-4 text-xs font-black transition-all ${activeTab === 'active' ? 'text-brand-interactive border-b-4 border-brand-interactive' : 'text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white'
                 }`}
             >
               Active / Upcoming ({activeBookings.length})
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`pb-4 text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'text-brand-interactive border-b-4 border-brand-interactive' : 'text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white'
+              className={`pb-4 text-xs font-black transition-all ${activeTab === 'history' ? 'text-brand-interactive border-b-4 border-brand-interactive' : 'text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white'
                 }`}
             >
               History ({historyBookings.length})
@@ -230,11 +230,11 @@ const CustomerDashboard: React.FC = () => {
                           <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
                             <div>
                               <h3 className="text-xl font-serif font-bold mb-1">{booking.serviceName}</h3>
-                              <p className="text-[#6C757D] font-bold text-xs uppercase tracking-widest">by {booking.agentName}</p>
+                              <p className="text-[#6C757D] font-bold text-xs">by {booking.agentName}</p>
                             </div>
 
                             {/* Status Badge */}
-                            <div className={`mt-2 md:mt-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center self-start ${
+                            <div className={`mt-2 md:mt-0 px-4 py-2 rounded-xl text-[10px] font-black inline-flex items-center self-start ${
                               booking.status === BookingStatus.CONFIRMED ? 'bg-green-100 text-green-600' :
                               booking.status === BookingStatus.PENDING ? 'bg-yellow-100 text-yellow-600' :
                               booking.status === BookingStatus.COMPLETED ? 'bg-blue-100 text-blue-600' :
@@ -270,7 +270,7 @@ const CustomerDashboard: React.FC = () => {
                             <button 
                               onClick={() => handleCancelBooking(booking.id)}
                               disabled={cancellingId === booking.id}
-                              className="flex-1 lg:w-40 py-3 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all flex items-center justify-center"
+                              className="flex-1 lg:w-40 py-3 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all flex items-center justify-center"
                             >
                               {cancellingId === booking.id ? 'Cancelling...' : 'Cancel Request'}
                             </button>
@@ -279,14 +279,14 @@ const CustomerDashboard: React.FC = () => {
                             <>
                               <Link 
                                 to={`/agent/${booking.agentId}`}
-                                className="flex-1 lg:w-40 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all text-center"
+                                className="flex-1 lg:w-40 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all text-center"
                               >
                                 View Artist
                               </Link>
                               <button 
                                 onClick={() => handleCancelBooking(booking.id)}
                                 disabled={cancellingId === booking.id}
-                                className="flex-1 lg:w-40 py-3 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold uppercase tracking-widest text-[#6C757D] hover:bg-gray-200 transition-all"
+                                className="flex-1 lg:w-40 py-3 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold text-[#6C757D] hover:bg-gray-200 transition-all"
                               >
                                 Cancel
                               </button>
@@ -295,7 +295,7 @@ const CustomerDashboard: React.FC = () => {
                           {booking.status === BookingStatus.COMPLETED && (
                             <Link 
                               to={`/services/${booking.serviceId}`}
-                              className="flex-1 lg:w-40 py-3 bg-brand-background border-2 border-brand-interactive text-brand-interactive rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-interactive hover:text-white transition-all flex items-center justify-center"
+                              className="flex-1 lg:w-40 py-3 bg-brand-background border-2 border-brand-interactive text-brand-interactive rounded-xl text-xs font-bold hover:bg-brand-interactive hover:text-white transition-all flex items-center justify-center"
                             >
                               <Star className="w-3 h-3 mr-2" /> Rate & Review
                             </Link>
@@ -303,7 +303,7 @@ const CustomerDashboard: React.FC = () => {
                           {booking.status === BookingStatus.CANCELLED && (
                             <Link 
                               to="/services"
-                              className="flex-1 lg:w-40 py-3 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold uppercase tracking-widest text-brand-interactive hover:bg-brand-interactive hover:text-white transition-all text-center"
+                              className="flex-1 lg:w-40 py-3 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold text-brand-interactive hover:bg-brand-interactive hover:text-white transition-all text-center"
                             >
                               Book Again
                             </Link>
@@ -331,7 +331,7 @@ const CustomerDashboard: React.FC = () => {
           <section>
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-3xl font-serif font-bold">Featured Specialists</h2>
-              <Link to="/agents" className="text-brand-interactive font-black text-xs uppercase tracking-widest hover:underline">
+              <Link to="/agents" className="text-brand-interactive font-black text-xs hover:underline">
                 View All
               </Link>
             </div>
@@ -347,9 +347,9 @@ const CustomerDashboard: React.FC = () => {
                       </div>
                     )}
                     <h4 className="text-xl font-bold mb-1">{agent.name}</h4>
-                    <p className="text-xs text-[#6C757D] font-bold uppercase tracking-widest mb-6">{agent.specialty}</p>
+                    <p className="text-xs text-[#6C757D] font-bold mb-6">{agent.specialty}</p>
                   </div>
-                  <Link to={`/agent/${agent.id}`} className="inline-flex items-center justify-center text-brand-interactive font-black uppercase tracking-widest text-[10px] group-hover:translate-x-2 transition-transform">
+                  <Link to={`/agent/${agent.id}`} className="inline-flex items-center justify-center text-brand-interactive font-black text-[10px] group-hover:translate-x-2 transition-transform">
                     View Artist Profile <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </div>
@@ -374,7 +374,7 @@ const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active?: boo
 const StatCard: React.FC<{ label: string, value: string, color: string }> = ({ label, value, color }) => (
   <div className="bg-brand-background dark:bg-[#1A1A1A] p-10 rounded-[2.5rem] shadow-xl border border-[#E9ECEF] dark:border-[#2D2D2D] relative overflow-hidden group">
     <div className={`absolute top-0 right-0 w-24 h-24 ${color} opacity-5 -translate-y-12 translate-x-12 rounded-full group-hover:scale-150 transition-transform duration-700`} />
-    <div className="text-xs font-black uppercase tracking-[0.2em] text-[#6C757D] mb-4">{label}</div>
+    <div className="text-xs font-black tracking-[0.2em] text-[#6C757D] mb-4">{label}</div>
     <div className="text-4xl font-serif font-black">{value}</div>
   </div>
 );
