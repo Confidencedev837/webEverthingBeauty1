@@ -240,7 +240,7 @@ const Contact: React.FC = () => {
               className="p-6 sm:p-8 md:p-10 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl sm:rounded-3xl md:rounded-[3rem] border border-brand-interactive/20 flex flex-col items-center text-center"
             >
               {/* ... same content ... */}
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-full flex items-center justify-center mb-3 sm:mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-surface dark:bg-brand-interactive/10 text-brand-interactive rounded-2xl flex items-center justify-center mb-3 sm:mb-4 shadow-sm border border-brand-interactive/10">
                 <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 rotate-90" />
               </div>
               <h4 className="font-bold mb-2">Have questions?</h4>

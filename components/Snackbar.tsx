@@ -97,7 +97,7 @@ const SnackbarItem: React.FC<{ snackbar: SnackbarMessage; onClose: () => void }>
                 {getIcon(snackbar.type)}
                 <span className="font-bold text-sm leading-snug">{snackbar.message}</span>
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-black/10 rounded-full transition-colors">
+            <button onClick={onClose} className="p-1 hover:bg-black/10 rounded-xl transition-colors">
                 <X className="w-4 h-4" />
             </button>
         </motion.div>

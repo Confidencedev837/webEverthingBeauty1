@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Sparkles, Briefcase, Users, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, User } from 'lucide-react';
+import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Briefcase, Users, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Agent } from '../types';
 import { getAgents } from '../services/supabaseService';
@@ -104,7 +104,7 @@ const Agents: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center px-4 py-2 bg-brand-interactive/10 text-brand-interactive rounded-full text-[10px] font-black tracking-[0.2em] mb-6 shadow-sm"
+              className="inline-flex items-center px-4 py-2 bg-brand-interactive/10 text-brand-interactive rounded-xl text-[10px] font-black tracking-[0.2em] mb-6 shadow-sm border border-brand-interactive/20 shadow-[0_0_15px_rgba(108,53,166,0.15)]"
             >
               <Users className="w-4 h-4 mr-2" /> Elite Professionals
             </motion.div>
@@ -168,9 +168,9 @@ const Agents: React.FC = () => {
 
             {/* Sort & Filter Controls */}
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2 rounded-full shadow-md border border-brand-interactive/20">
-                <div className="bg-brand-interactive/10 p-1.5 rounded-full">
-                  <MapPin className="w-4 h-4 text-brand-interactive" />
+              <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+                <div className="bg-brand-interactive/10 p-2 rounded-xl text-brand-interactive">
+                  <MapPin className="w-4 h-4" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Filter & Sort</span>
@@ -302,7 +302,7 @@ const Agents: React.FC = () => {
               ))
             ) : (
               <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-brand-background dark:bg-[#1A1A1A] rounded-3xl md:rounded-[4rem] border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 shadow-lg">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-brand-interactive/10 rounded-full flex items-center justify-center mx-auto mb-6 text-brand-interactive">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-brand-interactive/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-brand-interactive shadow-[0_0_20px_rgba(108,53,166,0.15)]">
                   <Search className="w-8 h-8 sm:w-10 sm:h-10" />
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold mb-2">No beauty specialists found</h3>
@@ -329,7 +329,7 @@ const Agents: React.FC = () => {
           <div className="absolute top-0 right-0 w-1/2 h-full bg-white/10 -skew-x-12 translate-x-32 hidden md:block" />
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 sm:gap-12 md:gap-16">
             <div>
-              <motion.div {...fadeInUp} className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 rounded-full text-[9px] sm:text-[10px] font-black tracking-[0.15em] sm:tracking-[0.2em] mb-4 sm:mb-6 md:mb-8 border border-white/30">
+              <motion.div {...fadeInUp} className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 rounded-xl text-[9px] sm:text-[10px] font-black tracking-[0.15em] sm:tracking-[0.2em] mb-4 sm:mb-6 md:mb-8 border border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                 <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" /> Elite Expansion
               </motion.div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-4 sm:mb-6 md:mb-8 leading-tight">Are you an elite <br /> beauty artist?</h2>
@@ -337,15 +337,14 @@ const Agents: React.FC = () => {
                 Join our vetted community and receive bookings from high-end clientele nationwide with zero hassle.
               </p>
               <Link to="/auth" className="inline-flex items-center px-6 sm:px-8 md:px-10 lg:px-12 py-3 sm:py-4 md:py-5 lg:py-6 bg-brand-background text-brand-interactive rounded-2xl md:rounded-[2rem] font-black text-sm sm:text-base md:text-lg lg:text-xl hover:bg-brand-surface transition-all transform hover:scale-105 shadow-xl">
-                Become a Partner <Sparkles className="ml-2 sm:ml-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                Become a Partner <ArrowRight className="ml-2 sm:ml-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </Link>
             </div>
             <div className="hidden lg:flex justify-center">
-              <div className="relative w-80 h-80">
-                <div className="absolute inset-0 bg-white/10 rounded-full animate-ping" />
-                <div className="absolute inset-4 bg-white/20 rounded-full animate-pulse" />
-                <div className="absolute inset-12 bg-brand-background rounded-full flex items-center justify-center shadow-2xl">
-                  <Sparkles className="w-24 h-24 text-brand-interactive" />
+              <div className="relative w-80 h-80 flex items-center justify-center">
+                <div className="absolute inset-0 bg-white/10 rounded-3xl animate-pulse" />
+                <div className="relative p-10 bg-brand-background rounded-3xl flex items-center justify-center shadow-2xl">
+                  <Award className="w-24 h-24 text-brand-interactive" />
                 </div>
               </div>
             </div>
@@ -361,7 +360,7 @@ const Agents: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-full shadow-[0_10px_20px_rgba(108,53,166,0.4)] hover:bg-brand-interactive/90 transition-all transform hover:-translate-y-1"
+            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-2xl shadow-[0_10px_25px_rgba(108,53,166,0.45)] hover:bg-brand-interactive/90 transition-all transform hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(108,53,166,0.6)]"
           >
             <ArrowUp className="w-6 h-6" />
           </motion.button>

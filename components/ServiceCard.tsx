@@ -63,7 +63,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
           </div>
         )}
 
-        <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-[#1A1A1A]/90 backdrop-blur-md rounded-full text-[10px] font-bold text-brand-interactive shadow-sm">
+        <div className="absolute top-4 left-4 px-3 py-1 bg-white/95 dark:bg-[#1A1A1A]/95 backdrop-blur-md rounded-xl text-[10px] font-bold text-brand-interactive shadow-md border border-brand-interactive/20">
           {service.category}
         </div>
       </Link>
@@ -96,9 +96,9 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
           className="flex items-center p-3 rounded-2xl bg-brand-surface dark:bg-[#252525] border border-transparent hover:border-brand-interactive/20 transition-all group/agent"
         >
           {service.agentImage ? (
-            <img src={service.agentImage} className="w-10 h-10 rounded-full object-cover mr-3 border-2 border-white dark:border-[#1A1A1A]" alt={service.agentName} />
+            <img src={service.agentImage} className="w-10 h-10 rounded-2xl object-cover mr-3 border-2 border-white dark:border-[#1A1A1A] shadow-sm" alt={service.agentName} />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-3 font-bold text-xs border border-brand-interactive/20">
+            <div className="w-10 h-10 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-3 font-bold text-xs border border-brand-interactive/20 shadow-sm">
               <User className="w-4 h-4" />
             </div>
           )}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Target, Lightbulb, Star, Zap, Users, ArrowRight, Heart, Sparkles, MapPin } from 'lucide-react';
+import { ShieldCheck, Target, Lightbulb, Star, Zap, Users, ArrowRight, Heart, Award, Clock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const About: React.FC = () => {
@@ -27,7 +27,7 @@ const About: React.FC = () => {
             className="inline-block text-brand-interactive text-[10px] font-black tracking-[0.35em] mb-4 sm:mb-6 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]"
           >
             <span className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4" />
+              <Award className="w-4 h-4" />
               <span>Why Choose Us</span>
             </span>
           </motion.div>
@@ -55,7 +55,7 @@ const About: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 lg:gap-20 items-center">
             <motion.div {...fadeInUp} className="relative">
-              <div className="absolute -top-10 -left-10 w-40 h-40 bg-brand-interactive/10 rounded-full blur-3xl animate-pulse hidden sm:block" />
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-brand-interactive/10 rounded-[3rem] blur-3xl animate-pulse hidden sm:block" />
               <img src="https://picsum.photos/seed/story/800/800" className="relative rounded-2xl sm:rounded-3xl md:rounded-[3rem] shadow-xl sm:shadow-2xl z-10" alt="Founder team" />
             </motion.div>
             <div>
@@ -104,7 +104,7 @@ const About: React.FC = () => {
       <section className="py-12 sm:py-16 md:py-24 bg-brand-surface dark:bg-[#1A1A1A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-8 sm:mb-12 md:mb-16">
           <motion.h2 {...fadeInUp} className="text-4xl md:text-5xl font-serif font-bold mb-4">Our Core Values</motion.h2>
-          <div className="w-24 h-1 bg-brand-interactive mx-auto mb-8 rounded-full" />
+          <div className="w-24 h-1 bg-brand-interactive mx-auto mb-8 rounded-sm shadow-[0_0_10px_rgba(108,53,166,0.5)]" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {[
@@ -113,7 +113,7 @@ const About: React.FC = () => {
             { icon: <Star />, title: 'Excellence', desc: 'A focus on high-quality results.' },
             { icon: <Users />, title: 'Community', desc: 'Empowering local entrepreneurs.' },
             { icon: <Heart />, title: 'Inspiration', desc: 'Making beauty accessible and inspiring.' },
-            { icon: <Sparkles />, title: 'Convenience', desc: 'Your home, your time, our priority.' }
+            { icon: <Clock />, title: 'Convenience', desc: 'Your home, your time, our priority.' }
           ].map((val, i) => (
             <motion.div
               key={i}
@@ -141,7 +141,7 @@ const About: React.FC = () => {
               Currently serving major hubs including Lagos, Abuja, and Port Harcourt. We are rapidly expanding to bring Everything Beauty to your doorstep, wherever you are in Nigeria.
             </p>
             <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-              <Link to="/auth" className="px-6 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 bg-brand-interactive text-white rounded-full font-bold text-lg hover:bg-brand-interactive/90 transition-all shadow-lg sm:shadow-xl shadow-brand-interactive/20">
+              <Link to="/auth" className="px-6 sm:px-8 md:px-10 py-3.5 sm:py-4 md:py-5 bg-brand-interactive text-white rounded-2xl font-bold text-lg hover:bg-brand-interactive/90 transition-all shadow-lg sm:shadow-xl shadow-brand-interactive/25 hover:scale-105 active:scale-95">
                 Join our Mission
               </Link>
             </div>

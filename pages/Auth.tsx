@@ -139,7 +139,7 @@ const Auth: React.FC = () => {
               </button>
               {forgotSuccess ? (
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-10">
-                  <div className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-8"><Check className="w-12 h-12 text-green-500" /></div>
+                  <div className="w-24 h-24 rounded-3xl bg-green-100 dark:bg-green-900/30 border border-green-500/20 shadow-[0_0_25px_rgba(34,197,94,0.35)] flex items-center justify-center mx-auto mb-8"><Check className="w-12 h-12 text-green-500" /></div>
                   <h2 className="text-4xl font-serif font-bold text-[#1A1A1A] dark:text-white mb-4">Check your inbox</h2>
                   <p className="text-lg text-[#6C757D] dark:text-[#B0B0B0] font-medium leading-relaxed mb-8">We sent a reset link to<br /><span className="text-brand-interactive font-black">{forgotEmail}</span></p>
                   <p className="text-sm text-[#6C757D] font-medium">Did not receive it? <button onClick={() => setForgotSuccess(false)} className="text-brand-interactive font-black hover:underline">Resend</button></p>

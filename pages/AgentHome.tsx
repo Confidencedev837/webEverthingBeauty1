@@ -15,7 +15,7 @@ import {
   Briefcase, 
   ChevronRight, 
   AlertCircle, 
-  Sparkles,
+  LayoutGrid,
   MapPin,
   Phone,
   Pencil
@@ -117,8 +117,8 @@ const AgentHome: React.FC = () => {
                   alt={currentUser?.name}
                   className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl object-cover border-2 border-brand-interactive shadow-lg"
                 />
-                <div className="absolute -bottom-1 -right-1 p-1 bg-brand-interactive text-white rounded-full shadow-md">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="absolute -bottom-1 -right-1 p-1.5 bg-brand-interactive text-white rounded-xl shadow-md border border-white dark:border-[#1A1A1A]">
+                  <ShieldCheck className="w-3.5 h-3.5" />
                 </div>
               </div>
 
@@ -127,7 +127,7 @@ const AgentHome: React.FC = () => {
                   <h1 className="text-xl sm:text-3xl font-serif font-black text-[#1A1A1A] dark:text-white">
                     {currentUser?.name}
                   </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/20">
+                  <span className="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/20 shadow-[0_0_10px_rgba(108,53,166,0.15)]">
                     Pro Agent
                   </span>
                 </div>
@@ -291,10 +291,10 @@ const AgentHome: React.FC = () => {
                         <span className="font-bold text-sm sm:text-base text-[#1A1A1A] dark:text-white">
                           {booking.customerName}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${
                           booking.status === BookingStatus.CONFIRMED 
-                            ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
-                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                            ? 'bg-green-500/10 text-green-500 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.15)]' 
+                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
                         }`}>
                           {booking.status}
                         </span>
@@ -369,7 +369,7 @@ const AgentHome: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center space-x-1.5 text-xs font-bold text-brand-interactive uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5" />
+                <LayoutGrid className="w-3.5 h-3.5" />
                 <span>Catalogue</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-black text-[#1A1A1A] dark:text-white">
@@ -398,7 +398,7 @@ const AgentHome: React.FC = () => {
                     className="w-16 h-16 rounded-2xl object-cover shrink-0"
                   />
                   <div>
-                    <span className="text-[10px] font-black uppercase text-brand-interactive bg-brand-interactive/10 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-black uppercase text-brand-interactive bg-brand-interactive/10 px-2.5 py-1 rounded-xl border border-brand-interactive/20 shadow-[0_0_8px_rgba(108,53,166,0.12)]">
                       {service.category}
                     </span>
                     <h4 className="font-bold text-sm text-[#1A1A1A] dark:text-white mt-1 line-clamp-1">

@@ -25,3 +25,21 @@
   background: linear-gradient(90deg, transparent, rgba(128,128,128,0.18), transparent);
   animation: shimmer 1.4s infinite;
 }
+
+/* ── Glowing Squircle & Tactile Depth Utilities (rules.md compliant) ── */
+.squircle-glow {
+  box-shadow: 0 0 16px rgba(108, 53, 166, 0.22), 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+.squircle-glow-subtle {
+  box-shadow: 0 0 10px rgba(108, 53, 166, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.squircle-glow-strong {
+  box-shadow: 0 0 28px rgba(108, 53, 166, 0.42), 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+.dark .squircle-glow {
+  box-shadow: 0 0 20px rgba(167, 139, 206, 0.28), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.dark .squircle-glow-strong {
+  box-shadow: 0 0 32px rgba(167, 139, 206, 0.45), 0 14px 32px rgba(0, 0, 0, 0.6);
+}
+

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, ExternalLink, Sparkles, Share2, Star } from 'lucide-react';
+import { X, Copy, Check, ExternalLink, Share2, Star } from 'lucide-react';
 import { Service } from '../../types';
 
 interface ServiceShareModalProps {
@@ -63,7 +63,7 @@ const ServiceShareModal: React.FC<ServiceShareModalProps> = ({ service, isOpen, 
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="absolute top-5 right-5 p-2 rounded-xl text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -71,7 +71,7 @@ const ServiceShareModal: React.FC<ServiceShareModalProps> = ({ service, isOpen, 
           {/* Header with celebratory icon */}
           <div className="text-center mb-6">
             <div className="w-14 h-14 rounded-2xl bg-green-500/10 text-green-500 border border-green-500/20 flex items-center justify-center mx-auto mb-3 shadow-sm">
-              <Sparkles className="w-7 h-7 text-brand-interactive animate-pulse" />
+              <Check className="w-7 h-7 text-green-500" />
             </div>
             <h3 className="text-2xl font-serif font-black text-[#1A1A1A] dark:text-white">
               Service Published Live!

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, HelpCircle, Sparkles, MessageCircle, ArrowRight } from 'lucide-react';
+import { ChevronRight, HelpCircle, ShieldCheck, MessageCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const FAQ: React.FC = () => {
@@ -36,14 +36,14 @@ const FAQ: React.FC = () => {
       
       {/* Background Decorative Blur */}
       <div className="absolute top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-brand-interactive/10 to-transparent pointer-events-none" />
-      <div className="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] bg-brand-interactive/20 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-5%] w-[40vw] h-[40vw] bg-brand-interactive/20 rounded-[4rem] blur-[100px] pointer-events-none" />
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 sm:pt-40 sm:pb-24 px-4 sm:px-6 relative z-10 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           <motion.div {...fadeInUp}>
             <div className="inline-flex items-center space-x-2 text-brand-interactive text-[10px] font-black tracking-[0.35em] mb-6 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]">
-              <Sparkles className="w-4 h-4" />
+              <ShieldCheck className="w-4 h-4" />
               <span>Clarity & Transparency</span>
             </div>
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-serif font-bold mb-6 text-[#1A1A1A] dark:text-white leading-tight">
@@ -97,7 +97,7 @@ const FAQ: React.FC = () => {
                   >
                     <summary className="flex justify-between items-center font-bold text-lg sm:text-xl list-none text-[#1A1A1A] dark:text-white p-6 sm:p-8 select-none">
                       <span className="pr-8">{faq.q}</span>
-                      <div className="w-10 h-10 rounded-full bg-brand-surface dark:bg-[#252525] flex items-center justify-center flex-shrink-0 group-open:bg-brand-interactive group-open:text-white transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-brand-surface dark:bg-[#252525] flex items-center justify-center flex-shrink-0 group-open:bg-brand-interactive group-open:text-white transition-colors shadow-sm">
                         <ChevronRight className="w-5 h-5 group-open:rotate-90 transition-transform" />
                       </div>
                     </summary>
@@ -119,8 +119,8 @@ const FAQ: React.FC = () => {
           className="mt-32 p-8 sm:p-12 bg-brand-interactive text-white rounded-[3rem] text-center shadow-2xl shadow-brand-interactive/30 relative overflow-hidden group"
         >
           {/* Background Decorative Rings */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 border-[40px] border-white/10 rounded-full group-hover:scale-110 transition-transform duration-700" />
-          <div className="absolute -bottom-20 -left-20 w-48 h-48 border-[30px] border-white/10 rounded-full group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute -top-20 -right-20 w-64 h-64 border-[40px] border-white/10 rounded-[3rem] group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute -bottom-20 -left-20 w-48 h-48 border-[30px] border-white/10 rounded-[3rem] group-hover:scale-110 transition-transform duration-700" />
           
           <div className="relative z-10">
             <div className="w-20 h-20 bg-brand-background text-brand-interactive rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl transform group-hover:-translate-y-2 transition-transform duration-500">

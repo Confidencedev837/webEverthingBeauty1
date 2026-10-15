@@ -28,7 +28,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ mode, onToggle }) => {
   return (
     <button
       onClick={onToggle}
-      className="group relative flex items-center justify-center w-10 h-10 rounded-full bg-brand-surface dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] text-[#6C757D] hover:text-brand-interactive transition-all duration-300"
+      className="group relative flex items-center justify-center w-10 h-10 rounded-2xl bg-brand-surface dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] text-[#6C757D] hover:text-brand-interactive shadow-sm hover:shadow-[0_0_12px_rgba(108,53,166,0.25)] hover:border-brand-interactive/40 transition-all duration-300"
       title={getLabel()}
     >
       <span className="transition-transform duration-500 group-hover:rotate-12">

@@ -17,7 +17,6 @@ import {
   Plus, 
   Play, 
   Upload, 
-  Sparkles,
   Save,
   Briefcase,
   AlertCircle
@@ -177,7 +176,7 @@ const AgentProfileEditor: React.FC<AgentProfileEditorProps> = ({
             >
               {/* Quick Save Pill on Top */}
               <div className="flex justify-between items-center mb-4">
-                <span className="text-[10px] font-black uppercase tracking-wider text-brand-interactive bg-brand-interactive/10 px-3 py-1 rounded-full">
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand-interactive bg-brand-interactive/10 px-3 py-1.5 rounded-xl border border-brand-interactive/30 shadow-[0_0_12px_rgba(108,53,166,0.2)]">
                   Live Preview & Edit
                 </span>
                 <button
@@ -200,7 +199,7 @@ const AgentProfileEditor: React.FC<AgentProfileEditorProps> = ({
                 <div className="relative mb-4 sm:mb-5 group">
                   <img
                     src={avatarUrl && avatarUrl.trim() !== '' ? avatarUrl : getInitialsSvg(fullName)}
-                    className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover border-4 sm:border-6 border-white dark:border-[#1A1A1A] shadow-xl"
+                    className="w-32 h-32 sm:w-36 sm:h-36 rounded-3xl object-cover border-4 sm:border-6 border-white dark:border-[#1A1A1A] shadow-2xl"
                     alt={fullName}
                   />
 
@@ -211,7 +210,7 @@ const AgentProfileEditor: React.FC<AgentProfileEditorProps> = ({
                       setActiveEditModal('avatar');
                     }}
                     title="Change profile photo"
-                    className="absolute bottom-1 right-1 w-9 h-9 sm:w-10 sm:h-10 bg-brand-interactive text-white rounded-full flex items-center justify-center border-2 border-white dark:border-[#1A1A1A] shadow-lg hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                    className="absolute -bottom-1 -right-1 w-9 h-9 sm:w-10 sm:h-10 bg-brand-interactive text-white rounded-2xl flex items-center justify-center border-2 border-white dark:border-[#1A1A1A] shadow-[0_0_12px_rgba(108,53,166,0.5)] hover:scale-110 active:scale-95 transition-all cursor-pointer"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
@@ -245,7 +244,7 @@ const AgentProfileEditor: React.FC<AgentProfileEditorProps> = ({
 
                 {/* Verified Status Badge */}
                 <div className="flex items-center space-x-2 mb-6">
-                  <div className="flex items-center space-x-1.5 bg-green-500/10 text-green-500 border border-green-500/20 px-3 py-1 rounded-full text-xs font-bold">
+                  <div className="flex items-center space-x-1.5 bg-green-500/10 text-green-500 border border-green-500/30 px-3 py-1.5 rounded-xl text-xs font-bold shadow-[0_0_10px_rgba(34,197,94,0.2)]">
                     <ShieldCheck className="w-4 h-4" />
                     <span>Verified Professional</span>
                   </div>
@@ -496,7 +495,7 @@ const AgentProfileEditor: React.FC<AgentProfileEditorProps> = ({
                       {/* Remove media button with trash icon */}
                       <button
                         onClick={() => handleRemoveGalleryItem(idx)}
-                        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 active:scale-95 shadow-lg"
+                        className="absolute top-2 right-2 w-7 h-7 rounded-xl bg-red-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 active:scale-95 shadow-lg"
                         title="Delete photo/video"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   MapPin, 
-  Sparkles, 
   Star, 
   Clock, 
   Calendar as CalendarIcon, 
@@ -230,7 +229,7 @@ const CustomerHome: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-interactive text-white">
+                    <span className="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-brand-interactive text-white shadow-[0_0_12px_rgba(108,53,166,0.35)] border border-white/20">
                       {upcomingBooking.status}
                     </span>
                     <span className="text-xs text-[#6C757D] dark:text-[#A0A0A0]">Upcoming Appointment</span>
@@ -263,7 +262,7 @@ const CustomerHome: React.FC = () => {
           </motion.section>
         )}
 
-        {/* --- 3. CATEGORY PILLS (GESTURE SCROLL) --- */}
+        {/* --- 3. CATEGORY PILLS (GESTURE SCROLL) -> GLOWING SQUIRCLES --- */}
         <div className="flex items-center space-x-2 overflow-x-auto pb-4 mb-6 no-scrollbar touch-pan-x">
           {QUICK_CATEGORIES.map((cat) => {
             const isActive = selectedCategory.toLowerCase() === cat.toLowerCase();
@@ -276,10 +275,10 @@ const CustomerHome: React.FC = () => {
                   setSelectedCategory(cat);
                   setCurrentPage(1);
                 }}
-                className={`px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 border ${
+                className={`px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 border ${
                   isActive
-                    ? 'bg-brand-interactive text-white border-brand-interactive shadow-lg shadow-brand-interactive/25 font-black'
-                    : 'bg-white dark:bg-[#1A1A1A] border-[#E9ECEF] dark:border-[#2D2D2D] text-[#1A1A1A] dark:text-[#CCC] hover:border-brand-interactive/50'
+                    ? 'bg-brand-interactive text-white border-brand-interactive shadow-[0_0_15px_rgba(108,53,166,0.4)] font-black'
+                    : 'bg-white dark:bg-[#1A1A1A] border-[#E9ECEF] dark:border-[#2D2D2D] text-[#1A1A1A] dark:text-[#CCC] shadow-sm hover:border-brand-interactive/50 hover:shadow-[0_0_12px_rgba(108,53,166,0.15)]'
                 }`}
               >
                 {cat}
@@ -293,7 +292,7 @@ const CustomerHome: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center space-x-1.5 text-xs font-bold text-brand-interactive uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Zap className="w-3.5 h-3.5" />
                 <span>Instant Pick</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-serif font-black text-[#1A1A1A] dark:text-white">
@@ -305,14 +304,14 @@ const CustomerHome: React.FC = () => {
             <div className="hidden sm:flex items-center space-x-2">
               <button
                 onClick={() => scrollQuickStrip('left')}
-                className="w-9 h-9 rounded-full bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center text-[#1A1A1A] dark:text-white hover:border-brand-interactive transition-colors"
+                className="w-9 h-9 rounded-2xl bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center text-[#1A1A1A] dark:text-white shadow-sm hover:border-brand-interactive hover:shadow-[0_0_10px_rgba(108,53,166,0.2)] transition-all"
                 aria-label="Scroll left"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => scrollQuickStrip('right')}
-                className="w-9 h-9 rounded-full bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center text-[#1A1A1A] dark:text-white hover:border-brand-interactive transition-colors"
+                className="w-9 h-9 rounded-2xl bg-white dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center text-[#1A1A1A] dark:text-white shadow-sm hover:border-brand-interactive hover:shadow-[0_0_10px_rgba(108,53,166,0.2)] transition-all"
                 aria-label="Scroll right"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -329,7 +328,7 @@ const CustomerHome: React.FC = () => {
               <motion.div
                 key={service.id}
                 whileHover={{ y: -4 }}
-                className="w-[280px] sm:w-[320px] shrink-0 snap-start bg-white dark:bg-[#161616] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all shadow-sm hover:shadow-xl flex flex-col overflow-hidden"
+                className="w-[280px] sm:w-[320px] shrink-0 snap-start bg-white dark:bg-[#161616] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all shadow-md hover:shadow-xl hover:shadow-brand-interactive/10 flex flex-col overflow-hidden"
               >
                 {/* Image / Header */}
                 <div className="relative h-44 overflow-hidden bg-gray-900">
@@ -338,7 +337,7 @@ const CustomerHome: React.FC = () => {
                     alt={service.name}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
-                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-black bg-white/90 dark:bg-black/90 backdrop-blur-md text-brand-interactive shadow-sm">
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl text-[10px] font-black bg-white/95 dark:bg-black/95 backdrop-blur-md text-brand-interactive shadow-md border border-brand-interactive/25">
                     {service.category}
                   </div>
                   <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-xl text-xs font-black bg-black/75 backdrop-blur-md text-white shadow-md">
@@ -357,7 +356,7 @@ const CustomerHome: React.FC = () => {
 
                   <div className="mt-auto pt-3 border-t border-[#E9ECEF] dark:border-[#262626] flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold text-[10px]">
+                      <div className="w-7 h-7 rounded-xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold text-[10px] shadow-inner">
                         {service.agentName?.slice(0, 2).toUpperCase() || 'EB'}
                       </div>
                       <span className="text-xs font-bold text-[#1A1A1A] dark:text-white truncate max-w-[110px]">
@@ -413,7 +412,7 @@ const CustomerHome: React.FC = () => {
                       alt={agent.name}
                       className="w-14 h-14 rounded-2xl object-cover border-2 border-white dark:border-[#222] shadow-sm"
                     />
-                    <div className="absolute -bottom-1 -right-1 p-0.5 bg-brand-interactive text-white rounded-full">
+                    <div className="absolute -bottom-1 -right-1 p-0.5 bg-brand-interactive text-white rounded-lg shadow-[0_0_8px_rgba(108,53,166,0.4)]">
                       <ShieldCheck className="w-3.5 h-3.5" />
                     </div>
                   </div>
@@ -500,8 +499,8 @@ const CustomerHome: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-white dark:bg-[#141414] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D]">
-              <div className="w-12 h-12 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mx-auto mb-3">
+            <div className="text-center py-16 bg-white dark:bg-[#141414] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-xl">
+              <div className="w-12 h-12 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mx-auto mb-3 shadow-[0_0_15px_rgba(108,53,166,0.2)]">
                 <Search className="w-6 h-6" />
               </div>
               <h3 className="font-bold text-lg text-[#1A1A1A] dark:text-white mb-1">

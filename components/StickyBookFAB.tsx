@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Calendar, X, Sparkles, ChevronRight, Search, Star } from 'lucide-react';
+import { Zap, Calendar, X, ChevronRight, Search, Star } from 'lucide-react';
 import { Service } from '../types';
 
 interface StickyBookFABProps {
@@ -35,16 +35,16 @@ const StickyBookFAB: React.FC<StickyBookFABProps> = ({ services, onSelectService
         className="fixed bottom-20 md:bottom-8 right-5 sm:right-8 z-40"
       >
         <motion.button
-          whileHover={{ scale: 1.06, y: -2 }}
-          whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="relative group flex items-center space-x-2.5 px-5 py-3.5 sm:px-6 sm:py-4 rounded-full bg-gradient-to-r from-brand-interactive via-[#8A2BE2] to-[#B026FF] text-white font-black text-sm sm:text-base shadow-[0_10px_30px_rgba(108,53,166,0.5)] hover:shadow-[0_15px_40px_rgba(108,53,166,0.65)] transition-shadow border border-white/20"
+          className="relative group flex items-center space-x-2.5 px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl bg-brand-interactive hover:bg-brand-interactive/90 text-white font-black text-sm sm:text-base shadow-[0_8px_30px_rgba(108,53,166,0.45)] hover:shadow-[0_12px_40px_rgba(108,53,166,0.6)] transition-all border border-white/25"
         >
-          {/* Subtle pulse aura */}
-          <span className="absolute -inset-1 rounded-full bg-brand-interactive/30 animate-ping opacity-40 group-hover:opacity-75 pointer-events-none" />
+          {/* Subtle squircle glow aura */}
+          <span className="absolute -inset-0.5 rounded-2xl bg-brand-interactive/40 animate-pulse blur-sm opacity-60 group-hover:opacity-100 pointer-events-none" />
           
-          <div className="relative flex items-center justify-center w-7 h-7 rounded-full bg-white/20 backdrop-blur-sm">
-            <Zap className="w-4 h-4 text-yellow-300 fill-yellow-300 animate-pulse" />
+          <div className="relative flex items-center justify-center w-7 h-7 rounded-xl bg-white/20 backdrop-blur-sm shadow-inner">
+            <Zap className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
           </div>
           <span className="relative tracking-tight font-black">Book Now</span>
         </motion.button>
@@ -70,13 +70,13 @@ const StickyBookFAB: React.FC<StickyBookFABProps> = ({ services, onSelectService
               className="relative w-full max-w-lg max-h-[85vh] bg-white dark:bg-[#141414] rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-5 sm:p-6 overflow-hidden flex flex-col z-10"
             >
               {/* Grab handle for gesture feeling on mobile */}
-              <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-4 sm:hidden" />
+              <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-md mx-auto mb-4 sm:hidden" />
 
               {/* Header */}
               <div className="flex items-center justify-between pb-4 border-b border-[#E9ECEF] dark:border-[#2D2D2D]">
                 <div className="flex items-center space-x-2.5">
                   <div className="p-2 rounded-xl bg-brand-interactive/10 text-brand-interactive">
-                    <Sparkles className="w-5 h-5" />
+                    <Zap className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="text-lg font-serif font-black text-[#1A1A1A] dark:text-white">
@@ -89,7 +89,7 @@ const StickyBookFAB: React.FC<StickyBookFABProps> = ({ services, onSelectService
                 </div>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[#6C757D] transition-colors"
+                  className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-[#6C757D] transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -117,7 +117,7 @@ const StickyBookFAB: React.FC<StickyBookFABProps> = ({ services, onSelectService
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleBookItem(s)}
-                      className="group flex items-center justify-between p-3 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] hover:bg-brand-interactive/10 dark:hover:bg-brand-interactive/15 border border-transparent hover:border-brand-interactive/30 cursor-pointer transition-all"
+                      className="group flex items-center justify-between p-3 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] hover:bg-brand-interactive/10 dark:hover:bg-brand-interactive/15 border border-transparent hover:border-brand-interactive/30 cursor-pointer transition-all shadow-sm"
                     >
                       <div className="flex items-center space-x-3 min-w-0">
                         {s.image ? (
@@ -150,7 +150,7 @@ const StickyBookFAB: React.FC<StickyBookFABProps> = ({ services, onSelectService
                         <span className="text-sm font-black text-brand-interactive">
                           ₦{s.price.toLocaleString()}
                         </span>
-                        <div className="w-7 h-7 rounded-full bg-brand-interactive text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                        <div className="w-7 h-7 rounded-xl bg-brand-interactive text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform shadow-sm">
                           <ChevronRight className="w-4 h-4" />
                         </div>
                       </div>

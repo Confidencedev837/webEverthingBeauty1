@@ -119,8 +119,8 @@ const Services: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
             {/* Sort Control */}
-            <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2 rounded-full shadow-sm border border-brand-interactive/20 w-fit">
-              <div className="bg-brand-interactive/10 p-1.5 rounded-full">
+            <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 w-fit">
+              <div className="bg-brand-interactive/10 p-1.5 rounded-xl shadow-inner">
                 <MapPin className="w-4 h-4 text-brand-interactive" />
               </div>
               <div className="flex flex-col">
@@ -189,8 +189,8 @@ const Services: React.FC = () => {
                 <ServiceCard key={service.id} service={service} index={idx} />
               ))
             ) : (
-              <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-brand-background dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-8">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-brand-surface dark:bg-brand-interactive/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 text-brand-interactive">
+              <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-brand-background dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 shadow-xl">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-brand-surface dark:bg-brand-interactive/10 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 text-brand-interactive shadow-[0_0_15px_rgba(108,53,166,0.2)]">
                   <Search className="w-8 h-8 sm:w-10 sm:h-10" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-serif font-bold mb-2">No services found</h3>
@@ -221,7 +221,7 @@ const Services: React.FC = () => {
                 window.scrollTo({ top: 300, behavior: 'smooth' });
               }}
               disabled={currentPage === 1}
-              className="p-3 rounded-full bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white transition-all"
+              className="p-3 rounded-2xl bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-md border border-[#E9ECEF] dark:border-[#2D2D2D] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white hover:shadow-[0_0_15px_rgba(108,53,166,0.3)] transition-all"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -234,7 +234,7 @@ const Services: React.FC = () => {
                 window.scrollTo({ top: 300, behavior: 'smooth' });
               }}
               disabled={currentPage === totalPages}
-              className="p-3 rounded-full bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white transition-all"
+              className="p-3 rounded-2xl bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-md border border-[#E9ECEF] dark:border-[#2D2D2D] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white hover:shadow-[0_0_15px_rgba(108,53,166,0.3)] transition-all"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -250,7 +250,7 @@ const Services: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-full shadow-[0_10px_20px_rgba(108,53,166,0.4)] hover:bg-brand-interactive/90 hover:shadow-[0_15px_30px_rgba(108,53,166,0.5)] transition-all transform hover:-translate-y-1"
+            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-2xl shadow-[0_8px_25px_rgba(108,53,166,0.5)] hover:bg-brand-interactive/90 hover:shadow-[0_12px_35px_rgba(108,53,166,0.65)] transition-all transform hover:-translate-y-1 border border-white/20"
           >
             <ArrowUp className="w-6 h-6" />
           </motion.button>

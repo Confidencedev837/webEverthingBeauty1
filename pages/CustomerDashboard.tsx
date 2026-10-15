@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { House, Calendar, Heart, User as UserIcon, CreditCard, Bell, LogOut, Search, MapPin, Clock, Star, ArrowRight, CheckCircle, XCircle, AlertCircle, RefreshCw, Sparkles, User } from 'lucide-react';
+import { House, Calendar, Heart, User as UserIcon, CreditCard, Bell, LogOut, Search, MapPin, Clock, Star, ArrowRight, CheckCircle, XCircle, AlertCircle, RefreshCw, Users, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookingStatus, Booking, Agent } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -80,7 +80,7 @@ const CustomerDashboard: React.FC = () => {
       <div className="lg:hidden fixed top-24 right-6 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-3 bg-brand-background dark:bg-[#1A1A1A] rounded-full shadow-lg border border-[#E9ECEF] dark:border-[#2D2D2D] text-brand-interactive"
+          className="p-3 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl shadow-lg border border-[#E9ECEF] dark:border-[#2D2D2D] text-brand-interactive"
         >
           {isMobileMenuOpen ? <XCircle className="w-6 h-6" /> : <div className="p-1"><div className="space-y-1"><div className="w-4 h-0.5 bg-current"></div><div className="w-4 h-0.5 bg-current"></div><div className="w-4 h-0.5 bg-current"></div></div></div>}
         </button>
@@ -124,7 +124,7 @@ const CustomerDashboard: React.FC = () => {
               <SidebarItem icon={<House />} label="Overview" active />
               <SidebarItem icon={<Calendar />} label="My Bookings" onClick={() => setActiveTab('active')} />
               <SidebarItem icon={<Heart />} label="Explore Services" onClick={() => navigate('/services')} />
-              <SidebarItem icon={<Sparkles />} label="Specialists" onClick={() => navigate('/agents')} />
+              <SidebarItem icon={<Users />} label="Specialists" onClick={() => navigate('/agents')} />
             </nav>
 
             <button 
@@ -313,9 +313,9 @@ const CustomerDashboard: React.FC = () => {
                     </motion.div>
                   ))
                 ) : (
-                  <div className="text-center py-20 text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-8">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-[#252525] rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Calendar className="w-7 h-7 opacity-50" />
+                  <div className="text-center py-20 text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 shadow-sm">
+                    <div className="w-16 h-16 bg-brand-interactive/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-brand-interactive shadow-sm">
+                      <Calendar className="w-7 h-7" />
                     </div>
                     <h3 className="text-xl font-bold mb-1 text-[#1A1A1A] dark:text-white">No bookings in this category</h3>
                     <p className="text-sm">You do not have any active appointments under this filter.</p>
@@ -373,7 +373,7 @@ const SidebarItem: React.FC<{ icon: React.ReactNode, label: string, active?: boo
 
 const StatCard: React.FC<{ label: string, value: string, color: string }> = ({ label, value, color }) => (
   <div className="bg-brand-background dark:bg-[#1A1A1A] p-10 rounded-[2.5rem] shadow-xl border border-[#E9ECEF] dark:border-[#2D2D2D] relative overflow-hidden group">
-    <div className={`absolute top-0 right-0 w-24 h-24 ${color} opacity-5 -translate-y-12 translate-x-12 rounded-full group-hover:scale-150 transition-transform duration-700`} />
+    <div className={`absolute top-0 right-0 w-24 h-24 ${color} opacity-5 -translate-y-12 translate-x-12 rounded-3xl group-hover:scale-150 transition-transform duration-700`} />
     <div className="text-xs font-black tracking-[0.2em] text-[#6C757D] mb-4">{label}</div>
     <div className="text-4xl font-serif font-black">{value}</div>
   </div>

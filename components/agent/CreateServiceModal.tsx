@@ -7,7 +7,6 @@ import {
   Trash2, 
   Video as VideoIcon, 
   Image as ImageIcon, 
-  Sparkles, 
   Clock, 
   AlertCircle, 
   CheckCircle,
@@ -223,7 +222,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-[#E9ECEF] dark:border-[#2D2D2D] mb-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold">
-              <Sparkles className="w-5 h-5 text-brand-interactive" />
+              <Plus className="w-5 h-5 text-brand-interactive" />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-serif font-black text-[#1A1A1A] dark:text-white">
@@ -236,7 +235,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[#6C757D] transition-colors"
+            className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-[#6C757D] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -405,7 +404,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
               {features.map((tag, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/20"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/30 shadow-[0_0_10px_rgba(108,53,166,0.15)]"
                 >
                   <span>{tag}</span>
                   <button
@@ -521,7 +520,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRemoveMedia(item.id)}
-                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-600/90 text-white flex items-center justify-center opacity-90 group-hover:opacity-100 hover:scale-110 active:scale-90 transition-all shadow-md"
+                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg bg-red-600/90 text-white flex items-center justify-center opacity-90 group-hover:opacity-100 hover:scale-110 active:scale-90 transition-all shadow-md"
                       title="Remove media"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -557,7 +556,7 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
                   <span>Publish Service</span>
                 </>
               )}

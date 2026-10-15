@@ -430,7 +430,7 @@ const AgentDashboard: React.FC = () => {
       <div className="lg:hidden fixed top-24 right-6 z-40">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-3 bg-brand-background dark:bg-[#1A1A1A] rounded-full shadow-lg border border-[#E9ECEF] dark:border-[#2D2D2D]"
+          className="p-3 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl shadow-lg border border-[#E9ECEF] dark:border-[#2D2D2D]"
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>

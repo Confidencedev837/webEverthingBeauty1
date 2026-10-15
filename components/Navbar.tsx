@@ -100,8 +100,8 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                     <img
                       src={currentUser?.avatar && currentUser.avatar.trim() !== '' ? currentUser.avatar : `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`}
                       alt={currentUser?.name}
-                      className="w-7 h-7 rounded-full object-cover border border-brand-interactive/30"
-                      onError={(e) => { e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`; }}
+                      className="w-7 h-7 rounded-xl object-cover border border-brand-interactive/30 shadow-sm"
+                      onError={(e) => { e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" rx="20" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${currentUser?.name ? currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : 'U'}</text></svg>`)}`; }}
                     />
                     <div className="hidden sm:flex flex-col text-left">
                       <span className="text-xs font-bold leading-tight max-w-[100px] truncate">{currentUser?.name}</span>

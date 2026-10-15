@@ -702,6 +702,29 @@ export async function updateAgentProfile(
   }
 }
 
+// Uploads a file to the public `media` storage bucket and returns its public URL.
+// Storing base64 data URLs in the profiles row is what broke banner/avatar loading.
+export async function uploadMedia(
+  userId: string,
+  file: File,
+  folder: 'avatars' | 'banners' | 'gallery'
+): Promise<{ url?: string; error?: string }> {
+  try {
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+    const path = `${userId}/${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage.from('media').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || undefined
+    });
+    if (error) return { error: error.message };
+    const { data } = supabase.storage.from('media').getPublicUrl(path);
+    return { url: data.publicUrl };
+  } catch (err: any) {
+    return { error: err?.message || 'Upload failed' };
+  }
+}
+
 export async function updateAgentVerification(agentId: string, status: 'verified' | 'rejected'): Promise<boolean> {
   try {
     const { error } = await supabase
@@ -770,5 +793,109 @@ export async function getPlatformMetrics(): Promise<PlatformMetrics> {
       completedBookings: 0,
       averageRating: 0
     };
+  }
+}
+
+// ==========================================
+// SOCIAL API (FOLLOWS & LIKES)
+// Uses existing tables: follows(follower_id, following_id) and favorites(customer_id, service_id)
+// ==========================================
+
+export interface SocialUser {
+  id: string;
+  name: string;
+  handle: string;
+  bio: string;
+  avatar: string;
+  userType: string;
+}
+
+function toSocialUser(p: any): SocialUser {
+  const name = p?.full_name || 'Member';
+  return {
+    id: p?.id,
+    name,
+    handle: '@' + name.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 18),
+    bio: p?.bio || p?.specialization || '',
+    avatar: p?.avatar_url || '',
+    userType: p?.user_type || 'customer'
+  };
+}
+
+export async function getFollowCounts(agentId: string): Promise<{ followers: number; following: number }> {
+  try {
+    const [f1, f2] = await Promise.all([
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', agentId),
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', agentId)
+    ]);
+    return { followers: f1.count || 0, following: f2.count || 0 };
+  } catch {
+    return { followers: 0, following: 0 };
+  }
+}
+
+export async function getFollowers(agentId: string): Promise<SocialUser[]> {
+  try {
+    const { data: rows } = await supabase.from('follows').select('follower_id').eq('following_id', agentId);
+    const ids = (rows || []).map((r: any) => r.follower_id);
+    if (ids.length === 0) return [];
+    const { data } = await supabase.from('profiles').select('id, full_name, bio, specialization, avatar_url, user_type').in('id', ids);
+    return (data || []).map(toSocialUser);
+  } catch {
+    return [];
+  }
+}
+
+export async function getFollowing(userId: string): Promise<SocialUser[]> {
+  try {
+    const { data: rows } = await supabase.from('follows').select('following_id').eq('follower_id', userId);
+    const ids = (rows || []).map((r: any) => r.following_id);
+    if (ids.length === 0) return [];
+    const { data } = await supabase.from('profiles').select('id, full_name, bio, specialization, avatar_url, user_type').in('id', ids);
+    return (data || []).map(toSocialUser);
+  } catch {
+    return [];
+  }
+}
+
+export async function getMyFollowingIds(userId: string): Promise<string[]> {
+  try {
+    const { data } = await supabase.from('follows').select('following_id').eq('follower_id', userId);
+    return (data || []).map((r: any) => r.following_id);
+  } catch {
+    return [];
+  }
+}
+
+export async function setFollow(followerId: string, agentId: string, follow: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = follow
+      ? await supabase.from('follows').insert({ follower_id: followerId, following_id: agentId })
+      : await supabase.from('follows').delete().eq('follower_id', followerId).eq('following_id', agentId);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Follow action failed' };
+  }
+}
+
+export async function getLikedServiceIds(userId: string): Promise<string[]> {
+  try {
+    const { data } = await supabase.from('favorites').select('service_id').eq('customer_id', userId);
+    return (data || []).map((r: any) => r.service_id);
+  } catch {
+    return [];
+  }
+}
+
+export async function setServiceLike(userId: string, serviceId: string, like: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = like
+      ? await supabase.from('favorites').insert({ customer_id: userId, service_id: serviceId })
+      : await supabase.from('favorites').delete().eq('customer_id', userId).eq('service_id', serviceId);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Like action failed' };
   }
 }

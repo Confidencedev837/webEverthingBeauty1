@@ -207,8 +207,8 @@ const ServiceDetail: React.FC = () => {
                 <div className="absolute top-6 right-6 flex space-x-4 z-10">
                   <button
                     onClick={() => setIsSaved(!isSaved)}
-                    className={`p-3 sm:p-4 backdrop-blur-md rounded-full border transition-all ${
-                      isSaved ? 'bg-brand-interactive border-brand-interactive text-white' : 'bg-white/80 dark:bg-black/50 border-white/20 text-[#1A1A1A] dark:text-white'
+                    className={`p-3 sm:p-4 backdrop-blur-md rounded-2xl border transition-all shadow-lg ${
+                      isSaved ? 'bg-brand-interactive border-brand-interactive text-white shadow-brand-interactive/30' : 'bg-white/80 dark:bg-black/50 border-white/20 text-[#1A1A1A] dark:text-white'
                     }`}
                   >
                     <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${isSaved ? 'fill-current' : ''}`} />
@@ -219,7 +219,7 @@ const ServiceDetail: React.FC = () => {
                         navigator.share({ title: service.name, url: window.location.href });
                       }
                     }}
-                    className="p-3 sm:p-4 bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-full border border-white/20 text-[#1A1A1A] dark:text-white hover:text-brand-interactive"
+                    className="p-3 sm:p-4 bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-2xl border border-white/20 text-[#1A1A1A] dark:text-white hover:text-brand-interactive shadow-lg"
                   >
                     <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
@@ -230,13 +230,13 @@ const ServiceDetail: React.FC = () => {
                   <>
                     <button
                       onClick={() => setCurrentMediaIndex(prev => (prev === 0 ? gallery.length - 1 : prev - 1))}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 text-white rounded-full hover:bg-black/70 transition-all"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 text-white rounded-xl hover:bg-black/80 transition-all shadow-lg"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                       onClick={() => setCurrentMediaIndex(prev => (prev === gallery.length - 1 ? 0 : prev + 1))}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 text-white rounded-full hover:bg-black/70 transition-all"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 bg-black/50 text-white rounded-xl hover:bg-black/80 transition-all shadow-lg"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
@@ -309,7 +309,7 @@ const ServiceDetail: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {service.features.map((item, i) => (
                       <div key={i} className="flex items-center space-x-4 p-4 bg-brand-surface dark:bg-[#1A1A1A] rounded-2xl border border-transparent hover:border-brand-interactive/20 transition-all">
-                        <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 flex-shrink-0">
+                        <div className="w-6 h-6 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500 flex-shrink-0 shadow-sm">
                           <Check className="w-4 h-4" />
                         </div>
                         <span className="font-medium text-[#1A1A1A] dark:text-white">{item}</span>
@@ -391,7 +391,7 @@ const ServiceDetail: React.FC = () => {
                       <div key={review.id} className="p-8 bg-brand-background dark:bg-[#1A1A1A] rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 rounded-full bg-brand-interactive/10 flex items-center justify-center text-brand-interactive font-bold overflow-hidden">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-interactive/10 flex items-center justify-center text-brand-interactive font-bold overflow-hidden shadow-sm border border-brand-interactive/20">
                               {review.userAvatar ? (
                                 <img src={review.userAvatar} className="w-full h-full object-cover" alt="" />
                               ) : (
@@ -467,9 +467,9 @@ const ServiceDetail: React.FC = () => {
                 >
                   <div className="flex items-center mb-6">
                     {service.agentImage ? (
-                      <img src={service.agentImage} className="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-[#1A1A1A] mr-4 shadow-md" alt="" />
+                      <img src={service.agentImage} className="w-16 h-16 rounded-2xl object-cover border-2 border-white dark:border-[#1A1A1A] mr-4 shadow-md" alt="" />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-4 font-bold border-4 border-white dark:border-[#1A1A1A] shadow-md">
+                      <div className="w-16 h-16 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-4 font-bold border-2 border-white dark:border-[#1A1A1A] shadow-md">
                         <User className="w-8 h-8" />
                       </div>
                     )}

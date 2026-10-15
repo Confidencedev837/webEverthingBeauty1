@@ -82,7 +82,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
             <div className="p-6 overflow-y-auto max-h-[90vh]">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] dark:text-white">Book Appointment</h2>
-                <button onClick={onClose} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors">
+                <button onClick={onClose} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-colors">
                   <X className="w-6 h-6 text-[#6C757D]" />
                 </button>
               </div>
@@ -215,7 +215,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white mb-6 shadow-xl shadow-green-500/30"
+                    className="w-20 h-20 bg-green-500 rounded-3xl flex items-center justify-center text-white mb-6 shadow-[0_0_30px_rgba(34,197,94,0.4)] border border-white/20"
                   >
                     <CheckCircle className="w-12 h-12" />
                   </motion.div>

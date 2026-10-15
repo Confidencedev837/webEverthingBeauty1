@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 import { Users, CheckCircle, Heart, Star, Search, Calendar, ChevronRight, ArrowRight, Shield, MapPin, Briefcase, Camera, Instagram, Quote, Zap, Globe, MessageSquare, Handshake, TrendingUp } from 'lucide-react';
@@ -112,7 +112,7 @@ const GuestHome: React.FC = () => {
               transition={{ delay: 0.3 }}
               className="inline-flex items-center space-x-2 text-brand-interactive text-[10px] font-black tracking-[0.35em] mb-8 sm:mb-10 drop-shadow-[0_0_12px_rgba(108,53,166,0.6)]"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-interactive inline-block" />
+              <span className="w-2 h-2 rounded-sm bg-brand-interactive inline-block shadow-[0_0_8px_rgba(108,53,166,0.8)]" />
               <span>Elite On-Demand Beauty</span>
             </motion.div>
 
@@ -182,7 +182,7 @@ const GuestHome: React.FC = () => {
 
       {/* How It Works Section */}
       <section className="py-32 bg-brand-surface dark:bg-[#111] relative overflow-hidden">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-interactive/10 rounded-full blur-[100px]" />
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-interactive/10 rounded-[4rem] blur-[100px]" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-24">
