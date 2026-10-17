@@ -123,3 +123,29 @@ export interface Recommendation {
   author: string;
   role: string;
 }
+
+export interface AgentAvailability {
+  days: string[];
+  startTime: string;
+  endTime: string;
+  bufferMinutes: number;
+  isEmergencyOff?: boolean;
+}
+
+export interface AgentBankDetails {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  isVerified?: boolean;
+  updatedAt?: string;
+}
+
+export interface BookingMessage {
+  id: string;
+  bookingId: string;
+  senderId: string;
+  senderName?: string;
+  senderRole: 'CUSTOMER' | 'AGENT' | 'ADMIN';
+  message: string;
+  createdAt: string;
+}

@@ -6,7 +6,10 @@ import {
   Review,
   BookingStatus,
   VerificationStatus,
-  ServiceGalleryItem
+  ServiceGalleryItem,
+  AgentAvailability,
+  AgentBankDetails,
+  BookingMessage
 } from '../types';
 
 // Helper to check if a URL points to a video
@@ -1271,5 +1274,501 @@ export async function setServiceLike(userId: string, serviceId: string, like: bo
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || 'Like action failed' };
+  }
+}
+
+// ==========================================
+// AGENT AVAILABILITY & CONFLICT PREVENTION API
+// ==========================================
+
+const DEFAULT_AVAILABILITY: AgentAvailability = {
+  days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  startTime: '08:00 AM',
+  endTime: '07:00 PM',
+  bufferMinutes: 30,
+  isEmergencyOff: false
+};
+
+export async function getAgentAvailability(agentId: string): Promise<AgentAvailability> {
+  try {
+    if (!agentId) return DEFAULT_AVAILABILITY;
+
+    // Check localStorage cache first
+    const local = localStorage.getItem(`eb_agent_avail_${agentId}`);
+    if (local) {
+      try {
+        return { ...DEFAULT_AVAILABILITY, ...JSON.parse(local) };
+      } catch (e) {
+        // fallback to remote
+      }
+    }
+
+    // Query Supabase profiles push_token (which stores settings JSON)
+    const { data } = await supabase
+      .from('profiles')
+      .select('push_token')
+      .eq('id', agentId)
+      .maybeSingle();
+
+    if (data?.push_token) {
+      try {
+        const parsed = JSON.parse(data.push_token);
+        if (parsed.availability) {
+          localStorage.setItem(`eb_agent_avail_${agentId}`, JSON.stringify(parsed.availability));
+          return { ...DEFAULT_AVAILABILITY, ...parsed.availability };
+        }
+      } catch (e) {
+        // push_token is not JSON, use default
+      }
+    }
+
+    return DEFAULT_AVAILABILITY;
+  } catch (err) {
+    console.error('getAgentAvailability exception:', err);
+    return DEFAULT_AVAILABILITY;
+  }
+}
+
+export async function updateAgentAvailability(agentId: string, availability: AgentAvailability): Promise<boolean> {
+  try {
+    if (!agentId) return false;
+
+    // Save to local cache immediately
+    localStorage.setItem(`eb_agent_avail_${agentId}`, JSON.stringify(availability));
+
+    // Read current push_token from DB to merge
+    const { data } = await supabase
+      .from('profiles')
+      .select('push_token')
+      .eq('id', agentId)
+      .maybeSingle();
+
+    let meta: Record<string, any> = {};
+    if (data?.push_token) {
+      try {
+        meta = JSON.parse(data.push_token);
+      } catch {
+        meta = {};
+      }
+    }
+
+    meta.availability = availability;
+    meta.updatedAt = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        push_token: JSON.stringify(meta),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', agentId);
+
+    if (error) {
+      console.warn('updateAgentAvailability DB update warning:', error.message);
+    }
+
+    invalidateCache(`agent:${agentId}`);
+    return true;
+  } catch (err) {
+    console.error('updateAgentAvailability exception:', err);
+    return false;
+  }
+}
+
+// Live query for booked slots to prevent appointment overlaps
+export async function getBookedSlots(agentId: string, date: string): Promise<string[]> {
+  try {
+    if (!agentId || !date) return [];
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('time, status')
+      .eq('agent_id', agentId)
+      .eq('date', date)
+      .in('status', ['pending', 'confirmed']);
+
+    if (error) {
+      console.error('getBookedSlots query error:', error.message);
+      return [];
+    }
+
+    return (data || []).map(b => b.time).filter(Boolean);
+  } catch (err) {
+    console.error('getBookedSlots exception:', err);
+    return [];
+  }
+}
+
+// ==========================================
+// 20-DAY BANK DETAILS LOCK & SECURITY API
+// ==========================================
+
+export interface AgentBankSecurityStatus {
+  details: AgentBankDetails | null;
+  isLocked: boolean;
+  daysRemaining: number;
+  daysElapsed: number;
+  createdAt: string;
+  unlockDate: string;
+}
+
+export async function getAgentBankDetails(agentId: string, authCreatedAt?: string): Promise<AgentBankSecurityStatus> {
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('updated_at, push_token')
+      .eq('id', agentId)
+      .maybeSingle();
+
+    // Prefer auth user creation date, fallback to profile updated_at or 1st of current month
+    const regDateStr = authCreatedAt || profile?.updated_at || new Date(Date.now() - 3 * 86400000).toISOString();
+    const regDate = new Date(regDateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - regDate.getTime();
+    const daysElapsed = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    const daysRemaining = Math.max(0, 20 - daysElapsed);
+    const isLocked = daysRemaining > 0;
+
+    // Calculate unlock target date (regDate + 20 days)
+    const unlockTimestamp = new Date(regDate.getTime() + 20 * 24 * 60 * 60 * 1000);
+    const unlockDate = unlockTimestamp.toLocaleDateString('en-NG', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    let details: AgentBankDetails | null = null;
+
+    // Check localStorage cache
+    const local = localStorage.getItem(`eb_agent_bank_${agentId}`);
+    if (local) {
+      try {
+        details = JSON.parse(local);
+      } catch {}
+    }
+
+    // Check profile push_token metadata
+    if (!details && profile?.push_token) {
+      try {
+        const meta = JSON.parse(profile.push_token);
+        if (meta.bankDetails) {
+          details = meta.bankDetails;
+          localStorage.setItem(`eb_agent_bank_${agentId}`, JSON.stringify(details));
+        }
+      } catch {}
+    }
+
+    return {
+      details,
+      isLocked,
+      daysRemaining,
+      daysElapsed,
+      createdAt: regDateStr,
+      unlockDate
+    };
+  } catch (err) {
+    console.error('getAgentBankDetails exception:', err);
+    return {
+      details: null,
+      isLocked: true,
+      daysRemaining: 20,
+      daysElapsed: 0,
+      createdAt: new Date().toISOString(),
+      unlockDate: '20 days after signup'
+    };
+  }
+}
+
+export async function updateAgentBankDetails(
+  agentId: string,
+  bankDetails: AgentBankDetails,
+  authCreatedAt?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const status = await getAgentBankDetails(agentId, authCreatedAt);
+    if (status.isLocked) {
+      return {
+        success: false,
+        error: `Security Verification Active: Bank payout details can only be registered after your initial 20-day verification period (${status.daysRemaining} days remaining).`
+      };
+    }
+
+    if (!bankDetails.accountNumber || bankDetails.accountNumber.trim().length !== 10) {
+      return { success: false, error: 'Nigerian NUBAN account number must be exactly 10 digits.' };
+    }
+
+    if (!bankDetails.accountName || bankDetails.accountName.trim().length < 3) {
+      return { success: false, error: 'Please enter a valid Account Holder Name matching your official ID.' };
+    }
+
+    // Save to local cache
+    const payload: AgentBankDetails = {
+      ...bankDetails,
+      isVerified: true,
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(`eb_agent_bank_${agentId}`, JSON.stringify(payload));
+
+    // Save into profiles metadata in Supabase
+    const { data } = await supabase
+      .from('profiles')
+      .select('push_token')
+      .eq('id', agentId)
+      .maybeSingle();
+
+    let meta: Record<string, any> = {};
+    if (data?.push_token) {
+      try {
+        meta = JSON.parse(data.push_token);
+      } catch {
+        meta = {};
+      }
+    }
+
+    meta.bankDetails = payload;
+    meta.bankUpdatedAt = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        push_token: JSON.stringify(meta),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', agentId);
+
+    if (error) {
+      console.warn('updateAgentBankDetails DB warning:', error.message);
+    }
+
+    invalidateCache(`agent:${agentId}`);
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateAgentBankDetails exception:', err);
+    return { success: false, error: err?.message || 'Failed to update bank details' };
+  }
+}
+
+// ==========================================
+// SERVICE MANAGEMENT (UPDATE & DELETE)
+// ==========================================
+
+export async function updateService(
+  serviceId: string,
+  updates: {
+    name?: string;
+    description?: string;
+    price?: number;
+    category?: string;
+    durationMins?: number;
+    imageUrl?: string[];
+    features?: string[];
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const dbUpdates: Record<string, any> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.price !== undefined) dbUpdates.price = updates.price;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.durationMins !== undefined) dbUpdates.duration_mins = updates.durationMins;
+    if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
+    if (updates.features !== undefined) dbUpdates.features = updates.features;
+
+    const { error } = await supabase
+      .from('services')
+      .update(dbUpdates)
+      .eq('id', serviceId);
+
+    if (error) {
+      console.error('updateService error:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    invalidateCache('services:');
+    invalidateCache('agents:');
+    invalidateCache('agent:');
+    return { success: true };
+  } catch (err: any) {
+    console.error('updateService exception:', err);
+    return { success: false, error: err?.message || 'Failed to update service' };
+  }
+}
+
+export async function deleteService(serviceId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('services')
+      .delete()
+      .eq('id', serviceId);
+
+    if (error) {
+      console.error('deleteService error:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    invalidateCache('services:');
+    invalidateCache('agents:');
+    invalidateCache('agent:');
+    return { success: true };
+  } catch (err: any) {
+    console.error('deleteService exception:', err);
+    return { success: false, error: err?.message || 'Failed to delete service' };
+  }
+}
+
+// ==========================================
+// IN-APP MONITORED BOOKING CHAT SYSTEM
+// ==========================================
+
+const CHAT_PREFIX = '<!--EB_CHAT:';
+const CHAT_SUFFIX = ':EB_CHAT-->';
+
+export function parseBookingChat(notes?: string | null): { userNotes: string; messages: BookingMessage[] } {
+  if (!notes) return { userNotes: '', messages: [] };
+
+  const startIdx = notes.indexOf(CHAT_PREFIX);
+  const endIdx = notes.indexOf(CHAT_SUFFIX);
+
+  if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+    return { userNotes: notes, messages: [] };
+  }
+
+  const userNotes = notes.slice(0, startIdx).trim();
+  const rawJson = notes.slice(startIdx + CHAT_PREFIX.length, endIdx);
+
+  try {
+    const messages = JSON.parse(rawJson);
+    return { userNotes, messages: Array.isArray(messages) ? messages : [] };
+  } catch {
+    return { userNotes: notes, messages: [] };
+  }
+}
+
+export async function getBookingMessages(bookingId: string): Promise<BookingMessage[]> {
+  try {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('customer_notes')
+      .eq('id', bookingId)
+      .maybeSingle();
+
+    if (error || !data) return [];
+    return parseBookingChat(data.customer_notes).messages;
+  } catch (err) {
+    console.error('getBookingMessages exception:', err);
+    return [];
+  }
+}
+
+export async function sendBookingMessage(
+  bookingId: string,
+  senderId: string,
+  senderName: string,
+  senderRole: 'CUSTOMER' | 'AGENT' | 'ADMIN',
+  text: string
+): Promise<{ success: boolean; messages: BookingMessage[]; error?: string }> {
+  try {
+    if (!text.trim()) return { success: false, messages: [], error: 'Message cannot be empty.' };
+
+    const { data: booking, error: fetchErr } = await supabase
+      .from('bookings')
+      .select('customer_notes')
+      .eq('id', bookingId)
+      .single();
+
+    if (fetchErr || !booking) {
+      return { success: false, messages: [], error: 'Booking appointment not found.' };
+    }
+
+    const { userNotes, messages: existingMessages } = parseBookingChat(booking.customer_notes);
+
+    const newMessage: BookingMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      bookingId,
+      senderId,
+      senderName,
+      senderRole,
+      message: text.trim(),
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedMessages = [...existingMessages, newMessage];
+    const encodedNotes = `${userNotes ? userNotes + '\n\n' : ''}${CHAT_PREFIX}${JSON.stringify(updatedMessages)}${CHAT_SUFFIX}`;
+
+    const { error: updateErr } = await supabase
+      .from('bookings')
+      .update({ customer_notes: encodedNotes })
+      .eq('id', bookingId);
+
+    if (updateErr) {
+      console.error('sendBookingMessage DB update error:', updateErr.message);
+      return { success: false, messages: existingMessages, error: updateErr.message };
+    }
+
+    invalidateCache('bookings:');
+    return { success: true, messages: updatedMessages };
+  } catch (err: any) {
+    console.error('sendBookingMessage exception:', err);
+    return { success: false, messages: [], error: err?.message || 'Failed to send message' };
+  }
+}
+
+// ==========================================
+// REVIEWS FOR AGENT EXPLORER API
+// ==========================================
+
+export async function getReviewsForAgent(agentId: string): Promise<Review[]> {
+  try {
+    if (!agentId) return [];
+
+    // 1. Get services for agent
+    const { data: services, error: servErr } = await supabase
+      .from('services')
+      .select('id, name')
+      .eq('agent_id', agentId);
+
+    if (servErr || !services || services.length === 0) return [];
+
+    const serviceMap = new Map<string, string>();
+    services.forEach(s => serviceMap.set(s.id, s.name));
+    const serviceIds = services.map(s => s.id);
+
+    // 2. Fetch all reviews for these service IDs
+    const { data: reviews, error: revErr } = await supabase
+      .from('reviews')
+      .select(`
+        id,
+        customer_id,
+        service_id,
+        rating,
+        comment,
+        created_at,
+        customer:customer_id (
+          full_name,
+          avatar_url
+        )
+      `)
+      .in('service_id', serviceIds)
+      .order('created_at', { ascending: false });
+
+    if (revErr || !reviews) return [];
+
+    return reviews.map((r: any) => {
+      const c = Array.isArray(r.customer) ? r.customer[0] : r.customer;
+      return {
+        id: r.id,
+        userName: c?.full_name || 'Verified Client',
+        userAvatar: c?.avatar_url || '',
+        date: new Date(r.created_at).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }),
+        rating: Number(r.rating) || 5,
+        text: r.comment || '',
+        serviceName: serviceMap.get(r.service_id) || 'Beauty Service',
+        serviceId: r.service_id,
+        customerId: r.customer_id
+      };
+    });
+  } catch (err) {
+    console.error('getReviewsForAgent exception:', err);
+    return [];
   }
 }

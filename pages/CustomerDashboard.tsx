@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { House, Calendar, Heart, User as UserIcon, CreditCard, Bell, LogOut, Search, MapPin, Clock, Star, ArrowRight, CheckCircle, XCircle, AlertCircle, RefreshCw, Users, User } from 'lucide-react';
+import { House, Calendar, Heart, User as UserIcon, CreditCard, Bell, LogOut, Search, MapPin, Clock, Star, ArrowRight, CheckCircle, XCircle, AlertCircle, RefreshCw, Users, User, MessageSquare } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookingStatus, Booking, Agent } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { getBookingsForUser, updateBookingStatus, getAgents } from '../services/supabaseService';
+import BookingChatDrawer from '../components/BookingChatDrawer';
 
 const CustomerDashboard: React.FC = () => {
   const { user, currentUser, signOut, loading: authLoading } = useAuth();
@@ -15,6 +16,7 @@ const CustomerDashboard: React.FC = () => {
   const [featuredAgents, setFeaturedAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [activeChatBooking, setActiveChatBooking] = useState<Booking | null>(null);
 
   const fetchDashboardData = async () => {
     if (!user) return;
@@ -265,7 +267,14 @@ const CustomerDashboard: React.FC = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="w-full lg:w-auto flex flex-row lg:flex-col gap-3">
+                        <div className="w-full lg:w-auto flex flex-row lg:flex-col gap-2.5">
+                          <button
+                            onClick={() => setActiveChatBooking(booking)}
+                            className="py-3 px-4 bg-brand-surface dark:bg-[#252525] hover:bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Chat with Pro</span>
+                          </button>
                           {booking.status === BookingStatus.PENDING && (
                             <button 
                               onClick={() => handleCancelBooking(booking.id)}
@@ -357,6 +366,16 @@ const CustomerDashboard: React.FC = () => {
             </div>
           </section>
         )}
+
+        {/* In-App Monitored Chat Drawer for Customer */}
+        <BookingChatDrawer
+          booking={activeChatBooking}
+          isOpen={!!activeChatBooking}
+          onClose={() => setActiveChatBooking(null)}
+          currentUserId={user?.id || currentUser?.id || ''}
+          currentUserName={currentUser?.name || 'Customer'}
+          currentUserRole="CUSTOMER"
+        />
       </main>
     </div>
   );
