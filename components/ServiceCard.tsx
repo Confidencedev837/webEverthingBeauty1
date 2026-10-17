@@ -31,13 +31,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
       viewport={{ once: true }}
       className="group bg-brand-background dark:bg-[#1A1A1A] rounded-3xl overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-2 flex flex-col h-full"
     >
-      <Link to={`/services/${service.id}`} className="relative h-56 overflow-hidden block bg-gray-950">
+      <Link to={`/services/${service.id}`} className="relative h-56 app-service-img-h overflow-hidden block bg-gray-950">
         {hasVideo && videoSrc && !videoError ? (
           <div className="relative w-full h-full">
             <video
               src={videoSrc}
-              poster={primaryImage}
-              preload="metadata"
+              poster={primaryImage || undefined}
+              preload="none"
               muted
               playsInline
               onError={() => setVideoError(true)}
@@ -68,43 +68,47 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
         </div>
       </Link>
       
-      <div className="p-6 flex flex-col flex-grow">
+      <div className="p-6 app-card-inner-pad flex flex-col flex-grow">
         <Link to={`/services/${service.id}`}>
-          <h3 className="text-xl font-serif font-bold mb-2 group-hover:text-brand-interactive transition-colors line-clamp-1">{service.name}</h3>
+          <h3 className="text-xl font-serif font-bold mb-2 group-hover:text-brand-interactive transition-colors line-clamp-1 app-card-title">{service.name}</h3>
         </Link>
-        <p className="text-sm text-[#6C757D] dark:text-[#B0B0B0] line-clamp-2 mb-4">
+        <p className="text-sm text-[#6C757D] dark:text-[#B0B0B0] line-clamp-2 mb-4 app-card-desc">
           {service.description || 'Professional on-demand beauty treatment.'}
         </p>
         
         <div className="flex items-center justify-between mt-auto mb-6">
-          <div className="flex items-center text-sm">
-            <Star className={`w-4 h-4 mr-1 ${service.rating > 0 ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`} />
+          <div className="flex items-center text-sm app-card-meta">
+            <Star className={`w-4 h-4 mr-1 ${(service?.rating ?? 0) > 0 ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`} />
             <span className="font-bold text-[#1A1A1A] dark:text-white mr-1">
-              {service.rating > 0 ? service.rating : 'New'}
+              {(service?.rating ?? 0) > 0 ? service.rating : 'New'}
             </span>
-            {service.reviewCount > 0 && (
+            {(service?.reviewCount ?? 0) > 0 && (
               <span className="text-[#6C757D]">({service.reviewCount})</span>
             )}
           </div>
-          <div className="text-lg font-bold text-brand-interactive">
-            ₦{service.price.toLocaleString()}
+          <div className="text-lg font-black text-[#111111] dark:text-white tracking-tight app-card-price">
+            ₦{(service?.price ?? 0).toLocaleString()}
           </div>
         </div>
 
         <Link 
-          to={`/agent/${service.agentId}`}
+          to={`/agent/${service?.agentId || ''}`}
           className="flex items-center p-3 rounded-2xl bg-brand-surface dark:bg-[#252525] border border-transparent hover:border-brand-interactive/20 transition-all group/agent"
         >
-          {service.agentImage ? (
-            <img src={service.agentImage} className="w-10 h-10 rounded-2xl object-cover mr-3 border-2 border-white dark:border-[#1A1A1A] shadow-sm" alt={service.agentName} />
+          {service?.agentImage ? (
+            <div className="p-[2px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm mr-3 shrink-0">
+              <img src={service.agentImage} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-[#1A1A1A]" alt={service.agentName || ''} />
+            </div>
           ) : (
-            <div className="w-10 h-10 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-3 font-bold text-xs border border-brand-interactive/20 shadow-sm">
-              <User className="w-4 h-4" />
+            <div className="p-[2px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm mr-3 shrink-0">
+              <div className="w-10 h-10 rounded-full bg-brand-surface dark:bg-[#252525] text-brand-interactive flex items-center justify-center font-bold text-xs border border-brand-interactive/20">
+                <User className="w-4 h-4" />
+              </div>
             </div>
           )}
           <div className="flex-grow">
-            <div className="text-xs font-bold text-[#1A1A1A] dark:text-white truncate max-w-[130px]">{service.agentName}</div>
-            <div className="text-[10px] text-[#6C757D] dark:text-[#B0B0B0] truncate max-w-[130px]">{service.agentSpecialty}</div>
+            <div className="text-xs font-bold text-[#1A1A1A] dark:text-white truncate max-w-[130px]">{service?.agentName || 'Verified Specialist'}</div>
+            <div className="text-[10px] text-[#6C757D] dark:text-[#B0B0B0] truncate max-w-[130px]">{service?.agentSpecialty || service?.category || 'Beauty Specialist'}</div>
           </div>
           <ChevronRight className="w-4 h-4 text-[#6C757D] group-hover/agent:text-brand-interactive transition-colors" />
         </Link>
@@ -113,14 +117,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
           <button 
             type="button"
             onClick={() => onBook(service)}
-            className="mt-4 w-full py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-brand-interactive dark:hover:bg-brand-interactive dark:hover:text-white transition-all shadow-sm hover:shadow-md active:scale-[0.98]"
+            className="mt-4 w-full py-3 bg-brand-interactive text-white rounded-xl font-black text-sm flex items-center justify-center hover:bg-brand-interactive/90 transition-all shadow-md shadow-brand-interactive/25 active:scale-[0.98] btn-mobile-scale"
           >
             Book Now
           </button>
         ) : (
           <Link 
             to={`/services/${service.id}?book=true`}
-            className="mt-4 w-full py-3 bg-black dark:bg-brand-background text-white dark:text-black rounded-xl font-bold text-sm flex items-center justify-center hover:bg-brand-interactive dark:hover:bg-brand-interactive dark:hover:text-white transition-colors"
+            className="mt-4 w-full py-3 bg-brand-interactive text-white rounded-xl font-black text-sm flex items-center justify-center hover:bg-brand-interactive/90 transition-all shadow-md shadow-brand-interactive/25 active:scale-[0.98] btn-mobile-scale"
           >
             Book Now
           </Link>

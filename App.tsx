@@ -16,8 +16,10 @@ import FAQ from './pages/FAQ';
 import CustomerDashboard from './pages/CustomerDashboard';
 import AgentDashboard from './pages/AgentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import ResetPassword from './pages/ResetPassword';
 import { AuthProvider } from './context/AuthContext';
 import { SnackbarProvider } from './components/Snackbar';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const App: React.FC = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
@@ -45,6 +47,17 @@ const App: React.FC = () => {
     }
   }, [themeMode]);
 
+  // Handle Supabase password recovery redirect
+  useEffect(() => {
+    const hash = window.location.hash || '';
+    if (hash.includes('type=recovery') || hash.includes('access_token')) {
+      if (!hash.startsWith('#/reset-password')) {
+        const cleanTokens = hash.replace(/^#/, '');
+        window.location.hash = `/reset-password?${cleanTokens}`;
+      }
+    }
+  }, []);
+
   const toggleTheme = () => {
     setThemeMode(prev => {
       if (prev === ThemeMode.LIGHT) return ThemeMode.DARK;
@@ -60,27 +73,30 @@ const App: React.FC = () => {
           <div className="min-h-screen transition-colors duration-300">
             <Navbar themeMode={themeMode} toggleTheme={toggleTheme} />
           <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/agents" element={<Agents />} />
-              <Route path="/services/:id" element={<ServiceDetail />} />
-              <Route path="/agent/:id" element={<AgentProfile />} />
-              <Route path="/agents/:id" element={<AgentProfile />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/terms" element={<Legal />} />
-              <Route path="/privacy" element={<Legal />} />
-              <Route path="/partner-agreement" element={<Legal />} />
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/agents" element={<Agents />} />
+                <Route path="/services/:id" element={<ServiceDetail />} />
+                <Route path="/agent/:id" element={<AgentProfile />} />
+                <Route path="/agents/:id" element={<AgentProfile />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/terms" element={<Legal />} />
+                <Route path="/privacy" element={<Legal />} />
+                <Route path="/partner-agreement" element={<Legal />} />
 
-              {/* New Dashboard Routes */}
-              <Route path="/customer/dashboard" element={<CustomerDashboard />} />
-              <Route path="/agent/dashboard" element={<AgentDashboard />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/login" element={<Auth />} />
-            </Routes>
+                {/* New Dashboard Routes */}
+                <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+                <Route path="/agent/dashboard" element={<AgentDashboard />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/login" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+              </Routes>
+            </ErrorBoundary>
           </main>
 
           <footer className="py-12 sm:py-16 md:py-20 lg:py-24 bg-brand-surface dark:bg-[#111] border-t border-[#E9ECEF] dark:border-[#2D2D2D] relative z-30">
@@ -145,11 +161,6 @@ const App: React.FC = () => {
               {/* Bottom Bar */}
               <div className="pt-6 sm:pt-8 md:pt-10 lg:pt-12 border-t border-[#E9ECEF] dark:border-[#2D2D2D] flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 text-[#6C757D] text-[9px] sm:text-[10px] md:text-[11px] font-black tracking-[0.15em] sm:tracking-[0.2em]">
                 <p className="text-center md:text-left">© {new Date().getFullYear()} Everything Beauty Marketplace. Where Beauty Comes to You.</p>
-                <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-10">
-                  <span className="hover:text-brand-interactive cursor-pointer transition-all">Sitemap</span>
-                  <span className="hover:text-brand-interactive cursor-pointer transition-all">Global Security</span>
-                  <Link to="/admin/dashboard" className="hover:text-brand-interactive cursor-pointer transition-all">Admin Access</Link>
-                </div>
               </div>
             </div>
           </footer>

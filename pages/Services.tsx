@@ -1,12 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, MapPin, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle } from 'lucide-react';
-import { Service } from '../types';
-import { getServices } from '../services/supabaseService';
+import { Search, SlidersHorizontal, MapPin, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, X, Compass, Tag } from 'lucide-react';
+import { Service, Agent } from '../types';
+import { getServices, getAgents } from '../services/supabaseService';
+import { searchServicesIntelligently } from '../services/intelligentSearch';
 import ServiceCard from '../components/ServiceCard';
+import IntelligentSearchBar from '../components/IntelligentSearchBar';
 
 const Services: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -18,13 +21,21 @@ const Services: React.FC = () => {
   const ITEMS_PER_PAGE = 12;
 
   const loadData = async () => {
-    setLoading(true);
+    if (services.length === 0) {
+      setLoading(true);
+    }
     setError(null);
-    const res = await getServices();
-    if (res.error) {
-      setError(res.error);
+    const [servRes, agentRes] = await Promise.all([
+      getServices(),
+      getAgents()
+    ]);
+    if (servRes.error) {
+      setError(servRes.error);
     } else {
-      setServices(res.data);
+      setServices(servRes.data);
+    }
+    if (agentRes.data) {
+      setAgents(agentRes.data);
     }
     setLoading(false);
   };
@@ -47,35 +58,47 @@ const Services: React.FC = () => {
 
   // Derive categories dynamically from Supabase services
   const categories = useMemo(() => {
-    const unique = Array.from(new Set(services.map(s => s.category).filter(Boolean)));
+    const unique = Array.from(new Set((services || []).map(s => s?.category).filter(Boolean)));
     return ['All', ...unique];
   }, [services]);
 
-  const filteredServices = useMemo(() => {
-    return services.filter(service => {
-      const searchLower = search.toLowerCase();
-      const matchesSearch = 
-        service.name.toLowerCase().includes(searchLower) ||
-        service.agentName.toLowerCase().includes(searchLower) ||
-        service.category.toLowerCase().includes(searchLower) ||
-        service.description.toLowerCase().includes(searchLower);
-      const matchesCategory = selectedCategory === 'All' || service.category.toLowerCase() === selectedCategory.toLowerCase();
-      const matchesPrice = service.price <= priceRange;
-      return matchesSearch && matchesCategory && matchesPrice;
-    }).sort((a, b) => {
-      if (sortBy === 'price_low') return a.price - b.price;
-      if (sortBy === 'price_high') return b.price - a.price;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      return 0; // relevance
+  const isSearchActive = search.trim().length > 0;
+
+  // Real-time intelligent search evaluation
+  const intelligentResult = useMemo(() => {
+    if (isSearchActive) {
+      return searchServicesIntelligently(services || [], search, priceRange);
+    }
+    const matched = (services || []).filter(service => {
+      if (!service) return false;
+      const sCat = (service.category || '').toLowerCase();
+      const matchesCategory = selectedCategory === 'All' || sCat === (selectedCategory || '').toLowerCase();
+      const matchesPrice = (service.price ?? 0) <= priceRange;
+      return matchesCategory && matchesPrice;
     });
-  }, [services, search, selectedCategory, priceRange, sortBy]);
+    return {
+      matches: matched,
+      isFallback: false,
+      detectedCategory: null,
+      suggestedQueries: [] as string[],
+      message: null as string | null
+    };
+  }, [services, search, isSearchActive, selectedCategory, priceRange]);
+
+  const sortedServices = useMemo(() => {
+    const list = [...(intelligentResult?.matches || [])];
+    if (sortBy === 'price_low') return list.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    if (sortBy === 'price_high') return list.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    if (sortBy === 'rating') return list.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    return list;
+  }, [intelligentResult?.matches, sortBy]);
 
   const paginatedServices = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredServices, currentPage]);
+    return sortedServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [sortedServices, currentPage]);
 
-  const totalPages = Math.ceil(filteredServices.length / ITEMS_PER_PAGE) || 1;
+  const totalPages = Math.ceil(sortedServices.length / ITEMS_PER_PAGE) || 1;
 
   return (
     <div className="pt-20 sm:pt-24 md:pt-32 pb-12 sm:pb-16 md:pb-24 min-h-screen bg-brand-surface dark:bg-[#0D0D0D]">
@@ -102,76 +125,159 @@ const Services: React.FC = () => {
 
         {/* Filters & Search */}
         <section className="mb-6 sm:mb-8 md:mb-12 bg-brand-surface dark:bg-[#0D0D0D] pb-4">
-          {/* Search Bar */}
-          <div className="mb-3 sm:mb-4 relative">
-            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-[#6C757D]" />
-            <input
-              type="text"
-              placeholder="Search services, artists, specialties..."
+          {/* Centered Intelligent Search Bar with live autocomplete & instant preview */}
+          <div className="mb-6 sm:mb-8 px-3 sm:px-4">
+            <IntelligentSearchBar
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
+              onChange={(val) => {
+                setSearch(val);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 text-sm sm:text-base bg-brand-background dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-xl sm:rounded-2xl outline-none focus:border-brand-interactive transition-all shadow-sm text-[#1A1A1A] dark:text-white"
+              services={services}
+              agents={agents}
+              placeholder="Search services, hairstyles, glam, pro name, lagos, abuja..."
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-            {/* Sort Control */}
-            <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 w-fit">
-              <div className="bg-brand-interactive/10 p-1.5 rounded-xl shadow-inner">
-                <MapPin className="w-4 h-4 text-brand-interactive" />
+          {/* Active Search Strip or Animated Filter Controls */}
+          {isSearchActive ? (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center justify-between px-3 sm:px-4 max-w-2xl mx-auto mb-2"
+            >
+              <div className="flex items-center space-x-2 text-xs font-bold text-[#6C757D] dark:text-[#A0A0A0]">
+                <span className="w-2 h-2 rounded-full bg-brand-interactive animate-ping" />
+                <span>
+                  {intelligentResult.isFallback ? (
+                    <>
+                      Related suggestions for <span className="text-[#1A1A1A] dark:text-white font-black">"{search}"</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-brand-interactive font-black">{sortedServices.length}</span> live results for{' '}
+                      <span className="text-[#1A1A1A] dark:text-white font-black">"{search}"</span>
+                    </>
+                  )}
+                </span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Order by</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
-                >
-                  <option value="relevance">Relevance & Popularity</option>
-                  <option value="rating">Top Rated</option>
-                  <option value="price_low">Price: Low to High</option>
-                  <option value="price_high">Price: High to Low</option>
-                </select>
-              </div>
-            </div>
+              <button
+                onClick={() => setSearch('')}
+                className="text-xs font-black text-brand-interactive hover:underline flex items-center space-x-1 cursor-pointer bg-brand-interactive/10 px-3 py-1.5 rounded-xl transition-all active:scale-95"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Clear & show filters</span>
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                {/* Sort Control */}
+                <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 w-fit">
+                  <div className="bg-brand-interactive/10 p-1.5 rounded-xl shadow-inner">
+                    <MapPin className="w-4 h-4 text-brand-interactive" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Order by</span>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
+                    >
+                      <option value="relevance">Relevance & Popularity</option>
+                      <option value="rating">Top Rated</option>
+                      <option value="price_low">Price: Low to High</option>
+                      <option value="price_high">Price: High to Low</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="text-xs text-[#6C757D] font-bold">
-              Showing <span className="text-brand-interactive font-black">{filteredServices.length}</span> services
-            </div>
-          </div>
-
-          {/* Category Filters */}
-          {categories.length > 1 && (
-            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              <div className="flex bg-brand-background dark:bg-[#1A1A1A] p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => {
-                      setSelectedCategory(cat);
-                      setCurrentPage(1);
-                    }}
-                    className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-                      selectedCategory.toLowerCase() === cat.toLowerCase() 
-                        ? 'bg-brand-interactive text-white shadow-md' 
-                        : 'text-[#6C757D] hover:text-brand-interactive'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+                <div className="text-xs text-[#6C757D] font-bold">
+                  Showing <span className="text-brand-interactive font-black">{sortedServices.length}</span> services
+                </div>
               </div>
-            </div>
+
+              {/* Category Filters */}
+              {categories.length > 1 && (
+                <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                  <div className="flex bg-brand-background dark:bg-[#1A1A1A] p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setSelectedCategory(cat);
+                          setCurrentPage(1);
+                        }}
+                        className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
+                          selectedCategory.toLowerCase() === cat.toLowerCase()
+                            ? 'bg-brand-interactive text-white shadow-md'
+                            : 'text-[#6C757D] hover:text-brand-interactive'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
           )}
         </section>
+
+        {/* Intelligent Zero-Dead-End Fallback Banner */}
+        {isSearchActive && intelligentResult.isFallback && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161616] border border-brand-interactive/30 shadow-[0_4px_20px_rgba(108,53,166,0.1)] max-w-3xl mx-auto"
+          >
+            <div className="flex items-start space-x-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center shrink-0">
+                <Compass className="w-5 h-5 text-brand-interactive" />
+              </div>
+              <div>
+                <h4 className="text-sm sm:text-base font-black text-[#1A1A1A] dark:text-white">
+                  No exact match for "{search}"
+                </h4>
+                <p className="text-xs sm:text-sm text-[#6C757D] dark:text-[#A0A0A0] mt-0.5">
+                  {intelligentResult.message}
+                </p>
+              </div>
+            </div>
+
+            {intelligentResult.suggestedQueries.length > 0 && (
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#6C757D] dark:text-[#888] block mb-2">
+                  Did you mean:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {intelligentResult.suggestedQueries.map((query) => (
+                    <button
+                      key={query}
+                      onClick={() => {
+                        setSearch(query);
+                        setCurrentPage(1);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E2E8F0] dark:border-[#333] hover:border-brand-interactive hover:text-brand-interactive transition-all shadow-sm active:scale-95 cursor-pointer flex items-center space-x-1.5"
+                    >
+                      <Tag className="w-3 h-3 text-brand-interactive" />
+                      <span>{query}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Results */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
-            {[1, 2, 3, 4, 5, 6].map(i => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="h-80 bg-brand-background dark:bg-[#1A1A1A] rounded-3xl animate-pulse border border-[#E9ECEF] dark:border-[#2D2D2D] p-6 flex flex-col justify-between">
                 <div className="w-full h-44 bg-gray-200 dark:bg-white/5 rounded-2xl mb-4" />
                 <div className="space-y-3">
@@ -184,7 +290,7 @@ const Services: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 mb-12">
-            {filteredServices.length > 0 ? (
+            {sortedServices.length > 0 ? (
               paginatedServices.map((service, idx) => (
                 <ServiceCard key={service.id} service={service} index={idx} />
               ))
@@ -195,14 +301,17 @@ const Services: React.FC = () => {
                 </div>
                 <h3 className="text-xl sm:text-2xl font-serif font-bold mb-2">No services found</h3>
                 <p className="text-sm sm:text-base text-[#6C757D] px-4 max-w-md mx-auto">
-                  {services.length === 0 
-                    ? 'No beauty services are currently listed in the database. Check back soon.' 
+                  {services.length === 0
+                    ? 'No beauty services are currently listed in the database. Check back soon.'
                     : 'Try adjusting your search criteria or explore another category.'}
                 </p>
                 {services.length > 0 && (
                   <button
-                    onClick={() => { setSearch(''); setSelectedCategory('All'); }}
-                    className="mt-6 px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all"
+                    onClick={() => {
+                      setSearch('');
+                      setSelectedCategory('All');
+                    }}
+                    className="mt-6 px-6 py-3 bg-brand-interactive text-white rounded-xl text-xs font-bold shadow-lg shadow-brand-interactive/20 hover:scale-105 transition-all cursor-pointer"
                   >
                     Reset Filters
                   </button>
@@ -213,7 +322,7 @@ const Services: React.FC = () => {
         )}
 
         {/* Pagination Controls */}
-        {filteredServices.length > ITEMS_PER_PAGE && (
+        {sortedServices.length > ITEMS_PER_PAGE && (
           <div className="flex items-center justify-center gap-4 mb-16">
             <button
               onClick={() => {

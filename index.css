@@ -1,3 +1,5 @@
+@import './mobile-scaling.css';
+
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -42,4 +44,51 @@
 .dark .squircle-glow-strong {
   box-shadow: 0 0 32px rgba(167, 139, 206, 0.45), 0 14px 32px rgba(0, 0, 0, 0.6);
 }
+
+/* ── Search Bar Input Padding & Icon Buffer (Guaranteed across all browsers/resolutions) ── */
+.app-search-input {
+  padding-left: 3.75rem !important; /* 60px: 20px left-offset + 20px icon + 20px breathing room */
+  padding-right: 3.25rem !important;
+}
+
+/* ── Smooth Intentional Micro-Interactions & Tactile Physics ── */
+button, a, [role="button"], input, select {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+button:active:not(:disabled), [role="button"]:active:not(:disabled) {
+  transform: scale(0.965);
+}
+
+.tactile-press {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease !important;
+}
+.tactile-press:active {
+  transform: scale(0.955) !important;
+}
+
+@keyframes tactile-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(108, 53, 166, 0.45);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(108, 53, 166, 0);
+  }
+}
+
+.animate-tactile-pulse {
+  animation: tactile-pulse 2.2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes float-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.animate-float-subtle {
+  animation: float-subtle 3s ease-in-out infinite;
+}
+
 

@@ -102,7 +102,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                     <div>
                       <h4 className="font-serif font-bold text-base text-[#1A1A1A] dark:text-white">{service.name}</h4>
                       <p className="text-xs text-[#6C757D] font-medium">with {service.agentName}</p>
-                      <p className="text-sm font-bold text-brand-interactive mt-0.5">₦{service.price.toLocaleString()}</p>
+                      <p className="text-sm font-black text-[#111111] dark:text-white mt-0.5">₦{service.price.toLocaleString()}</p>
                     </div>
                   </div>
 
@@ -182,7 +182,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                     </div>
                     <div className="pt-2 border-t border-brand-interactive/20 flex justify-between font-bold text-base">
                       <span>Total Amount</span>
-                      <span className="text-brand-interactive font-black">₦{totalAmount.toLocaleString()}</span>
+                      <span className="text-[#111111] dark:text-white font-black text-lg">₦{totalAmount.toLocaleString()}</span>
                     </div>
                   </div>
 

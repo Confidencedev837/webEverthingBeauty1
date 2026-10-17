@@ -182,7 +182,7 @@ const ServiceDetail: React.FC = () => {
                         <video
                           src={currentMedia.url}
                           className="w-full h-full object-contain"
-                          poster={currentMedia.thumbnail}
+                          poster={currentMedia.thumbnail || undefined}
                           controls
                           autoPlay={isPlaying}
                           onError={() => setVideoError(true)}
@@ -434,7 +434,7 @@ const ServiceDetail: React.FC = () => {
               >
                 <div className="mb-8">
                   <div className="text-[#6C757D] text-sm font-bold mb-2">Service Price</div>
-                  <div className="text-4xl font-serif font-bold text-brand-interactive">₦{service.price.toLocaleString()}</div>
+                  <div className="text-4xl font-serif font-black text-[#111111] dark:text-white">₦{service.price.toLocaleString()}</div>
                 </div>
 
                 <div className="space-y-4 mb-8">
@@ -467,10 +467,14 @@ const ServiceDetail: React.FC = () => {
                 >
                   <div className="flex items-center mb-6">
                     {service.agentImage ? (
-                      <img src={service.agentImage} className="w-16 h-16 rounded-2xl object-cover border-2 border-white dark:border-[#1A1A1A] mr-4 shadow-md" alt="" />
+                      <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-md mr-4 shrink-0">
+                        <img src={service.agentImage} className="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-[#1A1A1A]" alt="" />
+                      </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center mr-4 font-bold border-2 border-white dark:border-[#1A1A1A] shadow-md">
-                        <User className="w-8 h-8" />
+                      <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-md mr-4 shrink-0">
+                        <div className="w-16 h-16 rounded-full bg-brand-surface dark:bg-[#1A1A1A] text-brand-interactive flex items-center justify-center font-bold border-2 border-white dark:border-[#1A1A1A]">
+                          <User className="w-8 h-8" />
+                        </div>
                       </div>
                     )}
                     <div>

@@ -1,10 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Briefcase, Users, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Agent } from '../types';
-import { getAgents } from '../services/supabaseService';
+import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Briefcase, Users, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, User, X, Compass, Tag, Calendar } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Agent, Service } from '../types';
+import { getAgents, getServices } from '../services/supabaseService';
+import { searchAgentsIntelligently } from '../services/intelligentSearch';
 import LoadingState from '../components/LoadingState';
+import IntelligentSearchBar from '../components/IntelligentSearchBar';
+import BookingModal from '../components/BookingModal';
 
 export function getInitialsSvg(name: string) {
   const initials = name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'A';
@@ -13,7 +16,9 @@ export function getInitialsSvg(name: string) {
 }
 
 const Agents: React.FC = () => {
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -21,16 +26,26 @@ const Agents: React.FC = () => {
   const [sortBy, setSortBy] = useState('relevance');
   const [currentPage, setCurrentPage] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const ITEMS_PER_PAGE = 12;
 
   const loadData = async () => {
-    setLoading(true);
+    if (agents.length === 0) {
+      setLoading(true);
+    }
     setError(null);
-    const res = await getAgents();
-    if (res.error) {
-      setError(res.error);
+    const [agentRes, servRes] = await Promise.all([
+      getAgents(),
+      getServices()
+    ]);
+    if (agentRes.error) {
+      setError(agentRes.error);
     } else {
-      setAgents(res.data);
+      setAgents(agentRes.data);
+    }
+    if (servRes.data) {
+      setServices(servRes.data);
     }
     setLoading(false);
   };
@@ -51,35 +66,55 @@ const Agents: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleBookAgent = (agent: Agent) => {
+    const agentService = services.find(s => s.agentId === agent.id);
+    if (agentService) {
+      setSelectedServiceForBooking(agentService);
+      setIsBookingModalOpen(true);
+    } else {
+      navigate(`/agent/${agent.id}`);
+    }
+  };
+
   // Derive specializations dynamically from real registered agents
   const specializations = useMemo(() => {
     const unique = Array.from(new Set(agents.map(a => a.specialty).filter(Boolean)));
     return ['All', ...unique];
   }, [agents]);
 
-  const filteredAgents = useMemo(() => {
-    return agents.filter(agent => {
-      const searchLower = search.toLowerCase();
-      const matchesSearch = 
-        agent.name.toLowerCase().includes(searchLower) ||
-        agent.specialty.toLowerCase().includes(searchLower) ||
-        agent.bio.toLowerCase().includes(searchLower) ||
-        agent.location.toLowerCase().includes(searchLower);
+  const isSearchActive = search.trim().length > 0;
+
+  // Real-time intelligent search evaluation
+  const intelligentResult = useMemo(() => {
+    if (isSearchActive) {
+      return searchAgentsIntelligently(agents, search);
+    }
+    const matched = agents.filter(agent => {
       const matchesSpecialty = selectedSpecialty === 'All' || agent.specialty.toLowerCase() === selectedSpecialty.toLowerCase();
-      return matchesSearch && matchesSpecialty;
-    }).sort((a, b) => {
-      if (sortBy === 'rating') return b.rating - a.rating;
-      if (sortBy === 'experience') return b.experience - a.experience;
-      return 0;
+      return matchesSpecialty;
     });
-  }, [agents, search, selectedSpecialty, sortBy]);
+    return {
+      matches: matched,
+      isFallback: false,
+      detectedCategory: null,
+      suggestedQueries: [] as string[],
+      message: null as string | null
+    };
+  }, [agents, search, isSearchActive, selectedSpecialty]);
+
+  const sortedAgents = useMemo(() => {
+    const list = [...intelligentResult.matches];
+    if (sortBy === 'rating') return list.sort((a, b) => b.rating - a.rating);
+    if (sortBy === 'experience') return list.sort((a, b) => b.experience - a.experience);
+    return list;
+  }, [intelligentResult.matches, sortBy]);
 
   const paginatedAgents = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredAgents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredAgents, currentPage]);
+    return sortedAgents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [sortedAgents, currentPage]);
 
-  const totalPages = Math.ceil(filteredAgents.length / ITEMS_PER_PAGE) || 1;
+  const totalPages = Math.ceil(sortedAgents.length / ITEMS_PER_PAGE) || 1;
 
   // Real aggregate stats calculated from loaded agents
   const averageRating = useMemo(() => {
@@ -151,71 +186,155 @@ const Agents: React.FC = () => {
         {/* Search & Filter Bar */}
         <section className="mb-8 sm:mb-12 md:mb-16 bg-brand-surface dark:bg-[#0D0D0D] pb-4">
           <div className="space-y-3 sm:space-y-4 md:space-y-6">
-            {/* Search Bar */}
-            <div className="relative group">
-              <Search className="absolute left-3 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-[#6C757D] group-focus-within:text-brand-interactive transition-colors" />
-              <input
-                type="text"
-                placeholder="Search beauty specialists by name, specialty, location..."
+            {/* Centered Intelligent Search Bar with live autocomplete & instant preview */}
+            <div className="mb-2 px-3 sm:px-4">
+              <IntelligentSearchBar
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
+                onChange={(val) => {
+                  setSearch(val);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 sm:pl-12 md:pl-14 pr-3 sm:pr-4 py-3 sm:py-3.5 bg-brand-background dark:bg-[#1A1A1A] border-2 border-transparent focus:border-brand-interactive rounded-xl md:rounded-2xl outline-none transition-all shadow-lg text-sm md:text-base font-medium text-[#1A1A1A] dark:text-white"
+                services={services}
+                agents={agents}
+                placeholder="Search beauty specialists by name, specialty, location..."
               />
             </div>
 
-            {/* Sort & Filter Controls */}
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-                <div className="bg-brand-interactive/10 p-2 rounded-xl text-brand-interactive">
-                  <MapPin className="w-4 h-4" />
+            {/* Active Search Strip or Animated Filter Controls */}
+            {isSearchActive ? (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-between px-3 sm:px-4 max-w-2xl mx-auto mb-2"
+              >
+                <div className="flex items-center space-x-2 text-xs font-bold text-[#6C757D] dark:text-[#A0A0A0]">
+                  <span className="w-2 h-2 rounded-full bg-brand-interactive animate-ping" />
+                  <span>
+                    {intelligentResult.isFallback ? (
+                      <>
+                        Related artists for <span className="text-[#1A1A1A] dark:text-white font-black">"{search}"</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-brand-interactive font-black">{sortedAgents.length}</span> live specialists for{' '}
+                        <span className="text-[#1A1A1A] dark:text-white font-black">"{search}"</span>
+                      </>
+                    )}
+                  </span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Filter & Sort</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
-                  >
-                    <option value="relevance">Relevance</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="experience">Most Experienced</option>
-                  </select>
-                </div>
-              </div>
+                <button
+                  onClick={() => setSearch('')}
+                  className="text-xs font-black text-brand-interactive hover:underline flex items-center space-x-1 cursor-pointer bg-brand-interactive/10 px-3 py-1.5 rounded-xl transition-all active:scale-95"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Clear & show filters</span>
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                {/* Sort & Filter Controls */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+                    <div className="bg-brand-interactive/10 p-2 rounded-xl text-brand-interactive">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Filter & Sort</span>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
+                      >
+                        <option value="relevance">Relevance</option>
+                        <option value="rating">Highest Rated</option>
+                        <option value="experience">Most Experienced</option>
+                      </select>
+                    </div>
+                  </div>
 
-              <div className="text-xs text-[#6C757D] font-bold">
-                Showing <span className="text-brand-interactive font-black">{filteredAgents.length}</span> artists
+                  <div className="text-xs text-[#6C757D] font-bold">
+                    Showing <span className="text-brand-interactive font-black">{sortedAgents.length}</span> artists
+                  </div>
+                </div>
+
+                {/* Specialty Filters */}
+                {specializations.length > 1 && (
+                  <div className="overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex bg-white/50 dark:bg-[#1A1A1A]/50 backdrop-blur-xl p-1 sm:p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-lg sm:shadow-xl inline-flex min-w-full sm:min-w-0">
+                      {specializations.map(spec => (
+                        <button
+                          key={spec}
+                          onClick={() => {
+                            setSelectedSpecialty(spec);
+                            setCurrentPage(1);
+                          }}
+                          className={`px-3 sm:px-5 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-sm font-black transition-all whitespace-nowrap cursor-pointer ${
+                            selectedSpecialty.toLowerCase() === spec.toLowerCase() 
+                              ? 'bg-brand-interactive text-white shadow-lg' 
+                              : 'text-[#6C757D] hover:text-brand-interactive'
+                          }`}
+                        >
+                          {spec}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </div>
+        </section>
+
+        {/* Intelligent Zero-Dead-End Fallback Banner */}
+        {isSearchActive && intelligentResult.isFallback && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#161616] border border-brand-interactive/30 shadow-[0_4px_20px_rgba(108,53,166,0.1)] max-w-3xl mx-auto"
+          >
+            <div className="flex items-start space-x-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center shrink-0">
+                <Compass className="w-5 h-5 text-brand-interactive" />
+              </div>
+              <div>
+                <h4 className="text-sm sm:text-base font-black text-[#1A1A1A] dark:text-white">
+                  No exact match for "{search}"
+                </h4>
+                <p className="text-xs sm:text-sm text-[#6C757D] dark:text-[#A0A0A0] mt-0.5">
+                  {intelligentResult.message}
+                </p>
               </div>
             </div>
 
-            {/* Specialty Filters */}
-            {specializations.length > 1 && (
-              <div className="overflow-x-auto pb-2 scrollbar-hide">
-                <div className="flex bg-white/50 dark:bg-[#1A1A1A]/50 backdrop-blur-xl p-1 sm:p-1.5 md:p-2 rounded-2xl md:rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-lg sm:shadow-xl inline-flex min-w-full sm:min-w-0">
-                  {specializations.map(spec => (
+            {intelligentResult.suggestedQueries.length > 0 && (
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#6C757D] dark:text-[#888] block mb-2">
+                  Did you mean:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {intelligentResult.suggestedQueries.map((query) => (
                     <button
-                      key={spec}
+                      key={query}
                       onClick={() => {
-                        setSelectedSpecialty(spec);
+                        setSearch(query);
                         setCurrentPage(1);
                       }}
-                      className={`px-3 sm:px-5 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-sm font-black transition-all whitespace-nowrap ${
-                        selectedSpecialty.toLowerCase() === spec.toLowerCase() 
-                          ? 'bg-brand-interactive text-white shadow-lg' 
-                          : 'text-[#6C757D] hover:text-brand-interactive'
-                      }`}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E2E8F0] dark:border-[#333] hover:border-brand-interactive hover:text-brand-interactive transition-all shadow-sm active:scale-95 cursor-pointer flex items-center space-x-1.5"
                     >
-                      {spec}
+                      <Tag className="w-3 h-3 text-brand-interactive" />
+                      <span>{query}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
-          </div>
-        </section>
+          </motion.div>
+        )}
 
         {/* Agents Grid */}
         {loading ? (
@@ -223,79 +342,131 @@ const Agents: React.FC = () => {
             <LoadingState message="loading agents..." />
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-8 lg:gap-10 mb-12">
-            {filteredAgents.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6 mb-12">
+            {sortedAgents.length > 0 ? (
               paginatedAgents.map((agent, idx) => (
                 <motion.div
                   key={agent.id}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
+                  transition={{ delay: idx * 0.04 }}
                   viewport={{ once: true }}
-                  className="group relative bg-brand-background dark:bg-[#1A1A1A] rounded-3xl md:rounded-[3rem] overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all duration-500 shadow-lg sm:shadow-xl hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between"
+                  className="group relative overflow-hidden bg-white dark:bg-[#161616] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-[#E9ECEF] dark:border-[#262626] hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_32px_rgba(108,53,166,0.15)] dark:hover:shadow-[0_12px_32px_rgba(0,0,0,0.6)] hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-5"
                 >
-                  {/* Banner Area */}
-                  <div className="relative h-32 sm:h-40 overflow-hidden bg-gradient-to-r from-brand-interactive/20 via-brand-interactive/10 to-transparent">
-                    {agent.banner && agent.banner.trim() !== '' && (
-                      <img src={agent.banner} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" alt="" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  {/* Translucent Banner Backdrop in that 15% sweet spot */}
+                  <div className="absolute inset-0 rounded-2xl sm:rounded-3xl overflow-hidden pointer-events-none z-0">
+                    {agent.banner && agent.banner.trim() !== '' ? (
+                      <img
+                        src={agent.banner}
+                        alt=""
+                        className="w-full h-full object-cover opacity-15 dark:opacity-15 filter blur-[0.5px] scale-105 group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-r from-brand-interactive/10 via-purple-500/5 to-transparent" />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-[#1A1A1A] via-transparent to-transparent" />
+                    {/* Glassmorphic Gradient Overlay so text is 100% visible and sharp */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/96 via-white/92 to-white/98 dark:from-[#161616]/96 dark:via-[#161616]/92 dark:to-[#161616]/98 backdrop-blur-[1px]" />
                   </div>
 
-                  {/* Profile Info Overlay */}
-                  <div className="px-4 sm:px-6 md:px-10 pb-6 sm:pb-8 md:pb-10 -mt-12 sm:-mt-16 relative z-10 text-center flex-grow flex flex-col justify-between">
-                    <div>
-                      <div className="relative inline-block mb-4 sm:mb-5">
-                        <img
-                          src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
-                          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-[2rem] object-cover border-4 border-white dark:border-[#1A1A1A] shadow-xl transition-transform duration-500 group-hover:scale-105"
-                          alt={agent.name}
-                          onError={(e) => { e.currentTarget.src = getInitialsSvg(agent.name); }}
-                        />
-                        {agent.verificationStatus === 'VERIFIED' && (
-                          <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 text-white rounded-xl flex items-center justify-center border-2 border-white dark:border-[#1A1A1A] shadow-lg">
-                            <ShieldCheck className="w-4 h-4" />
-                          </div>
-                        )}
-                      </div>
-
-                      <h3 className="text-2xl md:text-3xl font-serif font-bold mb-1 group-hover:text-brand-interactive transition-colors text-[#1A1A1A] dark:text-white line-clamp-1">{agent.name}</h3>
-                      <div className="text-brand-interactive font-black tracking-[0.15em] text-[10px] sm:text-[11px] mb-3 flex items-center justify-center">
-                        <span className="text-[#6C757D] mr-1">Spec:</span> {agent.specialty}
-                      </div>
-                      
-                      {agent.bio && (
-                        <div className="mb-4 text-xs text-[#6C757D] dark:text-[#B0B0B0] line-clamp-2 italic px-2">
-                          <span className="font-bold text-[#1A1A1A] dark:text-white not-italic mr-1">Bio:</span>
-                          "{agent.bio}"
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-3 gap-2 mb-6">
-                        <div className="text-center">
-                          <div className="text-base font-black text-[#1A1A1A] dark:text-white flex items-center justify-center">
-                            <Star className={`w-3.5 h-3.5 mr-0.5 ${agent.rating > 0 ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`} />
-                            {agent.rating > 0 ? agent.rating : 'New'}
-                          </div>
-                          <div className="text-[9px] text-[#6C757D] font-bold">Rating</div>
-                        </div>
-                        <div className="text-center border-x border-[#E9ECEF] dark:border-[#2D2D2D]">
-                          <div className="text-base font-black text-[#1A1A1A] dark:text-white">{agent.experience}y</div>
-                          <div className="text-[9px] text-[#6C757D] font-bold">Experience</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-base font-black text-[#1A1A1A] dark:text-white">{agent.services.length}</div>
-                          <div className="text-[9px] text-[#6C757D] font-bold">Services</div>
+                  {/* Left: Round Avatar with Brand Instagram Gradient Ring */}
+                  <div className="relative shrink-0 z-10">
+                    <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-md group-hover:shadow-[0_0_15px_rgba(244,63,94,0.35)] transition-all duration-300">
+                      <div className="p-0.5 bg-white dark:bg-[#161616] rounded-full">
+                        <div className="w-18 h-18 sm:w-20 sm:h-20 md:w-22 md:h-22 rounded-full overflow-hidden bg-brand-surface dark:bg-[#202020]">
+                          <img
+                            src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
+                            alt={agent.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => { e.currentTarget.src = getInitialsSvg(agent.name); }}
+                          />
                         </div>
                       </div>
                     </div>
+                    {agent.verificationStatus === 'VERIFIED' && (
+                      <div 
+                        className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center border-2 border-white dark:border-[#161616] shadow-sm"
+                        title="Verified Specialist"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </div>
+                    )}
+                  </div>
 
+                  {/* Middle: Details, Specialty, Bio, Stats */}
+                  <div className="flex-1 min-w-0 space-y-2 z-10">
+                    {/* Header Row: Name & Rating */}
+                    <div className="flex items-center justify-between gap-2">
+                      <Link 
+                        to={`/agent/${agent.id}`}
+                        className="text-base sm:text-lg md:text-xl font-serif font-bold text-[#1A1A1A] dark:text-white truncate group-hover:text-brand-interactive transition-colors"
+                      >
+                        {agent.name}
+                      </Link>
+                      
+                      <div className="flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-black shrink-0">
+                        <Star className={`w-3.5 h-3.5 ${agent.rating > 0 ? 'fill-current' : 'text-gray-300 dark:text-gray-600'}`} />
+                        <span>{agent.rating > 0 ? agent.rating.toFixed(1) : 'New'}</span>
+                      </div>
+                    </div>
+
+                    {/* Specialty & Location */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-black uppercase tracking-wider bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/20">
+                        {agent.specialty}
+                      </span>
+                      {agent.location && (
+                        <span className="flex items-center text-xs text-[#6C757D] dark:text-[#A0A0A0]">
+                          <MapPin className="w-3 h-3 text-brand-interactive mr-1 shrink-0" />
+                          <span className="truncate max-w-[150px]">{agent.location}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bio Snippet */}
+                    {agent.bio && (
+                      <p className="text-xs text-[#6C757D] dark:text-[#B0B0B0] line-clamp-2 leading-relaxed">
+                        {agent.bio}
+                      </p>
+                    )}
+
+                    {/* Compact Inline Stats */}
+                    <div className="flex items-center gap-3 pt-1 text-[11px] font-bold text-[#6C757D] dark:text-[#999]">
+                      <span className="flex items-center space-x-1">
+                        <Briefcase className="w-3 h-3 text-brand-interactive" />
+                        <span>{agent.experience}y exp</span>
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center space-x-1">
+                        <Award className="w-3 h-3 text-brand-interactive" />
+                        <span>{agent.services?.length || 0} services</span>
+                      </span>
+                      {agent.completedBookings && agent.completedBookings > 0 && (
+                        <>
+                          <span>•</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-black">
+                            {agent.completedBookings} completed
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Actions (Book Now + View Profile) */}
+                  <div className="w-full sm:w-auto shrink-0 flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-3 sm:border-l sm:border-[#E9ECEF] sm:dark:border-[#262626] z-10">
+                    <button
+                      onClick={() => navigate(`/agent/${agent.id}?book=true#services`)}
+                      className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-brand-interactive text-white font-black text-xs hover:bg-brand-interactive/90 transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-brand-interactive/25 active:scale-95 cursor-pointer"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Book Now</span>
+                    </button>
                     <Link
                       to={`/agent/${agent.id}`}
-                      className="w-full py-3.5 md:py-4 bg-brand-surface dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white rounded-2xl font-black text-xs hover:bg-brand-interactive hover:text-white transition-all flex items-center justify-center gap-2 group/btn shadow-inner mt-auto"
+                      className="w-full sm:w-36 px-4 py-2 rounded-xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:border-brand-interactive hover:text-brand-interactive font-bold text-xs transition-all flex items-center justify-center space-x-1 active:scale-95 cursor-pointer"
                     >
-                      <span>View Artist Profile</span>
-                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                      <span>View Profile</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
                 </motion.div>
@@ -366,6 +537,15 @@ const Agents: React.FC = () => {
           </motion.button>
         )}
       </AnimatePresence>
+
+      {/* Booking Modal */}
+      {selectedServiceForBooking && (
+        <BookingModal
+          service={selectedServiceForBooking}
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

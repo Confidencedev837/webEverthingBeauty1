@@ -4,6 +4,7 @@ import { User as UserIcon, Briefcase, Mail, Phone, Lock, MapPin, Scissors, Check
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
+import { supabase } from '../lib/supabase';
 
 type AuthView = 'login' | 'signup' | 'forgot';
 
@@ -73,11 +74,27 @@ const Auth: React.FC = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!forgotEmail.trim()) {
+      setErrorMsg('Please enter your email address');
+      return;
+    }
     setLoading(true);
     setErrorMsg(null);
-    await new Promise(r => setTimeout(r, 1200));
-    setLoading(false);
-    setForgotSuccess(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+        redirectTo: `${window.location.origin}/#/reset-password`,
+      });
+      if (error) {
+        setErrorMsg(error.message);
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+      setForgotSuccess(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to send password reset email');
+      setLoading(false);
+    }
   };
 
   const fadeInUp = {

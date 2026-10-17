@@ -30,6 +30,7 @@ import { Agent, Service, VerificationStatus } from '../types';
 import {
   getAgentById,
   getServices,
+  getServicesByAgentId,
   isVideoUrl,
   getFollowCounts,
   getFollowers,
@@ -91,33 +92,30 @@ const AnimatedStatCount: React.FC<{ value: number }> = ({ value }) => {
   );
 };
 
-// Fallback social users for demonstration if database is empty
-const DEMO_FOLLOWERS: SocialUser[] = [
-  {
-    id: 'f1',
-    name: 'Amara Okonkwo',
-    handle: '@amara_beauty',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300',
-    bio: 'Bridal glam & luxury beauty lover based in Lagos.',
-    userType: 'customer'
-  },
-  {
-    id: 'f2',
-    name: 'Tunde Balogun',
-    handle: '@tundehair',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300',
-    bio: 'Men grooming specialist & hair artist in Lekki.',
-    userType: 'customer'
-  },
-  {
-    id: 'f3',
-    name: 'Chioma Adeyemi',
-    handle: '@chioma_glam',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=300',
-    bio: 'Skincare consultant and wellness advocate.',
-    userType: 'customer'
-  }
-];
+// Real Social Media Brand SVGs
+const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12.031 2C6.516 2 2.025 6.49 2.025 12.006a10.02 10.02 0 0 0 1.583 5.424L2 22l4.707-1.545a9.98 9.98 0 0 0 5.324 1.551h.005c5.514 0 10.005-4.49 10.005-10.006C22.041 6.49 17.55 2 12.031 2zm0 18.326h-.004a8.27 8.27 0 0 1-4.223-1.157l-.303-.18-3.136 1.028 1.047-3.056-.197-.315a8.293 8.293 0 0 1-1.272-4.64c0-4.57 3.719-8.289 8.29-8.289 4.568 0 8.286 3.719 8.286 8.289 0 4.57-3.718 8.29-8.287 8.29zm4.544-6.208c-.249-.125-1.472-.727-1.7-.81-.229-.083-.395-.125-.561.125-.166.25-.644.81-.789.977-.145.166-.291.187-.54.062s-1.05-.387-2-1.234c-.739-.659-1.238-1.473-1.383-1.722-.145-.25-.015-.385.109-.509.112-.112.249-.291.374-.436.125-.145.166-.25.249-.416.083-.166.042-.312-.021-.437-.062-.125-.561-1.352-.769-1.851-.202-.486-.407-.42-.56-.428l-.478-.008c-.166 0-.436.062-.664.312-.229.25-.873.853-.873 2.08s.894 2.413 1.019 2.58c.125.166 1.76 2.687 4.263 3.768.595.257 1.06.41 1.423.526.598.19 1.142.163 1.572.099.48-.072 1.472-.602 1.68-1.185.207-.582.207-1.081.145-1.185-.062-.104-.228-.166-.477-.291z" />
+  </svg>
+);
+
+const InstagramIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+  </svg>
+);
+
+const XTwitterIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+const FacebookIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+  </svg>
+);
 
 // Custom Share Modal Component
 interface ShareModalProps {
@@ -144,6 +142,12 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, agent, handle 
 
   const handleWhatsApp = () => {
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`, '_blank');
+  };
+
+  const handleInstagram = () => {
+    navigator.clipboard.writeText(shareUrl);
+    showSnackbar?.('Profile link copied! Share it on your Instagram Story or DM', 'success');
+    window.open('https://www.instagram.com', '_blank');
   };
 
   const handleTwitter = () => {
@@ -205,39 +209,50 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, agent, handle 
             </div>
           </div>
 
-          {/* Quick Social Channels */}
-          <div className="grid grid-cols-3 gap-2.5 mb-4">
+          {/* Quick Social Channels - Real Branded SVGs and Colors */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
             {/* WhatsApp */}
             <button
               onClick={handleWhatsApp}
-              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] transition-all group cursor-pointer"
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#25D366] transition-all group cursor-pointer shadow-sm active:scale-95"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#25D366] text-white flex items-center justify-center mb-1 shadow-sm group-hover:scale-105 transition-transform">
-                <Phone className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-xl bg-[#25D366] text-white flex items-center justify-center mb-1.5 shadow-sm group-hover:scale-110 transition-transform">
+                <WhatsAppIcon className="w-5 h-5 fill-current" />
               </div>
-              <span className="text-[11px] font-black">WhatsApp</span>
+              <span className="text-[11px] font-black tracking-tight text-[#1A1A1A] dark:text-white">WhatsApp</span>
+            </button>
+
+            {/* Instagram */}
+            <button
+              onClick={handleInstagram}
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#E1306C]/10 hover:bg-[#E1306C]/20 border border-[#E1306C]/30 text-[#E1306C] transition-all group cursor-pointer shadow-sm active:scale-95"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white flex items-center justify-center mb-1.5 shadow-sm group-hover:scale-110 transition-transform">
+                <InstagramIcon className="w-5 h-5 fill-current" />
+              </div>
+              <span className="text-[11px] font-black tracking-tight text-[#1A1A1A] dark:text-white">Instagram</span>
             </button>
 
             {/* X / Twitter */}
             <button
               onClick={handleTwitter}
-              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-[#E9ECEF] dark:border-[#333] text-[#1A1A1A] dark:text-white transition-all group cursor-pointer"
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-[#E9ECEF] dark:border-[#333] text-[#1A1A1A] dark:text-white transition-all group cursor-pointer shadow-sm active:scale-95"
             >
-              <div className="w-9 h-9 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center mb-1 shadow-sm group-hover:scale-105 transition-transform font-black text-sm">
-                X
+              <div className="w-10 h-10 rounded-xl bg-black dark:bg-white text-white dark:text-black flex items-center justify-center mb-1.5 shadow-sm group-hover:scale-110 transition-transform">
+                <XTwitterIcon className="w-4 h-4 fill-current" />
               </div>
-              <span className="text-[11px] font-black">Share on X</span>
+              <span className="text-[11px] font-black tracking-tight text-[#1A1A1A] dark:text-white">X</span>
             </button>
 
             {/* Facebook */}
             <button
               onClick={handleFacebook}
-              className="flex flex-col items-center justify-center p-3 rounded-2xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 border border-[#1877F2]/30 text-[#1877F2] transition-all group cursor-pointer"
+              className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 border border-[#1877F2]/30 text-[#1877F2] transition-all group cursor-pointer shadow-sm active:scale-95"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#1877F2] text-white flex items-center justify-center mb-1 shadow-sm group-hover:scale-105 transition-transform font-black text-sm">
-                f
+              <div className="w-10 h-10 rounded-xl bg-[#1877F2] text-white flex items-center justify-center mb-1.5 shadow-sm group-hover:scale-110 transition-transform">
+                <FacebookIcon className="w-5 h-5 fill-current" />
               </div>
-              <span className="text-[11px] font-black">Facebook</span>
+              <span className="text-[11px] font-black tracking-tight text-[#1A1A1A] dark:text-white">Facebook</span>
             </button>
           </div>
 
@@ -321,46 +336,53 @@ const AgentProfile: React.FC = () => {
         user ? getMyFollowingIds(user.id) : Promise.resolve([] as string[])
       ]);
 
-      const effectiveFollowers = fr.length > 0 ? fr : DEMO_FOLLOWERS;
-      const effectiveFollowersCount = c.followers > 0 ? c.followers : effectiveFollowers.length;
-      const effectiveFollowingCount = c.following > 0 ? c.following : 14;
-
-      setCounts({ followers: effectiveFollowersCount, following: effectiveFollowingCount });
-      setFollowers(effectiveFollowers);
-      setFollowing(fg.length > 0 ? fg : DEMO_FOLLOWERS.slice(0, 2));
+      setCounts({ followers: c.followers, following: c.following });
+      setFollowers(fr);
+      setFollowing(fg);
       setLikedIds(liked);
       setMyFollowingIds(mine);
     } catch {
-      setCounts({ followers: 142, following: 14 });
-      setFollowers(DEMO_FOLLOWERS);
-      setFollowing(DEMO_FOLLOWERS.slice(0, 2));
+      setCounts({ followers: 0, following: 0 });
+      setFollowers([]);
+      setFollowing([]);
     }
   };
 
   const loadData = async () => {
     if (!id) return;
-    setLoading(true);
+    if (!agent || agent.id !== id) {
+      setLoading(true);
+    }
     setError(null);
 
-    const [agentRes, allServicesRes] = await Promise.all([
+    const [agentRes, agentServicesRes, allServicesRes] = await Promise.all([
       getAgentById(id),
+      getServicesByAgentId(id),
       getServices()
     ]);
 
     if (agentRes.error || !agentRes.data) {
       setError(agentRes.error || 'Artist profile not found');
+      setLoading(false);
     } else {
       setAgent(agentRes.data);
       if (allServicesRes.data) {
         setAllServices(allServicesRes.data);
+      }
+      if (agentServicesRes.data && agentServicesRes.data.length > 0) {
+        setServices(agentServicesRes.data);
+      } else if (allServicesRes.data) {
         const matched = allServicesRes.data.filter(
           (s) => s.agentId === agentRes.data?.id || agentRes.data?.services?.includes(s.id)
         );
         setServices(matched);
+      } else {
+        setServices([]);
       }
-      await loadSocial(agentRes.data.id);
+      setLoading(false);
+      // Load social metrics non-blockingly so specialist profile renders instantly
+      loadSocial(agentRes.data.id);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -508,25 +530,10 @@ const AgentProfile: React.FC = () => {
     : 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1600';
 
   return (
-    <div className="min-h-screen bg-brand-background dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white pb-20 pt-16 sm:pt-20 select-none transition-colors duration-200 relative overflow-hidden">
+    <div className="min-h-screen bg-brand-background dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white pb-20 pt-16 sm:pt-20 select-none transition-colors duration-200">
       
-      {/* 1. AMBIENT GLASSMORPHIC BANNER (STRICTLY IN THE BACKGROUND, NEVER COVERS ANYTHING) */}
-      {/* Positioned as an absolute backdrop behind the profile header with soft opacity and fade */}
-      <div className="absolute top-0 left-0 right-0 h-72 sm:h-80 md:h-96 overflow-hidden pointer-events-none z-0">
-        <img
-          src={bannerImgUrl}
-          alt=""
-          className="w-full h-full object-cover opacity-20 dark:opacity-25 blur-sm scale-105 transition-opacity duration-700"
-          onError={(e) => {
-            e.currentTarget.src = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1600';
-          }}
-        />
-        {/* Soft gradient fade so the banner blends smoothly without covering text */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-background/60 dark:via-[#0D0D0D]/60 to-brand-background dark:to-[#0D0D0D]" />
-      </div>
-
-      {/* 2. MOBILE TOP NAVIGATION BAR (Clean, No Check Icon, Opens Custom Share Modal) */}
-      <div className="md:hidden relative z-10 px-3 py-2 flex items-center justify-between border-b border-[#E9ECEF]/60 dark:border-[#222222]/60 bg-brand-background/40 dark:bg-[#0D0D0D]/40 backdrop-blur-sm">
+      {/* 1. MOBILE TOP NAVIGATION BAR (Clean, solid frosted bar, isolated from banner, opens custom ShareModal) */}
+      <div className="md:hidden sticky top-16 z-30 px-3.5 py-2.5 flex items-center justify-between border-b border-[#E9ECEF] dark:border-[#222222] bg-white/95 dark:bg-[#0D0D0D]/95 backdrop-blur-md shadow-xs">
         <button
           onClick={() => navigate(-1)}
           aria-label="Go back"
@@ -556,35 +563,52 @@ const AgentProfile: React.FC = () => {
         </button>
       </div>
 
-      {/* 3. MAIN RESPONSIVE CONTAINER (Strictly in front with relative z-10, fully visible, full color) */}
-      <main className="max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 pt-3 sm:pt-4 md:pt-6 relative z-10">
+      {/* 2. PROFILE HERO HEADER CONTAINER WITH BACKGROUND BANNER */}
+      <div className="relative overflow-hidden border-b border-[#E9ECEF]/80 dark:border-[#222222]/80">
         
-        {/* ======================================================== */}
-        {/* DESKTOP (PC) PROFILE HEADER (md:flex, bigger components) */}
-        {/* ======================================================== */}
-        <section className="hidden md:flex items-start space-x-10 lg:space-x-16 mb-8 pb-8 border-b border-[#E9ECEF] dark:border-[#222222]">
-          
-          {/* PC Big Avatar */}
-          <div className="relative shrink-0 flex flex-col items-center">
-            <div className="p-1.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-brand-interactive shadow-2xl">
-              <div className="p-1 bg-brand-background dark:bg-[#0D0D0D] rounded-full">
-                <img
-                  src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
-                  alt={agent.name}
-                  onError={(e) => {
-                    e.currentTarget.src = getInitialsSvg(agent.name);
-                  }}
-                  className="w-36 h-36 lg:w-44 lg:h-44 rounded-full object-cover border-2 border-black/5 dark:border-white/10 shadow-inner"
-                />
+        {/* Background Banner Image */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          <img
+            src={bannerImgUrl}
+            alt=""
+            className="w-full h-full object-cover object-center opacity-65 dark:opacity-60 scale-105 transition-opacity duration-500"
+            onError={(e) => {
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1600';
+            }}
+          />
+          {/* Calibrated Translucent Glass Scrim: keeps the banner image visible behind without obscuring text */}
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-background/40 via-brand-background/70 to-brand-background dark:from-[#0D0D0D]/40 dark:via-[#0D0D0D]/70 dark:to-[#0D0D0D] backdrop-blur-[1px]" />
+        </div>
+
+        {/* Profile Content */}
+        <div className="relative z-10 max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 pt-3 sm:pt-5 pb-4 sm:pb-6">
+        
+          {/* ======================================================== */}
+          {/* DESKTOP (PC) PROFILE HEADER (md:flex, bigger components) */}
+          {/* ======================================================== */}
+          <section className="hidden md:flex items-start space-x-10 lg:space-x-16 mb-8 pb-8 border-b border-[#E9ECEF] dark:border-[#222222]">
+            
+            {/* PC Big Avatar: Round circle with brand Instagram gradient ring */}
+            <div className="relative shrink-0 flex flex-col items-center">
+              <div className="p-1 rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-2xl hover:shadow-[0_0_25px_rgba(244,63,94,0.4)] transition-all">
+                <div className="p-1 bg-white dark:bg-[#0D0D0D] rounded-full">
+                  <img
+                    src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
+                    alt={agent.name}
+                    onError={(e) => {
+                      e.currentTarget.src = getInitialsSvg(agent.name);
+                    }}
+                    className="w-36 h-36 lg:w-44 lg:h-44 rounded-full object-cover shadow-inner"
+                  />
+                </div>
+              </div>
+
+              {/* Prominent VERIFIED Badge Next to profile pic */}
+              <div className="mt-3 inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-xs font-black shadow-sm tracking-wide">
+                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>VERIFIED SPECIALIST</span>
               </div>
             </div>
-
-            {/* Prominent VERIFIED Badge Next to profile pic */}
-            <div className="mt-3 inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-xs font-black shadow-sm tracking-wide">
-              <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-              <span>VERIFIED SPECIALIST</span>
-            </div>
-          </div>
 
           {/* PC Right Details: Handle, Action Buttons, Stats, Name & Bio */}
           <div className="flex-1 min-w-0 space-y-5 pt-2">
@@ -776,17 +800,17 @@ const AgentProfile: React.FC = () => {
           {/* Row 1: Full Avatar (Uncovered) + 3 Stats */}
           <div className="flex items-center justify-between mb-3.5 pt-1">
             
-            {/* Phone Avatar: 100% visible, complete circle */}
+            {/* Phone Avatar: 100% visible, complete round circle with brand Instagram gradient ring */}
             <div className="relative shrink-0 flex flex-col items-center">
-              <div className="p-0.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-brand-interactive shadow-md">
-                <div className="p-0.5 bg-brand-background dark:bg-[#0D0D0D] rounded-full">
+              <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-lg">
+                <div className="p-0.5 bg-white dark:bg-[#0D0D0D] rounded-full">
                   <img
                     src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
                     alt={agent.name}
                     onError={(e) => {
                       e.currentTarget.src = getInitialsSvg(agent.name);
                     }}
-                    className="w-18 h-18 sm:w-20 sm:h-20 rounded-full object-cover border border-black/5 dark:border-white/10"
+                    className="w-18 h-18 sm:w-20 sm:h-20 rounded-full object-cover"
                     style={{ width: '4.75rem', height: '4.75rem' }}
                   />
                 </div>
@@ -961,13 +985,17 @@ const AgentProfile: React.FC = () => {
               </button>
             )}
           </div>
-
         </section>
+      </div>
+    </div>
 
-        {/* ======================================================== */}
-        {/* 4. THE 4 TABS WITH ANIMATED SLIDER (ALL 4 VISIBLE & SHARP) */}
-        {/* ======================================================== */}
-        <nav aria-label="Profile tabs" className="border-t border-[#E9ECEF] dark:border-[#222222] mt-2">
+    {/* 3. MAIN CONTENT CONTAINER (Pure solid background for tabs and feeds) */}
+    <main className="max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 relative z-10 pt-2">
+
+      {/* ======================================================== */}
+      {/* 4. THE 4 TABS WITH ANIMATED SLIDER (ALL 4 VISIBLE & SHARP) */}
+      {/* ======================================================== */}
+      <nav aria-label="Profile tabs" className="border-b border-[#E9ECEF] dark:border-[#222222]">
           <div className="grid grid-cols-4 w-full">
             
             {/* TAB 1: SERVICES (LayoutGrid) */}
@@ -1093,7 +1121,7 @@ const AgentProfile: React.FC = () => {
                         <div
                           key={service.id}
                           className="group relative aspect-square bg-gray-100 dark:bg-[#181818] overflow-hidden md:rounded-2xl md:shadow-md md:border md:border-[#E9ECEF] dark:md:border-[#222222] cursor-pointer"
-                          onClick={() => setSelectedServiceForBooking(service)}
+                          onClick={() => navigate(`/services/${service.id}`)}
                         >
                           {/* Media Thumbnail with broken image fallback */}
                           {service.image ? (
@@ -1161,20 +1189,22 @@ const AgentProfile: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
+                                    navigate(`/services/${service.id}`);
+                                  }}
+                                  className="flex-1 py-2 bg-brand-interactive text-white rounded-xl text-xs font-black hover:bg-brand-interactive/90 transition-all text-center cursor-pointer shadow-md flex items-center justify-center space-x-1.5"
+                                >
+                                  <span>View Details & Book</span>
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setSelectedServiceForBooking(service);
                                   }}
-                                  className="flex-1 py-2 bg-brand-interactive text-white rounded-xl text-xs font-black hover:bg-brand-interactive/90 transition-all text-center cursor-pointer shadow-md"
+                                  className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-bold text-white transition-colors cursor-pointer"
+                                  title="Quick Book"
                                 >
-                                  Book Appointment
+                                  Quick Book
                                 </button>
-                                <Link
-                                  to={`/services/${service.id}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="p-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-colors cursor-pointer"
-                                  title="View details"
-                                >
-                                  <ExternalLink className="w-4 h-4" />
-                                </Link>
                               </div>
                             </div>
                           </div>
@@ -1209,7 +1239,9 @@ const AgentProfile: React.FC = () => {
                       <div
                         key={reel.id}
                         onClick={() => {
-                          if (reel.service) setSelectedServiceForBooking(reel.service);
+                          if (reel.service) {
+                            navigate(`/services/${reel.service.id}`);
+                          }
                         }}
                         className="group relative aspect-[9/16] md:aspect-square bg-black overflow-hidden md:rounded-2xl md:shadow-md cursor-pointer"
                       >
@@ -1226,11 +1258,9 @@ const AgentProfile: React.FC = () => {
                         </div>
                         <div className="absolute inset-x-0 bottom-0 p-2 md:p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-white">
                           <p className="text-[10px] md:text-sm font-bold line-clamp-1">{reel.title}</p>
-                          {reel.price && (
-                            <span className="text-[9px] md:text-xs font-black text-brand-accent">
+                            <span className="text-[9px] md:text-xs font-black text-white bg-black/50 px-2 py-0.5 rounded-md border border-white/20">
                               ₦{reel.price.toLocaleString()}
                             </span>
-                          )}
                         </div>
                       </div>
                     ))}
@@ -1283,55 +1313,69 @@ const AgentProfile: React.FC = () => {
 
                 {/* Twitter/X Style User List */}
                 <div className="divide-y divide-[#E9ECEF] dark:divide-[#222222] bg-brand-surface/30 dark:bg-[#161616] rounded-2xl p-2 md:p-4 border border-[#E9ECEF] dark:border-[#222222]">
-                  {(communitySubTab === 'followers' ? followers : following).map((person) => {
-                    const isFollowingPerson = myFollowingIds.includes(person.id);
-                    const isMe = user?.id === person.id;
+                  {(communitySubTab === 'followers' ? followers : following).length > 0 ? (
+                    (communitySubTab === 'followers' ? followers : following).map((person) => {
+                      const isFollowingPerson = myFollowingIds.includes(person.id);
+                      const isMe = user?.id === person.id;
 
-                    return (
-                      <div
-                        key={person.id}
-                        className="py-3.5 flex items-start justify-between space-x-3"
-                      >
-                        <div className="flex items-start space-x-3 min-w-0">
-                          <img
-                            src={person.avatar && person.avatar.trim() !== '' ? person.avatar : getInitialsSvg(person.name)}
-                            alt={person.name}
-                            onError={(e) => {
-                              e.currentTarget.src = getInitialsSvg(person.name);
-                            }}
-                            className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shrink-0 border border-black/5 dark:border-white/10"
-                          />
-                          <div className="min-w-0">
-                            <h4 className="text-xs md:text-sm font-bold text-[#1A1A1A] dark:text-white truncate">
-                              {person.name}
-                            </h4>
-                            <p className="text-[11px] md:text-xs text-[#6C757D] dark:text-[#A0A0A0] truncate">
-                              {person.handle}
-                            </p>
-                            {person.bio && (
-                              <p className="text-xs md:text-sm text-[#444] dark:text-[#CCC] mt-1 line-clamp-2 leading-tight">
-                                {person.bio}
+                      return (
+                        <div
+                          key={person.id}
+                          className="py-3.5 flex items-start justify-between space-x-3"
+                        >
+                          <div className="flex items-start space-x-3 min-w-0">
+                            <img
+                              src={person.avatar && person.avatar.trim() !== '' ? person.avatar : getInitialsSvg(person.name)}
+                              alt={person.name}
+                              onError={(e) => {
+                                e.currentTarget.src = getInitialsSvg(person.name);
+                              }}
+                              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shrink-0 border border-black/5 dark:border-white/10"
+                            />
+                            <div className="min-w-0">
+                              <h4 className="text-xs md:text-sm font-bold text-[#1A1A1A] dark:text-white truncate">
+                                {person.name}
+                              </h4>
+                              <p className="text-[11px] md:text-xs text-[#6C757D] dark:text-[#A0A0A0] truncate">
+                                {person.handle}
                               </p>
-                            )}
+                              {person.bio && (
+                                <p className="text-xs md:text-sm text-[#444] dark:text-[#CCC] mt-1 line-clamp-2 leading-tight">
+                                  {person.bio}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        {!isMe && (
-                          <button
-                            onClick={() => handleToggleFollow(person.id)}
-                            disabled={followBusy === person.id}
-                            className={`shrink-0 h-8 md:h-9 px-4 rounded-xl text-xs font-black transition-all active:scale-95 disabled:opacity-60 cursor-pointer ${
-                              isFollowingPerson
-                                ? 'bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:text-rose-500'
-                                : 'bg-brand-interactive text-white shadow-sm hover:bg-brand-interactive/90'
-                            }`}
-                          >
-                            {isFollowingPerson ? 'Following' : 'Follow'}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
+                          {!isMe && (
+                            <button
+                              onClick={() => handleToggleFollow(person.id)}
+                              disabled={followBusy === person.id}
+                              className={`shrink-0 h-8 md:h-9 px-4 rounded-xl text-xs font-black transition-all active:scale-95 disabled:opacity-60 cursor-pointer ${
+                                isFollowingPerson
+                                  ? 'bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:text-rose-500'
+                                  : 'bg-brand-interactive text-white shadow-sm hover:bg-brand-interactive/90'
+                              }`}
+                            >
+                              {isFollowingPerson ? 'Following' : 'Follow'}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-12 text-center text-[#6C757D] dark:text-[#A0A0A0]">
+                      <Users className="w-10 h-10 mx-auto mb-2 text-[#ADB5BD] dark:text-[#555]" />
+                      <p className="text-sm font-bold text-[#1A1A1A] dark:text-white">
+                        {communitySubTab === 'followers' ? 'No followers yet' : 'Not following anyone yet'}
+                      </p>
+                      <p className="text-xs text-[#8E8E93] dark:text-[#777] mt-1">
+                        {communitySubTab === 'followers'
+                          ? `Be the first to follow ${agent?.name || 'this specialist'}`
+                          : `${agent?.name || 'This specialist'} hasn't followed any accounts yet`}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -1351,7 +1395,7 @@ const AgentProfile: React.FC = () => {
                       <div
                         key={service.id}
                         className="group relative aspect-square bg-gray-100 dark:bg-[#181818] overflow-hidden md:rounded-2xl md:shadow-md md:border md:border-[#E9ECEF] dark:md:border-[#222222] cursor-pointer"
-                        onClick={() => setSelectedServiceForBooking(service)}
+                        onClick={() => navigate(`/services/${service.id}`)}
                       >
                         <img
                           src={service.image || getInitialsSvg(service.name)}
@@ -1376,7 +1420,7 @@ const AgentProfile: React.FC = () => {
                         {/* PC Hover Overlay */}
                         <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 lg:p-6 hidden md:flex flex-col justify-end text-white">
                           <p className="text-base font-bold line-clamp-1">{service.name}</p>
-                          <span className="text-xs text-brand-accent font-black">₦{service.price.toLocaleString()}</span>
+                          <span className="text-xs text-white font-black bg-black/50 px-2 py-0.5 rounded-md border border-white/20">₦{service.price.toLocaleString()}</span>
                         </div>
                       </div>
                     ))}

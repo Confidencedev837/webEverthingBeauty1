@@ -1,0 +1,210 @@
+/**
+ * ============================================================================
+ * MOBILE & SMALL SCREEN SIZING CONTROL PANEL (mobile-scaling.css)
+ * ============================================================================
+ * 
+ * ADJUST SIZES TO YOUR EXACT TASTE!
+ * Simply change the numerical values below (e.g., 1.5rem, 14px, 0.875rem)
+ * and they will immediately take effect on all mobile/small screens (<= 640px).
+ *
+ * All values are organized into clear sections for instant editing.
+ * ============================================================================
+ */
+
+:root {
+  /* ──────────────────────────────────────────────────────────────────────────
+     1. BUTTONS ON SMALL SCREENS
+     ────────────────────────────────────────────────────────────────────────── */
+  --btn-mobile-py: 0.65rem;          /* Vertical padding (height): 10.5px */
+  --btn-mobile-px: 1.125rem;        /* Horizontal padding (width): 18px */
+  --btn-mobile-font-size: 0.8125rem;/* Button text size: 13px */
+  --btn-mobile-radius: 0.875rem;    /* Squircle corner curve: 14px */
+  --btn-mobile-font-weight: 800;    /* Text boldness: 700 to 900 */
+
+  /* Small action buttons (e.g. "Book Specialist", "View Details", "Filter") */
+  --btn-sm-mobile-py: 0.5rem;       /* Small button vertical padding: 8px */
+  --btn-sm-mobile-px: 0.875rem;     /* Small button horizontal padding: 14px */
+  --btn-sm-mobile-font-size: 0.75rem;/* Small button text size: 12px */
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     2. HERO GREETING & HEADER (Top of Home Page)
+     ────────────────────────────────────────────────────────────────────────── */
+  --hero-greeting-mobile-size: 1.45rem;  /* Greeting & prompter headline ("Looking for a barber?"): 23px */
+  --hero-subtext-mobile-size: 0.8125rem; /* Subtitle under greeting: 13px */
+  --hero-badge-mobile-size: 0.6875rem;  /* Location badge ("On-Demand Beauty"): 11px */
+  --hero-badge-py: 0.25rem;             /* Location badge vertical padding: 4px */
+  --hero-badge-px: 0.625rem;            /* Location badge horizontal padding: 10px */
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     3. SECTION HEADINGS & TITLES
+     ────────────────────────────────────────────────────────────────────────── */
+  --section-h2-mobile-size: 1.25rem;     /* Section heading (e.g. "Available Services"): 20px */
+  --section-tag-mobile-size: 0.6875rem;  /* Category / tag pill above section: 11px */
+  --section-subtext-mobile-size: 0.75rem;/* Subtitle description: 12px */
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     4. SERVICE CARDS & SPECIALIST CARDS
+     ────────────────────────────────────────────────────────────────────────── */
+  --card-mobile-padding: 1rem;          /* Inside padding of cards: 16px */
+  --card-mobile-radius: 1.25rem;        /* Card squircle corner radius: 20px */
+  --service-card-mobile-img-h: 11.5rem; /* Service card image height: 184px */
+  --card-title-mobile-size: 0.9375rem;  /* Service / Specialist card title: 15px */
+  --card-desc-mobile-size: 0.75rem;     /* Card bio / description snippet: 12px */
+  --card-price-mobile-size: 1rem;       /* Price tag size: 16px */
+  --card-meta-mobile-size: 0.75rem;     /* Rating stars, reviews, distance: 12px */
+  --agent-card-mobile-avatar: 3.5rem;   /* Specialist circular avatar: 56px */
+  --quickstrip-mobile-card-w: 16.5rem;  /* Quick pick horizontal card width: 264px */
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     5. SEARCH BAR (Small Screens)
+     ────────────────────────────────────────────────────────────────────────── */
+  --search-mobile-py: 0.875rem;         /* Search input top & bottom padding: 14px */
+  --search-mobile-font-size: 0.875rem;  /* Search text size: 14px */
+  --search-mobile-radius: 1.25rem;      /* Search bar roundness: 20px */
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     6. CATEGORY PILLS & FILTER TABS
+     ────────────────────────────────────────────────────────────────────────── */
+  --pill-mobile-py: 0.5rem;             /* Category button vertical padding: 8px */
+  --pill-mobile-px: 0.875rem;           /* Category button horizontal padding: 14px */
+  --pill-mobile-font-size: 0.75rem;     /* Category text size: 12px */
+  --pill-mobile-radius: 0.875rem;       /* Category roundness: 14px */
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     7. BOLT-STYLE UPCOMING APPOINTMENT ALERT
+     ────────────────────────────────────────────────────────────────────────── */
+  --banner-mobile-p: 1.125rem;          /* Card inner padding: 18px */
+  --banner-mobile-radius: 1.35rem;      /* Card corner roundness: 22px */
+  --banner-bell-size: 2.75rem;          /* Bell squircle container size: 44px */
+  --banner-title-size: 1.0625rem;       /* Service title size in alert: 17px */
+  --banner-badge-size: 0.6875rem;       /* Status pill text size: 11px */
+  --banner-meta-size: 0.75rem;          /* Date/time & address text size: 12px */
+}
+
+/* ============================================================================
+   RESPONSIVE ENFORCEMENT RULES (Applies automatically on screens <= 640px)
+   ============================================================================ */
+@media (max-width: 640px) {
+  /* Hero greeting scaling */
+  .app-hero-title {
+    font-size: var(--hero-greeting-mobile-size) !important;
+    line-height: 1.22 !important;
+  }
+  .app-hero-subtext {
+    font-size: var(--hero-subtext-mobile-size) !important;
+    line-height: 1.4 !important;
+  }
+  .app-hero-badge {
+    font-size: var(--hero-badge-mobile-size) !important;
+    padding-top: var(--hero-badge-py) !important;
+    padding-bottom: var(--hero-badge-py) !important;
+    padding-left: var(--hero-badge-px) !important;
+    padding-right: var(--hero-badge-px) !important;
+  }
+
+  /* Section headers */
+  .app-section-title {
+    font-size: var(--section-h2-mobile-size) !important;
+  }
+  .app-section-tag {
+    font-size: var(--section-tag-mobile-size) !important;
+  }
+  .app-section-subtext {
+    font-size: var(--section-subtext-mobile-size) !important;
+  }
+
+  /* Card inner padding and dimensions */
+  .app-card-inner-pad {
+    padding: var(--card-mobile-padding) !important;
+  }
+  .app-card-title {
+    font-size: var(--card-title-mobile-size) !important;
+  }
+  .app-card-desc {
+    font-size: var(--card-desc-mobile-size) !important;
+  }
+  .app-card-price {
+    font-size: var(--card-price-mobile-size) !important;
+    color: #111111 !important;
+  }
+  .dark .app-card-price {
+    color: #ffffff !important;
+  }
+  .app-card-meta {
+    font-size: var(--card-meta-mobile-size) !important;
+  }
+
+  /* Standard Button Scaling */
+  .btn-mobile-scale {
+    padding-top: var(--btn-mobile-py) !important;
+    padding-bottom: var(--btn-mobile-py) !important;
+    padding-left: var(--btn-mobile-px) !important;
+    padding-right: var(--btn-mobile-px) !important;
+    font-size: var(--btn-mobile-font-size) !important;
+    border-radius: var(--btn-mobile-radius) !important;
+    font-weight: var(--btn-mobile-font-weight) !important;
+  }
+
+  /* Small Action Button Scaling */
+  .btn-mobile-sm-scale {
+    padding-top: var(--btn-sm-mobile-py) !important;
+    padding-bottom: var(--btn-sm-mobile-py) !important;
+    padding-left: var(--btn-sm-mobile-px) !important;
+    padding-right: var(--btn-sm-mobile-px) !important;
+    font-size: var(--btn-sm-mobile-font-size) !important;
+    border-radius: var(--btn-mobile-radius) !important;
+  }
+
+  /* Category pills */
+  .app-cat-pill {
+    padding-top: var(--pill-mobile-py) !important;
+    padding-bottom: var(--pill-mobile-py) !important;
+    padding-left: var(--pill-mobile-px) !important;
+    padding-right: var(--pill-mobile-px) !important;
+    font-size: var(--pill-mobile-font-size) !important;
+    border-radius: var(--pill-mobile-radius) !important;
+  }
+
+  /* Search bar input */
+  .app-search-input {
+    padding-top: var(--search-mobile-py) !important;
+    padding-bottom: var(--search-mobile-py) !important;
+    font-size: var(--search-mobile-font-size) !important;
+    border-radius: var(--search-mobile-radius) !important;
+  }
+
+  /* Quick pick strip card width */
+  .app-quickstrip-card {
+    width: var(--quickstrip-mobile-card-w) !important;
+  }
+
+  /* Service Card image height */
+  .app-service-img-h {
+    height: var(--service-card-mobile-img-h) !important;
+  }
+
+  /* Specialist Avatar dimension */
+  .app-agent-avatar {
+    width: var(--agent-card-mobile-avatar) !important;
+    height: var(--agent-card-mobile-avatar) !important;
+  }
+
+  /* Bolt-Style Upcoming Booking Alert */
+  .app-upcoming-banner {
+    padding: var(--banner-mobile-p) !important;
+    border-radius: var(--banner-mobile-radius) !important;
+  }
+  .app-banner-bell {
+    width: var(--banner-bell-size) !important;
+    height: var(--banner-bell-size) !important;
+  }
+  .app-banner-title {
+    font-size: var(--banner-title-size) !important;
+  }
+  .app-banner-badge {
+    font-size: var(--banner-badge-size) !important;
+  }
+  .app-banner-meta {
+    font-size: var(--banner-meta-size) !important;
+  }
+}

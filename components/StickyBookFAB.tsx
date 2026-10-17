@@ -95,17 +95,29 @@ const StickyBookFAB: React.FC<StickyBookFABProps> = ({ services, onSelectService
                 </button>
               </div>
 
-              {/* Search input */}
-              <div className="my-4 relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6C757D]" />
+              {/* Search input with depth and padding */}
+              <div className="my-4 relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center text-[#6C757D] group-focus-within:text-brand-interactive transition-colors">
+                  <Search className="w-4 h-4" />
+                </div>
                 <input
                   type="text"
                   placeholder="What service do you need? (e.g. Braids, Glam)"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-brand-surface dark:bg-[#1F1F1F] rounded-xl text-sm border border-transparent focus:border-brand-interactive outline-none text-[#1A1A1A] dark:text-white placeholder-[#888]"
+                  style={{ paddingLeft: '3rem', paddingRight: '2.5rem' }}
+                  className="w-full pl-12 pr-10 py-3 bg-white dark:bg-[#1A1A1A] rounded-xl text-sm font-medium border border-[#E2E8F0] dark:border-[#2C2C2C] focus:border-brand-interactive outline-none focus:ring-4 focus:ring-brand-interactive/15 transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.3)] text-[#1A1A1A] dark:text-white placeholder-[#888]"
                   autoFocus
                 />
+                {search && (
+                  <button
+                    onClick={() => setSearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
               {/* Service list */}

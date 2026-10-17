@@ -68,6 +68,7 @@ export interface Agent {
   reviews: number;
   experience: number;
   image: string;
+  avatar?: string;
   banner: string;
   bio: string;
   location?: string;
@@ -80,6 +81,7 @@ export interface Agent {
     thumbnail?: string;
   }>;
   verificationStatus: VerificationStatus;
+  completedBookings?: number;
 }
 
 export interface Booking {
