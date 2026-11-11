@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Clock, MapPin, Heart, Share2, Check, ArrowRight, Calendar, Play, ChevronLeft, ChevronRight, MessageSquare, Send, AlertCircle, RefreshCw, User } from 'lucide-react';
-import { Service, Review } from '../types';
-import { getServiceById, getReviewsForService, createReview, isVideoUrl } from '../services/supabaseService';
+import { Service, Review, ServiceGalleryItem } from '../types';
+import { getServiceById, getReviewsForService, createReview, isVideoUrl, getCached } from '../services/supabaseService';
 import { useAuth } from '../context/AuthContext';
 import BookingModal from '../components/BookingModal';
 
@@ -30,7 +30,10 @@ const ServiceDetail: React.FC = () => {
 
   const loadData = async () => {
     if (!id) return;
-    setLoading(true);
+    const cached = getCached<Service>(`service:${id}`);
+    if (!cached && (!service || service.id !== id)) {
+      setLoading(true);
+    }
     setError(null);
     const [serviceRes, reviewsRes] = await Promise.all([
       getServiceById(id),
@@ -51,6 +54,17 @@ const ServiceDetail: React.FC = () => {
 
   useEffect(() => {
     loadData();
+
+    // SWR: Listen for fresh background updates
+    if (!id) return;
+    const onCacheUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key: string; data: any }>;
+      if (customEvent.detail?.key === `service:${id}` && customEvent.detail.data) {
+        setService(customEvent.detail.data);
+      }
+    };
+    window.addEventListener('eb:cache-updated', onCacheUpdated);
+    return () => window.removeEventListener('eb:cache-updated', onCacheUpdated);
   }, [id]);
 
   useEffect(() => {
@@ -145,7 +159,9 @@ const ServiceDetail: React.FC = () => {
     );
   }
 
-  const gallery = service.gallery && service.gallery.length > 0 ? service.gallery : (service.image ? [{ type: isVideoUrl(service.image) ? 'video' : 'image' as const, url: service.image }] : []);
+  const gallery: ServiceGalleryItem[] = service.gallery && service.gallery.length > 0 
+    ? service.gallery 
+    : (service.image ? [{ type: isVideoUrl(service.image) ? 'video' : 'image', url: service.image }] : []);
   const currentMedia = gallery[currentMediaIndex] || gallery[0];
 
   return (

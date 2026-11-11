@@ -37,7 +37,11 @@ const GuestHome: React.FC = () => {
       const element = document.getElementById(hash.replace('#', ''));
       if (element) {
         setTimeout(() => {
-          element.scrollIntoView({ behavior: 'smooth' });
+          if ((window as any).lenis) {
+            (window as any).lenis.scrollTo(element, { offset: -70, duration: 1.2 });
+          } else {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
         }, 100);
       }
     }

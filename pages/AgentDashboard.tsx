@@ -65,6 +65,7 @@ import AgentProfileEditor from '../components/agent/AgentProfileEditor';
 import EditServiceModal from '../components/agent/EditServiceModal';
 import BookingChatDrawer from '../components/BookingChatDrawer';
 import { useSnackbar } from '../components/Snackbar';
+import { dispatchBookingStatusUpdate, getWhatsAppUrl } from '../services/whatsappService';
 
 const DAYS_OF_WEEK = [
   'Monday',
@@ -96,7 +97,7 @@ const NIGERIAN_BANKS = [
 ];
 
 const springTransition = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 400,
   damping: 25
 };
@@ -217,10 +218,27 @@ const AgentDashboard: React.FC = () => {
 
   // Status transitions
   const handleStatusChange = async (bookingId: string, newStatus: BookingStatus) => {
+    const targetBooking = bookings.find(b => b.id === bookingId);
     const ok = await updateBookingStatus(bookingId, newStatus);
     if (ok) {
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b));
       showSnackbar(`Appointment status updated to ${newStatus}`, 'success');
+
+      // Dispatch real-time WhatsApp alert to client
+      if (targetBooking) {
+        dispatchBookingStatusUpdate({
+          bookingId: targetBooking.id,
+          status: newStatus,
+          customerName: targetBooking.customerName,
+          customerPhone: targetBooking.customerPhone,
+          agentName: targetBooking.agentName || currentUser?.name || 'Specialist',
+          agentPhone: currentUser?.phone,
+          serviceName: targetBooking.serviceName,
+          date: targetBooking.date,
+          time: targetBooking.time,
+          address: targetBooking.address
+        }).catch(() => {});
+      }
     } else {
       showSnackbar('Failed to update status', 'error');
     }

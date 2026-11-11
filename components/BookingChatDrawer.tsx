@@ -32,23 +32,30 @@ const BookingChatDrawer: React.FC<BookingChatDrawerProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadMessages = async () => {
+  const loadMessages = async (isBackground = false) => {
     if (!booking) return;
-    setLoading(true);
+    if (!isBackground) setLoading(true);
     setError(null);
     try {
       const msgs = await getBookingMessages(booking.id);
       setMessages(msgs);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load conversation history');
+      if (!isBackground) {
+        setError(err?.message || 'Failed to load conversation history');
+      }
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
     if (isOpen && booking) {
-      loadMessages();
+      loadMessages(false);
+      // Background real-time polling every 3.5 seconds while chat drawer is open
+      const pollTimer = setInterval(() => {
+        loadMessages(true);
+      }, 3500);
+      return () => clearInterval(pollTimer);
     } else {
       setMessages([]);
       setInputText('');
@@ -141,7 +148,7 @@ const BookingChatDrawer: React.FC<BookingChatDrawerProps> = ({
 
             <div className="flex items-center space-x-1.5">
               <button
-                onClick={loadMessages}
+                onClick={() => { void loadMessages(false); }}
                 title="Refresh messages"
                 className="p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-[#6C757D] hover:text-brand-interactive transition-all"
               >
@@ -180,7 +187,7 @@ const BookingChatDrawer: React.FC<BookingChatDrawerProps> = ({
           </div>
 
           {/* Messages Area */}
-          <div className="flex-grow p-4 sm:p-6 overflow-y-auto space-y-4">
+          <div data-lenis-prevent className="flex-grow p-4 sm:p-6 overflow-y-auto space-y-4 overscroll-contain">
             {loading && messages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <div className="w-7 h-7 border-3 border-brand-interactive/30 border-t-brand-interactive rounded-full animate-spin" />

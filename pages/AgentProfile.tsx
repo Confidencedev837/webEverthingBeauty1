@@ -27,6 +27,8 @@ import {
   Clock
 } from 'lucide-react';
 import { Agent, Service, VerificationStatus } from '../types';
+import { smoothScrollTo } from '../components/SmoothScroll';
+import { formatPhoneNumberForWhatsApp } from '../services/whatsappService';
 import {
   getAgentById,
   getServices,
@@ -39,7 +41,7 @@ import {
   setFollow,
   getLikedServiceIds,
   setServiceLike,
-  SocialUser
+  type SocialUser
 } from '../services/supabaseService';
 import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from '../components/Snackbar';
@@ -48,13 +50,13 @@ import BookingModal from '../components/BookingModal';
 export function getInitialsSvg(name: string) {
   const initials = name
     ? name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .substring(0, 2)
-        .toUpperCase()
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase()
     : 'A';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="38" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="38" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
@@ -270,11 +272,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, agent, handle 
               />
               <button
                 onClick={handleCopy}
-                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${
-                  copied
-                    ? 'bg-emerald-500 text-white shadow-md'
-                    : 'bg-brand-interactive text-white shadow-[0_0_12px_rgba(108,53,166,0.35)] hover:bg-brand-interactive/90'
-                }`}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 shrink-0 cursor-pointer ${copied
+                  ? 'bg-emerald-500 text-white shadow-md'
+                  : 'bg-brand-interactive text-white shadow-[0_0_12px_rgba(108,53,166,0.35)] hover:bg-brand-interactive/90'
+                  }`}
               >
                 {copied ? (
                   <>
@@ -326,23 +327,33 @@ const AgentProfile: React.FC = () => {
   // Booking Modal
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
 
-  const loadSocial = async (agentId: string) => {
+  // Fast initial social metrics (counts + my follow status only)
+  const loadSocialCounts = async (agentId: string) => {
     try {
-      const [c, fr, fg, liked, mine] = await Promise.all([
+      const [c, liked, mine] = await Promise.all([
         getFollowCounts(agentId),
-        getFollowers(agentId),
-        getFollowing(agentId),
         user ? getLikedServiceIds(user.id) : Promise.resolve([] as string[]),
         user ? getMyFollowingIds(user.id) : Promise.resolve([] as string[])
       ]);
 
       setCounts({ followers: c.followers, following: c.following });
-      setFollowers(fr);
-      setFollowing(fg);
       setLikedIds(liked);
       setMyFollowingIds(mine);
     } catch {
       setCounts({ followers: 0, following: 0 });
+    }
+  };
+
+  // Lazy-load detailed user list when Community tab is clicked
+  const loadCommunityProfiles = async (agentId: string) => {
+    try {
+      const [fr, fg] = await Promise.all([
+        getFollowers(agentId),
+        getFollowing(agentId)
+      ]);
+      setFollowers(fr);
+      setFollowing(fg);
+    } catch {
       setFollowers([]);
       setFollowing([]);
     }
@@ -355,10 +366,10 @@ const AgentProfile: React.FC = () => {
     }
     setError(null);
 
-    const [agentRes, agentServicesRes, allServicesRes] = await Promise.all([
+    // Only query THIS specialist and their services (no full platform database scans!)
+    const [agentRes, agentServicesRes] = await Promise.all([
       getAgentById(id),
-      getServicesByAgentId(id),
-      getServices()
+      getServicesByAgentId(id)
     ]);
 
     if (agentRes.error || !agentRes.data) {
@@ -366,24 +377,40 @@ const AgentProfile: React.FC = () => {
       setLoading(false);
     } else {
       setAgent(agentRes.data);
-      if (allServicesRes.data) {
-        setAllServices(allServicesRes.data);
-      }
-      if (agentServicesRes.data && agentServicesRes.data.length > 0) {
-        setServices(agentServicesRes.data);
-      } else if (allServicesRes.data) {
-        const matched = allServicesRes.data.filter(
-          (s) => s.agentId === agentRes.data?.id || agentRes.data?.services?.includes(s.id)
-        );
-        setServices(matched);
-      } else {
-        setServices([]);
-      }
+      setServices(agentServicesRes.data || []);
       setLoading(false);
-      // Load social metrics non-blockingly so specialist profile renders instantly
-      loadSocial(agentRes.data.id);
+      // Fast non-blocking social counts
+      void loadSocialCounts(agentRes.data.id);
     }
   };
+
+  // Stale-While-Revalidate: Listen for background fresh updates silently
+  useEffect(() => {
+    if (!id) return;
+    const onCacheUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key: string; data: any }>;
+      if (customEvent.detail?.key === `agent:${id}` && customEvent.detail.data) {
+        setAgent(customEvent.detail.data);
+      }
+      if (customEvent.detail?.key === `services:agent:${id}` && customEvent.detail.data) {
+        setServices(customEvent.detail.data);
+      }
+    };
+    window.addEventListener('eb:cache-updated', onCacheUpdated);
+    return () => window.removeEventListener('eb:cache-updated', onCacheUpdated);
+  }, [id]);
+
+  // Lazy-load secondary tabs on demand
+  useEffect(() => {
+    if (activeTab === 'community' && followers.length === 0 && following.length === 0 && agent?.id) {
+      void loadCommunityProfiles(agent.id);
+    }
+    if (activeTab === 'liked' && allServices.length === 0) {
+      getServices().then(res => {
+        if (res.data) setAllServices(res.data);
+      });
+    }
+  }, [activeTab, agent?.id]);
 
   useEffect(() => {
     loadData();
@@ -531,7 +558,7 @@ const AgentProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-brand-background dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white pb-20 pt-16 sm:pt-20 select-none transition-colors duration-200">
-      
+
       {/* 1. MOBILE TOP NAVIGATION BAR (Clean, solid frosted bar, isolated from banner, opens custom ShareModal) */}
       <div className="md:hidden sticky top-16 z-30 px-3.5 py-2.5 flex items-center justify-between border-b border-[#E9ECEF] dark:border-[#222222] bg-white/95 dark:bg-[#0D0D0D]/95 backdrop-blur-md shadow-xs">
         <button
@@ -545,7 +572,7 @@ const AgentProfile: React.FC = () => {
         {/* Clean Handle without check icon (as requested: "REMOVE THE CHECK ICON AT THE TOP") */}
         <div
           className="flex items-center space-x-1 min-w-0 px-2 cursor-pointer"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => smoothScrollTo(0, { duration: 1.0 })}
         >
           <span className="font-bold text-xs sm:text-sm tracking-tight truncate max-w-[200px]">
             {cleanHandle}
@@ -565,7 +592,7 @@ const AgentProfile: React.FC = () => {
 
       {/* 2. PROFILE HERO HEADER CONTAINER WITH BACKGROUND BANNER */}
       <div className="relative overflow-hidden border-b border-[#E9ECEF]/80 dark:border-[#222222]/80">
-        
+
         {/* Background Banner Image */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           <img
@@ -582,206 +609,337 @@ const AgentProfile: React.FC = () => {
 
         {/* Profile Content */}
         <div className="relative z-10 max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 pt-3 sm:pt-5 pb-4 sm:pb-6">
-        
+
           {/* ======================================================== */}
           {/* DESKTOP (PC) PROFILE HEADER (md:flex, bigger components) */}
           {/* ======================================================== */}
           <section className="hidden md:flex items-start space-x-10 lg:space-x-16 mb-8 pb-8 border-b border-[#E9ECEF] dark:border-[#222222]">
-            
+
             {/* PC Big Avatar: Round circle with brand Instagram gradient ring */}
             <div className="relative shrink-0 flex flex-col items-center">
-              <div className="p-1 rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-2xl hover:shadow-[0_0_25px_rgba(244,63,94,0.4)] transition-all">
-                <div className="p-1 bg-white dark:bg-[#0D0D0D] rounded-full">
-                  <img
-                    src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
-                    alt={agent.name}
-                    onError={(e) => {
-                      e.currentTarget.src = getInitialsSvg(agent.name);
-                    }}
-                    className="w-36 h-36 lg:w-44 lg:h-44 rounded-full object-cover shadow-inner"
-                  />
+              <div className="w-36 h-36 lg:w-44 lg:h-44 aspect-square p-1 rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-2xl hover:shadow-[0_0_25px_rgba(244,63,94,0.4)] transition-all">
+                <div className="w-full h-full p-1 bg-white dark:bg-[#0D0D0D] rounded-full aspect-square">
+                  <div className="w-full h-full rounded-full overflow-hidden aspect-square">
+                    <img
+                      src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
+                      alt={agent.name}
+                      onError={(e) => {
+                        e.currentTarget.src = getInitialsSvg(agent.name);
+                      }}
+                      className="w-full h-full rounded-full object-cover object-center block shadow-inner"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Prominent VERIFIED Badge Next to profile pic */}
               <div className="mt-3 inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-xs font-black shadow-sm tracking-wide">
                 <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>VERIFIED SPECIALIST</span>
+                <span>VERIFIED </span>
               </div>
             </div>
 
-          {/* PC Right Details: Handle, Action Buttons, Stats, Name & Bio */}
-          <div className="flex-1 min-w-0 space-y-5 pt-2">
-            
-            {/* Top Row: Handle + Action Buttons */}
-            <div className="flex items-center flex-wrap gap-4">
-              <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-[#1A1A1A] dark:text-white flex items-center gap-2">
-                <span>{cleanHandle}</span>
-              </h1>
+            {/* PC Right Details: Handle, Action Buttons, Stats, Name & Bio */}
+            <div className="flex-1 min-w-0 space-y-5 pt-2">
 
-              <div className="flex items-center space-x-3 ml-auto">
-                {/* Follow Button */}
-                {!isOwnProfile ? (
+              {/* Top Row: Handle + Action Buttons */}
+              <div className="flex items-center flex-wrap gap-4">
+                <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-[#1A1A1A] dark:text-white flex items-center gap-2">
+                  <span>{cleanHandle}</span>
+                </h1>
+
+                <div className="flex items-center space-x-3 ml-auto">
+                  {/* Follow Button */}
+                  {!isOwnProfile ? (
+                    <button
+                      onClick={() => handleToggleFollow(agent.id)}
+                      disabled={followBusy === agent.id}
+                      className={`h-11 px-6 rounded-2xl text-sm font-black transition-all duration-150 ease-out flex items-center space-x-2 disabled:opacity-60 cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner ${isAgentFollowed
+                        ? 'bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rose-500/50 hover:text-rose-500 shadow-sm'
+                        : 'bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20'
+                        }`}
+                    >
+                      {isAgentFollowed ? (
+                        <>
+                          <UserCheck className="w-4 h-4" />
+                          <span>Following</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4" />
+                          <span>Follow</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <Link
+                      to="/agent-dashboard"
+                      className="h-11 px-6 rounded-2xl text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm"
+                    >
+                      <span>Edit Profile</span>
+                    </Link>
+                  )}
+
+                  {/* Book Now Button with physical tactile feedback */}
                   <button
-                    onClick={() => handleToggleFollow(agent.id)}
-                    disabled={followBusy === agent.id}
-                    className={`h-11 px-6 rounded-2xl text-sm font-black transition-all active:scale-95 flex items-center space-x-2 shadow-sm disabled:opacity-60 cursor-pointer ${
-                      isAgentFollowed
-                        ? 'bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:text-rose-500'
-                        : 'bg-brand-interactive text-white shadow-[0_0_15px_rgba(108,53,166,0.35)] hover:bg-brand-interactive/90'
-                    }`}
+                    onClick={() => {
+                      if (services.length > 0) {
+                        setSelectedServiceForBooking(services[0]);
+                      } else {
+                        showSnackbar?.('No bookable services listed yet', 'info');
+                      }
+                    }}
+                    className="h-11 px-6 rounded-2xl text-sm font-black bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20 flex items-center space-x-2 transition-all duration-150 ease-out hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner cursor-pointer"
                   >
-                    {isAgentFollowed ? (
-                      <>
-                        <UserCheck className="w-4 h-4" />
-                        <span>Following</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4" />
-                        <span>Follow</span>
-                      </>
-                    )}
+                    <Calendar className="w-4 h-4" />
+                    <span>Book Now</span>
                   </button>
-                ) : (
-                  <Link
-                    to="/agent-dashboard"
-                    className="h-11 px-6 rounded-2xl text-sm font-black bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center space-x-2 hover:border-brand-interactive transition-all"
-                  >
-                    <span>Edit Profile</span>
-                  </Link>
-                )}
 
-                {/* Book Now Button */}
+                  {/* Message / Call button */}
+                  {agent.phone ? (
+                    <a
+                      href={`tel:${agent.phone}`}
+                      className="h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:text-brand-interactive hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm"
+                      title="Call specialist"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span>Contact</span>
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => showSnackbar?.(`Message sent to ${agent.name}`, 'info')}
+                      className="h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:text-brand-interactive hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm cursor-pointer"
+                      title="Send message"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Message</span>
+                    </button>
+                  )}
+
+                  {/* Custom Share Button (Opens Share Modal) */}
+                  <button
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="h-11 w-11 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center justify-center hover:text-brand-interactive transition-all active:scale-95 cursor-pointer"
+                    title="Share profile"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Middle Row: Large Desktop Stats */}
+              <div className="flex items-center space-x-12 text-base lg:text-lg">
+                <button
+                  onClick={() => setActiveTab('services')}
+                  className="flex items-center space-x-2 cursor-pointer group"
+                >
+                  <span className="font-black text-[#1A1A1A] dark:text-white group-hover:text-brand-interactive transition-colors">
+                    {services.length}
+                  </span>
+                  <span className="text-[#6C757D] dark:text-[#A0A0A0]">services</span>
+                </button>
+
                 <button
                   onClick={() => {
-                    if (services.length > 0) {
-                      setSelectedServiceForBooking(services[0]);
-                    } else {
-                      showSnackbar?.('No bookable services listed yet', 'info');
-                    }
+                    setActiveTab('community');
+                    setCommunitySubTab('followers');
                   }}
-                  className="h-11 px-6 rounded-2xl text-sm font-black bg-brand-interactive text-white shadow-[0_0_15px_rgba(108,53,166,0.35)] hover:bg-brand-interactive/90 flex items-center space-x-2 transition-all active:scale-95 cursor-pointer"
+                  className="flex items-center space-x-2 cursor-pointer group px-3 py-1.5 rounded-xl hover:bg-brand-surface dark:hover:bg-white/5 transition-all"
                 >
-                  <Calendar className="w-4 h-4" />
-                  <span>Book Now</span>
+                  <span className="font-black text-brand-interactive">
+                    <AnimatedStatCount value={counts.followers} />
+                  </span>
+                  <span className="text-[#6C757D] dark:text-[#A0A0A0] group-hover:text-brand-interactive transition-colors">
+                    followers
+                  </span>
                 </button>
 
-                {/* Message / Call button */}
-                {agent.phone ? (
-                  <a
-                    href={`tel:${agent.phone}`}
-                    className="h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center space-x-2 hover:text-brand-interactive transition-all active:scale-95"
-                    title="Call specialist"
-                  >
-                    <Phone className="w-4 h-4" />
-                    <span>Contact</span>
-                  </a>
-                ) : (
-                  <button
-                    onClick={() => showSnackbar?.(`Message sent to ${agent.name}`, 'info')}
-                    className="h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center space-x-2 hover:text-brand-interactive transition-all active:scale-95 cursor-pointer"
-                    title="Send message"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Message</span>
-                  </button>
-                )}
-
-                {/* Custom Share Button (Opens Share Modal) */}
                 <button
-                  onClick={() => setIsShareModalOpen(true)}
-                  className="h-11 w-11 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center justify-center hover:text-brand-interactive transition-all active:scale-95 cursor-pointer"
-                  title="Share profile"
+                  onClick={() => {
+                    setActiveTab('community');
+                    setCommunitySubTab('following');
+                  }}
+                  className="flex items-center space-x-2 cursor-pointer group"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <span className="font-black text-[#1A1A1A] dark:text-white group-hover:text-brand-interactive transition-colors">
+                    <AnimatedStatCount value={counts.following} />
+                  </span>
+                  <span className="text-[#6C757D] dark:text-[#A0A0A0]">following</span>
+                </button>
+              </div>
+
+              {/* Bottom Row: Name, Specialty, Badges & Bio */}
+              <div className="space-y-3">
+                <div>
+                  <h2 className="text-lg lg:text-xl font-serif font-black text-[#1A1A1A] dark:text-white">
+                    {agent.name}
+                  </h2>
+                  <p className="text-sm font-semibold text-brand-interactive">
+                    {agent.specialty || 'Beauty Professional'}
+                  </p>
+                </div>
+
+                {/* Badges strip */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {agent.rating > 0 ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 text-xs font-black border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                      <Star className="w-3.5 h-3.5 fill-current mr-1.5" />
+                      {agent.rating.toFixed(1)} {agent.reviews > 0 && `(${agent.reviews} reviews)`}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-3 py-1 rounded-xl bg-brand-surface dark:bg-[#1E1E1E] text-brand-interactive text-xs font-black border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                      Top Rated Specialist
+                    </span>
+                  )}
+
+                  {agent.location && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-xl bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-xs font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                      <MapPin className="w-3.5 h-3.5 mr-1 text-brand-interactive" />
+                      {agent.location}
+                    </span>
+                  )}
+
+                  {agent.experience > 0 && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-xl bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-xs font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                      <Award className="w-3.5 h-3.5 mr-1 text-brand-interactive" />
+                      {agent.experience}+ years experience
+                    </span>
+                  )}
+                </div>
+
+                {/* PC Rich High-Contrast Bio in Squircle */}
+                <div className="p-4 lg:p-5 rounded-2xl bg-brand-surface/80 dark:bg-[#181818] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                  <p className="text-sm lg:text-base font-medium leading-relaxed text-[#1A1A1A] dark:text-[#F3F4F6]">
+                    {agent.bio && agent.bio.trim() !== ''
+                      ? agent.bio
+                      : 'Certified beauty specialist providing on-demand appointments, editorial styling, and custom glam.'}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          {/* ========================================================== */}
+          {/* MOBILE (PHONE) PROFILE HEADER (md:hidden) */}
+          {/* ========================================================== */}
+          <section className="md:hidden">
+
+            {/* Row 1: Full Avatar (Uncovered) + 3 Stats */}
+            <div className="flex items-center justify-between mb-3.5 pt-1">
+
+              {/* Phone Avatar: 100% visible, complete round circle with brand Instagram gradient ring */}
+              <div className="relative shrink-0 aspect-square">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 aspect-square rounded-full p-[3px] bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-[0_4px_20px_rgba(108,53,166,0.3)] shrink-0">
+                  <div className="w-full h-full p-0.5 bg-white dark:bg-[#0D0D0D] rounded-full aspect-square">
+                    <div className="w-full h-full rounded-full overflow-hidden aspect-square">
+                      <img
+                        src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
+                        alt={agent.name}
+                        onError={(e) => {
+                          e.currentTarget.src = getInitialsSvg(agent.name);
+                        }}
+                        className="w-full h-full rounded-full object-cover object-center block"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Phone Stats Row: 100% visible, unclipped */}
+              <div className="flex-1 ml-4 sm:ml-6 flex items-center justify-around text-center">
+                <button
+                  onClick={() => setActiveTab('services')}
+                  className="flex flex-col items-center group cursor-pointer transition-all duration-150 active:scale-90 hover:scale-105"
+                >
+                  <span className="text-sm sm:text-base font-black tracking-tight text-[#1A1A1A] dark:text-white">
+                    {services.length}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-[#6C757D] dark:text-[#A0A0A0]">
+                    Services
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('community');
+                    setCommunitySubTab('followers');
+                  }}
+                  className="flex flex-col items-center px-2 py-1 rounded-xl hover:bg-brand-surface dark:hover:bg-white/5 transition-all duration-150 active:scale-90 hover:scale-105 group cursor-pointer"
+                >
+                  <span className="text-sm sm:text-base font-black tracking-tight text-brand-interactive">
+                    <AnimatedStatCount value={counts.followers} />
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-[#6C757D] dark:text-[#A0A0A0]">
+                    Followers
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveTab('community');
+                    setCommunitySubTab('following');
+                  }}
+                  className="flex flex-col items-center group cursor-pointer transition-all duration-150 active:scale-90 hover:scale-105"
+                >
+                  <span className="text-sm sm:text-base font-black tracking-tight text-[#1A1A1A] dark:text-white">
+                    <AnimatedStatCount value={counts.following} />
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-[#6C757D] dark:text-[#A0A0A0]">
+                    Following
+                  </span>
                 </button>
               </div>
             </div>
 
-            {/* Middle Row: Large Desktop Stats */}
-            <div className="flex items-center space-x-12 text-base lg:text-lg">
-              <button
-                onClick={() => setActiveTab('services')}
-                className="flex items-center space-x-2 cursor-pointer group"
-              >
-                <span className="font-black text-[#1A1A1A] dark:text-white group-hover:text-brand-interactive transition-colors">
-                  {services.length}
-                </span>
-                <span className="text-[#6C757D] dark:text-[#A0A0A0]">services</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab('community');
-                  setCommunitySubTab('followers');
-                }}
-                className="flex items-center space-x-2 cursor-pointer group px-3 py-1.5 rounded-xl hover:bg-brand-surface dark:hover:bg-white/5 transition-all"
-              >
-                <span className="font-black text-brand-interactive">
-                  <AnimatedStatCount value={counts.followers} />
-                </span>
-                <span className="text-[#6C757D] dark:text-[#A0A0A0] group-hover:text-brand-interactive transition-colors">
-                  followers
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab('community');
-                  setCommunitySubTab('following');
-                }}
-                className="flex items-center space-x-2 cursor-pointer group"
-              >
-                <span className="font-black text-[#1A1A1A] dark:text-white group-hover:text-brand-interactive transition-colors">
-                  <AnimatedStatCount value={counts.following} />
-                </span>
-                <span className="text-[#6C757D] dark:text-[#A0A0A0]">following</span>
-              </button>
-            </div>
-
-            {/* Bottom Row: Name, Specialty, Badges & Bio */}
-            <div className="space-y-3">
-              <div>
-                <h2 className="text-lg lg:text-xl font-serif font-black text-[#1A1A1A] dark:text-white">
+            {/* Row 2: Name + VERIFIED BADGE (As requested: "ADD A VERFIED BADTE NEXT TO THE PROFILE PIC THAT SAYS VERIFIED") */}
+            <div className="mb-3.5 space-y-1.5">
+              <div className="flex items-center space-x-2 flex-wrap">
+                <span className="text-base font-black text-[#1A1A1A] dark:text-white">
                   {agent.name}
-                </h2>
-                <p className="text-sm font-semibold text-brand-interactive">
-                  {agent.specialty || 'Beauty Professional'}
-                </p>
+                </span>
+                <span className="text-xs text-[#6C757D] dark:text-[#A0A0A0] font-medium">
+                  • {agent.specialty || 'Beauty Professional'}
+                </span>
+
+                {/* Explicit Verified Badge next to name */}
+                <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-black shadow-sm tracking-wide">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>VERIFIED</span>
+                </div>
               </div>
 
-              {/* Badges strip */}
-              <div className="flex flex-wrap items-center gap-2">
+              {/* Badges Row */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                 {agent.rating > 0 ? (
-                  <span className="inline-flex items-center px-3 py-1 rounded-xl bg-amber-400/10 text-amber-500 dark:text-amber-400 text-xs font-black border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
-                    <Star className="w-3.5 h-3.5 fill-current mr-1.5" />
-                    {agent.rating.toFixed(1)} {agent.reviews > 0 && `(${agent.reviews} reviews)`}
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-400/10 text-amber-500 text-[10px] font-black border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                    <Star className="w-2.5 h-2.5 fill-current mr-1" />
+                    {agent.rating.toFixed(1)} {agent.reviews > 0 && `(${agent.reviews})`}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-3 py-1 rounded-xl bg-brand-surface dark:bg-[#1E1E1E] text-brand-interactive text-xs font-black border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
-                    Top Rated Specialist
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-surface dark:bg-[#1E1E1E] text-brand-interactive text-[10px] font-black border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                    Top Rated
                   </span>
                 )}
 
                 {agent.location && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-xl bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-xs font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                    <MapPin className="w-3.5 h-3.5 mr-1 text-brand-interactive" />
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-[10px] font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                    <MapPin className="w-2.5 h-2.5 mr-1 text-brand-interactive" />
                     {agent.location}
                   </span>
                 )}
 
                 {agent.experience > 0 && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-xl bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-xs font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                    <Award className="w-3.5 h-3.5 mr-1 text-brand-interactive" />
-                    {agent.experience}+ years experience
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-[10px] font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
+                    <Award className="w-2.5 h-2.5 mr-1 text-brand-interactive" />
+                    {agent.experience}+ yrs
                   </span>
                 )}
               </div>
 
-              {/* PC Rich High-Contrast Bio in Squircle */}
-              <div className="p-4 lg:p-5 rounded-2xl bg-brand-surface/80 dark:bg-[#181818] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
-                <p className="text-sm lg:text-base font-medium leading-relaxed text-[#1A1A1A] dark:text-[#F3F4F6]">
+              {/* High-Contrast Bio in Squircle */}
+              <div className="mt-2 p-3 rounded-2xl bg-brand-surface/70 dark:bg-[#181818] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                <p className="text-xs sm:text-sm font-medium leading-relaxed text-[#1A1A1A] dark:text-[#F3F4F6]">
                   {agent.bio && agent.bio.trim() !== ''
                     ? agent.bio
                     : 'Certified beauty specialist providing on-demand appointments, editorial styling, and custom glam.'}
@@ -789,223 +947,92 @@ const AgentProfile: React.FC = () => {
               </div>
             </div>
 
-          </div>
-        </section>
-
-        {/* ========================================================== */}
-        {/* MOBILE (PHONE) PROFILE HEADER (md:hidden) */}
-        {/* ========================================================== */}
-        <section className="md:hidden">
-          
-          {/* Row 1: Full Avatar (Uncovered) + 3 Stats */}
-          <div className="flex items-center justify-between mb-3.5 pt-1">
-            
-            {/* Phone Avatar: 100% visible, complete round circle with brand Instagram gradient ring */}
-            <div className="relative shrink-0 flex flex-col items-center">
-              <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-lg">
-                <div className="p-0.5 bg-white dark:bg-[#0D0D0D] rounded-full">
-                  <img
-                    src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
-                    alt={agent.name}
-                    onError={(e) => {
-                      e.currentTarget.src = getInitialsSvg(agent.name);
-                    }}
-                    className="w-18 h-18 sm:w-20 sm:h-20 rounded-full object-cover"
-                    style={{ width: '4.75rem', height: '4.75rem' }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Phone Stats Row: 100% visible, unclipped */}
-            <div className="flex-1 ml-4 sm:ml-6 flex items-center justify-around text-center">
-              <button
-                onClick={() => setActiveTab('services')}
-                className="flex flex-col items-center group cursor-pointer"
-              >
-                <span className="text-sm sm:text-base font-black tracking-tight text-[#1A1A1A] dark:text-white">
-                  {services.length}
-                </span>
-                <span className="text-[10px] sm:text-xs text-[#6C757D] dark:text-[#A0A0A0]">
-                  Services
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab('community');
-                  setCommunitySubTab('followers');
-                }}
-                className="flex flex-col items-center px-2 py-1 rounded-xl hover:bg-brand-surface dark:hover:bg-white/5 transition-all group cursor-pointer"
-              >
-                <span className="text-sm sm:text-base font-black tracking-tight text-brand-interactive">
-                  <AnimatedStatCount value={counts.followers} />
-                </span>
-                <span className="text-[10px] sm:text-xs text-[#6C757D] dark:text-[#A0A0A0]">
-                  Followers
-                </span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setActiveTab('community');
-                  setCommunitySubTab('following');
-                }}
-                className="flex flex-col items-center group cursor-pointer"
-              >
-                <span className="text-sm sm:text-base font-black tracking-tight text-[#1A1A1A] dark:text-white">
-                  <AnimatedStatCount value={counts.following} />
-                </span>
-                <span className="text-[10px] sm:text-xs text-[#6C757D] dark:text-[#A0A0A0]">
-                  Following
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Row 2: Name + VERIFIED BADGE (As requested: "ADD A VERFIED BADTE NEXT TO THE PROFILE PIC THAT SAYS VERIFIED") */}
-          <div className="mb-3.5 space-y-1.5">
-            <div className="flex items-center space-x-2 flex-wrap">
-              <span className="text-base font-black text-[#1A1A1A] dark:text-white">
-                {agent.name}
-              </span>
-              <span className="text-xs text-[#6C757D] dark:text-[#A0A0A0] font-medium">
-                • {agent.specialty || 'Beauty Professional'}
-              </span>
-
-              {/* Explicit Verified Badge next to name */}
-              <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-black shadow-sm tracking-wide">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>VERIFIED</span>
-              </div>
-            </div>
-
-            {/* Badges Row */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              {agent.rating > 0 ? (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-400/10 text-amber-500 text-[10px] font-black border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                  <Star className="w-2.5 h-2.5 fill-current mr-1" />
-                  {agent.rating.toFixed(1)} {agent.reviews > 0 && `(${agent.reviews})`}
-                </span>
+            {/* Row 3: Action Buttons with physical tactile feedback */}
+            <div className="flex items-center gap-2.5 mb-4">
+              {!isOwnProfile ? (
+                <button
+                  onClick={() => handleToggleFollow(agent.id)}
+                  disabled={followBusy === agent.id}
+                  className={`flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black transition-all duration-150 ease-out flex items-center justify-center space-x-2 disabled:opacity-60 cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner ${isAgentFollowed
+                    ? 'bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rose-500/50 hover:text-rose-500 shadow-sm'
+                    : 'bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20'
+                    }`}
+                >
+                  {isAgentFollowed ? (
+                    <>
+                      <UserCheck className="w-4 h-4" />
+                      <span>Following</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>Follow</span>
+                    </>
+                  )}
+                </button>
               ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-surface dark:bg-[#1E1E1E] text-brand-interactive text-[10px] font-black border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                  Top Rated
-                </span>
+                <Link
+                  to="/agent-dashboard"
+                  className="flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm"
+                >
+                  <span>Edit Profile</span>
+                </Link>
               )}
 
-              {agent.location && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-[10px] font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                  <MapPin className="w-2.5 h-2.5 mr-1 text-brand-interactive" />
-                  {agent.location}
-                </span>
-              )}
+              {/* Book Now Button with generous padding and physical tactile feedback */}
+              <button
+                onClick={() => {
+                  if (services.length > 0) {
+                    setSelectedServiceForBooking(services[0]);
+                  } else {
+                    showSnackbar?.('No bookable services listed yet', 'info');
+                  }
+                }}
+                className="flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive hover:text-brand-interactive flex items-center justify-center space-x-2 transition-all duration-150 ease-out hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner shadow-sm cursor-pointer"
+              >
+                <Calendar className="w-4 h-4 text-brand-interactive" />
+                <span>Book Now</span>
+              </button>
 
-              {agent.experience > 0 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#C0C0C0] text-[10px] font-semibold border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                  <Award className="w-2.5 h-2.5 mr-1 text-brand-interactive" />
-                  {agent.experience}+ yrs
-                </span>
+              {/* Contact / Phone with physical tactile feedback */}
+              {agent.phone ? (
+                <a
+                  href={`tel:${agent.phone}`}
+                  className="w-12 h-12 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center shrink-0 transition-all duration-150 ease-out hover:scale-105 hover:-translate-y-0.5 hover:border-brand-interactive hover:text-brand-interactive active:scale-[0.94] active:translate-y-0.5 shadow-sm"
+                  title="Call specialist"
+                >
+                  <Phone className="w-4 h-4" />
+                </a>
+              ) : (
+                <button
+                  onClick={() => showSnackbar?.(`Message sent to ${agent.name}`, 'info')}
+                  className="w-12 h-12 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center shrink-0 transition-all duration-150 ease-out hover:scale-105 hover:-translate-y-0.5 hover:border-brand-interactive hover:text-brand-interactive active:scale-[0.94] active:translate-y-0.5 shadow-sm cursor-pointer"
+                  title="Send message"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                </button>
               )}
             </div>
-
-            {/* High-Contrast Bio in Squircle */}
-            <div className="mt-2 p-3 rounded-2xl bg-brand-surface/70 dark:bg-[#181818] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
-              <p className="text-xs sm:text-sm font-medium leading-relaxed text-[#1A1A1A] dark:text-[#F3F4F6]">
-                {agent.bio && agent.bio.trim() !== ''
-                  ? agent.bio
-                  : 'Certified beauty specialist providing on-demand appointments, editorial styling, and custom glam.'}
-              </p>
-            </div>
-          </div>
-
-          {/* Row 3: Action Buttons (MORE PADDING per request: "ADD MORE PADDING TO THE FOLLOWING AND BOOK TAB") */}
-          <div className="flex items-center gap-2 mb-4">
-            {!isOwnProfile ? (
-              <button
-                onClick={() => handleToggleFollow(agent.id)}
-                disabled={followBusy === agent.id}
-                className={`flex-1 py-3 px-4 min-h-[46px] rounded-2xl text-xs sm:text-sm font-black transition-all active:scale-95 flex items-center justify-center space-x-2 shadow-sm disabled:opacity-60 cursor-pointer ${
-                  isAgentFollowed
-                    ? 'bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:text-rose-500'
-                    : 'bg-brand-interactive text-white shadow-[0_0_12px_rgba(108,53,166,0.35)] hover:bg-brand-interactive/90'
-                }`}
-              >
-                {isAgentFollowed ? (
-                  <>
-                    <UserCheck className="w-4 h-4" />
-                    <span>Following</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4" />
-                    <span>Follow</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <Link
-                to="/agent-dashboard"
-                className="flex-1 py-3 px-4 min-h-[46px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center justify-center"
-              >
-                <span>Edit Profile</span>
-              </Link>
-            )}
-
-            {/* Book Now Button with generous padding */}
-            <button
-              onClick={() => {
-                if (services.length > 0) {
-                  setSelectedServiceForBooking(services[0]);
-                } else {
-                  showSnackbar?.('No bookable services listed yet', 'info');
-                }
-              }}
-              className="flex-1 py-3 px-4 min-h-[46px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:border-brand-interactive hover:text-brand-interactive flex items-center justify-center space-x-2 active:scale-95 shadow-sm cursor-pointer"
-            >
-              <Calendar className="w-4 h-4 text-brand-interactive" />
-              <span>Book Now</span>
-            </button>
-
-            {/* Contact / Phone */}
-            {agent.phone ? (
-              <a
-                href={`tel:${agent.phone}`}
-                className="w-11 h-11 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center justify-center shrink-0 active:scale-95 shadow-sm"
-                title="Call specialist"
-              >
-                <Phone className="w-4 h-4" />
-              </a>
-            ) : (
-              <button
-                onClick={() => showSnackbar?.(`Message sent to ${agent.name}`, 'info')}
-                className="w-11 h-11 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center justify-center shrink-0 active:scale-95 shadow-sm cursor-pointer"
-                title="Send message"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
-    </div>
 
-    {/* 3. MAIN CONTENT CONTAINER (Pure solid background for tabs and feeds) */}
-    <main className="max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 relative z-10 pt-2">
+      {/* 3. MAIN CONTENT CONTAINER (Pure solid background for tabs and feeds) */}
+      <main className="max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 relative z-10 pt-2">
 
-      {/* ======================================================== */}
-      {/* 4. THE 4 TABS WITH ANIMATED SLIDER (ALL 4 VISIBLE & SHARP) */}
-      {/* ======================================================== */}
-      <nav aria-label="Profile tabs" className="border-b border-[#E9ECEF] dark:border-[#222222]">
+        {/* ======================================================== */}
+        {/* 4. THE 4 TABS WITH ANIMATED SLIDER (ALL 4 VISIBLE & SHARP) */}
+        {/* ======================================================== */}
+        <nav aria-label="Profile tabs" className="border-b border-[#E9ECEF] dark:border-[#222222]">
           <div className="grid grid-cols-4 w-full">
-            
+
             {/* TAB 1: SERVICES (LayoutGrid) */}
             <button
               onClick={() => setActiveTab('services')}
-              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-colors cursor-pointer ${
-                activeTab === 'services'
-                  ? 'text-brand-interactive font-black'
-                  : 'text-[#8E8E8E] dark:text-[#767676] hover:text-[#1A1A1A] dark:hover:text-white'
-              }`}
+              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-all duration-150 active:scale-95 hover:scale-105 cursor-pointer ${activeTab === 'services'
+                ? 'text-brand-interactive font-black'
+                : 'text-[#8E8E8E] dark:text-[#767676] hover:text-[#1A1A1A] dark:hover:text-white'
+                }`}
               title="Services"
               aria-selected={activeTab === 'services'}
             >
@@ -1025,11 +1052,10 @@ const AgentProfile: React.FC = () => {
             {/* TAB 2: REELS (Film) */}
             <button
               onClick={() => setActiveTab('reels')}
-              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-colors cursor-pointer ${
-                activeTab === 'reels'
-                  ? 'text-brand-interactive font-black'
-                  : 'text-[#8E8E8E] dark:text-[#767676] hover:text-[#1A1A1A] dark:hover:text-white'
-              }`}
+              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-all duration-150 active:scale-95 hover:scale-105 cursor-pointer ${activeTab === 'reels'
+                ? 'text-brand-interactive font-black'
+                : 'text-[#8E8E8E] dark:text-[#767676] hover:text-[#1A1A1A] dark:hover:text-white'
+                }`}
               title="Reels"
               aria-selected={activeTab === 'reels'}
             >
@@ -1049,11 +1075,10 @@ const AgentProfile: React.FC = () => {
             {/* TAB 3: COMMUNITY / FOLLOWERS (Users) */}
             <button
               onClick={() => setActiveTab('community')}
-              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-colors cursor-pointer ${
-                activeTab === 'community'
-                  ? 'text-brand-interactive font-black'
-                  : 'text-[#8E8E8E] dark:text-[#767676] hover:text-[#1A1A1A] dark:hover:text-white'
-              }`}
+              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-all duration-150 active:scale-95 hover:scale-105 cursor-pointer ${activeTab === 'community'
+                ? 'text-brand-interactive font-black'
+                : 'text-[#8E8E8E] dark:text-[#767676] hover:text-[#1A1A1A] dark:hover:text-white'
+                }`}
               title="Community"
               aria-selected={activeTab === 'community'}
             >
@@ -1073,11 +1098,10 @@ const AgentProfile: React.FC = () => {
             {/* TAB 4: LIKED (Heart) */}
             <button
               onClick={() => setActiveTab('liked')}
-              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-colors cursor-pointer ${
-                activeTab === 'liked'
-                  ? 'text-rose-500 font-black'
-                  : 'text-[#8E8E8E] dark:text-[#767676] hover:text-rose-500'
-              }`}
+              className={`relative py-3 sm:py-3.5 flex flex-col md:flex-row items-center justify-center space-y-1 md:space-y-0 md:space-x-2 transition-all duration-150 active:scale-95 hover:scale-105 cursor-pointer ${activeTab === 'liked'
+                ? 'text-rose-500 font-black'
+                : 'text-[#8E8E8E] dark:text-[#767676] hover:text-rose-500'
+                }`}
               title="Liked"
               aria-selected={activeTab === 'liked'}
             >
@@ -1101,7 +1125,7 @@ const AgentProfile: React.FC = () => {
         {/* ======================================================== */}
         <div className="pt-2 md:pt-6">
           <AnimatePresence mode="wait">
-            
+
             {/* TAB 1: SERVICES */}
             {activeTab === 'services' && (
               <motion.div
@@ -1165,9 +1189,8 @@ const AgentProfile: React.FC = () => {
                             title={isLiked ? 'Unlike' : 'Like'}
                           >
                             <Heart
-                              className={`w-3.5 h-3.5 md:w-4 md:h-4 ${
-                                isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'
-                              }`}
+                              className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'
+                                }`}
                             />
                           </button>
 
@@ -1258,9 +1281,9 @@ const AgentProfile: React.FC = () => {
                         </div>
                         <div className="absolute inset-x-0 bottom-0 p-2 md:p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-white">
                           <p className="text-[10px] md:text-sm font-bold line-clamp-1">{reel.title}</p>
-                            <span className="text-[9px] md:text-xs font-black text-white bg-black/50 px-2 py-0.5 rounded-md border border-white/20">
-                              ₦{reel.price.toLocaleString()}
-                            </span>
+                          <span className="text-[9px] md:text-xs font-black text-white bg-black/50 px-2 py-0.5 rounded-md border border-white/20">
+                            ₦{reel.price.toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -1291,21 +1314,19 @@ const AgentProfile: React.FC = () => {
                 <div className="flex items-center space-x-2 border-b border-[#E9ECEF] dark:border-[#222222] pb-3">
                   <button
                     onClick={() => setCommunitySubTab('followers')}
-                    className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer ${
-                      communitySubTab === 'followers'
-                        ? 'bg-brand-interactive text-white shadow-md'
-                        : 'bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#A0A0A0]'
-                    }`}
+                    className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer ${communitySubTab === 'followers'
+                      ? 'bg-brand-interactive text-white shadow-md'
+                      : 'bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#A0A0A0]'
+                      }`}
                   >
                     Followers ({counts.followers})
                   </button>
                   <button
                     onClick={() => setCommunitySubTab('following')}
-                    className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer ${
-                      communitySubTab === 'following'
-                        ? 'bg-brand-interactive text-white shadow-md'
-                        : 'bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#A0A0A0]'
-                    }`}
+                    className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all cursor-pointer ${communitySubTab === 'following'
+                      ? 'bg-brand-interactive text-white shadow-md'
+                      : 'bg-brand-surface dark:bg-[#1E1E1E] text-[#6C757D] dark:text-[#A0A0A0]'
+                      }`}
                   >
                     Following ({counts.following})
                   </button>
@@ -1351,11 +1372,10 @@ const AgentProfile: React.FC = () => {
                             <button
                               onClick={() => handleToggleFollow(person.id)}
                               disabled={followBusy === person.id}
-                              className={`shrink-0 h-8 md:h-9 px-4 rounded-xl text-xs font-black transition-all active:scale-95 disabled:opacity-60 cursor-pointer ${
-                                isFollowingPerson
-                                  ? 'bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:text-rose-500'
-                                  : 'bg-brand-interactive text-white shadow-sm hover:bg-brand-interactive/90'
-                              }`}
+                              className={`shrink-0 h-8 md:h-9 px-4 rounded-xl text-xs font-black transition-all duration-150 ease-out hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.95] active:translate-y-0.5 disabled:opacity-60 cursor-pointer ${isFollowingPerson
+                                ? 'bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rose-500/50 hover:text-rose-500'
+                                : 'bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-sm hover:shadow-[0_4px_12px_rgba(108,53,166,0.4)]'
+                                }`}
                             >
                               {isFollowingPerson ? 'Following' : 'Follow'}
                             </button>
@@ -1406,7 +1426,7 @@ const AgentProfile: React.FC = () => {
                             e.currentTarget.src = getInitialsSvg(service.name);
                           }}
                         />
-                        
+
                         {/* Red Love / Heart Icon on top-right */}
                         <div className="absolute top-1.5 right-1.5 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/60 backdrop-blur-md text-rose-500 shadow-md">
                           <Heart className="w-3.5 h-3.5 md:w-5 md:h-5 fill-current" />

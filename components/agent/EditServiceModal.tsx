@@ -101,14 +101,14 @@ const EditServiceModal: React.FC<EditServiceModalProps> = ({
       onUpdated();
       onClose();
     } else {
-      setError(res.error || 'Failed to delete service');
+      setError(res.error || 'Failed to delete service,Please Try Again');
     }
   };
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop */}
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -117,18 +117,19 @@ const EditServiceModal: React.FC<EditServiceModalProps> = ({
           className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         />
 
-        {/* Modal Window */}
+
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-          className="relative w-full max-w-xl bg-brand-background dark:bg-[#161616] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-2xl p-6 sm:p-8 z-10 max-h-[90vh] overflow-y-auto"
+          data-lenis-prevent
+          className="relative w-full max-w-xl bg-brand-background dark:bg-[#161616] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-2xl p-6 sm:p-8 z-10 max-h-[90vh] overflow-y-auto overscroll-contain"
         >
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-xl sm:text-2xl font-serif font-black text-[#1A1A1A] dark:text-white">
-                Edit Published Service
+                Edit Published  Service
               </h3>
               <p className="text-xs text-[#6C757D] font-medium">Update pricing, service title, and duration</p>
             </div>

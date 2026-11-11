@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 
 interface LoadingStateProps {
   message?: string;
+  text?: string;
 }
 
-const LoadingState: React.FC<LoadingStateProps> = ({ message = 'Loading...' }) => {
+const LoadingState: React.FC<LoadingStateProps> = ({ message, text }) => {
+  const displayMessage = message || text || 'Loading...';
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] w-full gap-8">
       <div className="relative flex items-center justify-center w-32 h-32">
@@ -44,7 +46,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({ message = 'Loading...' }) =
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         className="text-[#6C757D] dark:text-[#B0B0B0] font-medium text-base sm:text-lg italic"
       >
-        {message}
+        {displayMessage}
       </motion.p>
     </div>
   );

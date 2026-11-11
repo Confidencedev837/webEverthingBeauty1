@@ -48,7 +48,7 @@ export function mapVerificationStatus(status: string | null | undefined): Verifi
 }
 
 // ==========================================
-// IN-MEMORY CACHE & CONCURRENCY SYSTEM
+// PERSISTENT SWR CACHE & CONCURRENCY SYSTEM
 // ==========================================
 
 interface CacheEntry<T> {
@@ -57,30 +57,79 @@ interface CacheEntry<T> {
   ttl: number; // ms
 }
 
+const STORAGE_PREFIX = 'eb_cache_';
 const memoryCache = new Map<string, CacheEntry<any>>();
 const inFlightRequests = new Map<string, Promise<any>>();
 
-export function getCached<T>(key: string): T | null {
-  const entry = memoryCache.get(key);
-  if (!entry) return null;
-  if (Date.now() - entry.timestamp > entry.ttl) {
-    memoryCache.delete(key);
+function getStorageCache<T>(key: string): CacheEntry<T> | null {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) return null;
+    const item = window.sessionStorage.getItem(STORAGE_PREFIX + key);
+    if (!item) return null;
+    return JSON.parse(item) as CacheEntry<T>;
+  } catch {
     return null;
   }
+}
+
+function setStorageCache<T>(key: string, entry: CacheEntry<T>): void {
+  try {
+    if (typeof window === 'undefined' || !window.sessionStorage) return;
+    window.sessionStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(entry));
+  } catch {
+    // Quota safety or private browsing
+  }
+}
+
+function broadcastCacheUpdate<T>(key: string, data: T) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('eb:cache-updated', { detail: { key, data } }));
+  }
+}
+
+export function isCacheFresh(key: string): boolean {
+  const entry = memoryCache.get(key) || getStorageCache(key);
+  if (!entry) return false;
+  return (Date.now() - entry.timestamp) <= entry.ttl;
+}
+
+export function getCached<T>(key: string): T | null {
+  let entry = memoryCache.get(key);
+  if (!entry) {
+    const fromStorage = getStorageCache<T>(key);
+    if (fromStorage) {
+      entry = fromStorage;
+      memoryCache.set(key, fromStorage);
+    }
+  }
+  if (!entry) return null;
   return entry.data as T;
 }
 
-export function setCached<T>(key: string, data: T, ttlMs: number = 90000): void {
-  memoryCache.set(key, {
+export function setCached<T>(key: string, data: T, ttlMs: number = 60000): void {
+  const entry: CacheEntry<T> = {
     data,
     timestamp: Date.now(),
     ttl: ttlMs
-  });
+  };
+  memoryCache.set(key, entry);
+  setStorageCache(key, entry);
+  broadcastCacheUpdate(key, data);
 }
 
 export function invalidateCache(prefix?: string): void {
   if (!prefix) {
     memoryCache.clear();
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        const toDelete: string[] = [];
+        for (let i = 0; i < window.sessionStorage.length; i++) {
+          const k = window.sessionStorage.key(i);
+          if (k && k.startsWith(STORAGE_PREFIX)) toDelete.push(k);
+        }
+        toDelete.forEach(k => window.sessionStorage.removeItem(k));
+      }
+    } catch {}
     return;
   }
   for (const key of Array.from(memoryCache.keys())) {
@@ -88,6 +137,17 @@ export function invalidateCache(prefix?: string): void {
       memoryCache.delete(key);
     }
   }
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const targetPrefix = STORAGE_PREFIX + prefix;
+      const toDelete: string[] = [];
+      for (let i = 0; i < window.sessionStorage.length; i++) {
+        const k = window.sessionStorage.key(i);
+        if (k && k.startsWith(targetPrefix)) toDelete.push(k);
+      }
+      toDelete.forEach(k => window.sessionStorage.removeItem(k));
+    }
+  } catch {}
 }
 
 async function withInFlight<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
@@ -110,431 +170,26 @@ export async function getServices(forceRefresh = false): Promise<{ data: Service
   const CACHE_KEY = 'services:all';
   if (!forceRefresh) {
     const cached = getCached<Service[]>(CACHE_KEY);
-    if (cached) return { data: cached };
-  }
-
-  return withInFlight(CACHE_KEY, async () => {
-    try {
-      // Fire services query and reviews query in PARALLEL to avoid sequential round trips
-      const [servicesRes, reviewsRes] = await Promise.all([
-        supabase
-          .from('services')
-          .select(`
-            id,
-            agent_id,
-            name,
-            description,
-            price,
-            category,
-            image_url,
-            duration_mins,
-            features,
-            created_at,
-            profiles:agent_id (
-              id,
-              full_name,
-              avatar_url,
-              specialization,
-              location,
-              verification_status
-            )
-          `)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('reviews')
-          .select('service_id, rating')
-      ]);
-
-      if (servicesRes.error) {
-        console.error('Database query error [services]:', servicesRes.error.message);
-        return { data: [], error: servicesRes.error.message };
+    if (cached) {
+      if (isCacheFresh(CACHE_KEY)) {
+        return { data: cached };
       }
-
-      const dbServices = servicesRes.data || [];
-      if (dbServices.length === 0) {
-        setCached(CACHE_KEY, [], 30000);
-        return { data: [] };
-      }
-
-      const reviews = reviewsRes.data || [];
-      const ratingsMap: Record<string, { total: number; count: number }> = {};
-      if (reviews) {
-        for (const r of reviews) {
-          if (r.service_id) {
-            if (!ratingsMap[r.service_id]) ratingsMap[r.service_id] = { total: 0, count: 0 };
-            ratingsMap[r.service_id].total += Number(r.rating || 5);
-            ratingsMap[r.service_id].count += 1;
-          }
-        }
-      }
-
-      const formattedServices: Service[] = dbServices.map((s: any) => {
-        const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
-        const images: string[] = Array.isArray(s.image_url)
-          ? s.image_url.filter(Boolean)
-          : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
-
-        const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
-          type: isVideoUrl(imgUrl) ? 'video' : 'image',
-          url: imgUrl,
-          thumbnail: isVideoUrl(imgUrl) ? '' : imgUrl
-        }));
-
-        const primaryImage = images.find(img => !isVideoUrl(img)) || images[0] || '';
-
-        const revInfo = ratingsMap[s.id];
-        const rating = revInfo && revInfo.count > 0 ? Number((revInfo.total / revInfo.count).toFixed(1)) : 0;
-        const reviewCount = revInfo ? revInfo.count : 0;
-
-        return {
-          id: s.id,
-          name: s.name || 'Untitled Service',
-          category: s.category || 'General',
-          price: Number(s.price) || 0,
-          rating,
-          reviewCount,
-          description: s.description || '',
-          image: primaryImage,
-          durationMins: s.duration_mins || 0,
-          features: Array.isArray(s.features) ? s.features : [],
-          agentId: s.agent_id || agentProfile?.id || '',
-          agentName: agentProfile?.full_name || 'Beauty Specialist',
-          agentImage: agentProfile?.avatar_url || '',
-          agentSpecialty: agentProfile?.specialization || s.category || 'Specialist',
-          agentLocation: agentProfile?.location || 'Nigeria',
-          gallery
-        };
+      // Stale-While-Revalidate: Return instant cached copy for 0ms load, revalidate silently in background!
+      void withInFlight(CACHE_KEY, async () => {
+        await executeFetchServices(CACHE_KEY);
       });
-
-      setCached(CACHE_KEY, formattedServices, 120000); // 2 minute cache
-      return { data: formattedServices };
-    } catch (err: any) {
-      console.error('getServices exception:', err);
-      return { data: [], error: err?.message || 'Failed to load services' };
+      return { data: cached };
     }
-  });
-}
-
-export async function getServiceById(id: string, forceRefresh = false): Promise<{ data: Service | null; error?: string }> {
-  const CACHE_KEY = `service:${id}`;
-  if (!forceRefresh) {
-    const cached = getCached<Service>(CACHE_KEY);
-    if (cached) return { data: cached };
   }
 
-  return withInFlight(CACHE_KEY, async () => {
-    try {
-      // Parallelize service and review queries
-      const [serviceRes, reviewsRes] = await Promise.all([
-        supabase
-          .from('services')
-          .select(`
-            id,
-            agent_id,
-            name,
-            description,
-            price,
-            category,
-            image_url,
-            duration_mins,
-            features,
-            created_at,
-            profiles:agent_id (
-              id,
-              full_name,
-              avatar_url,
-              specialization,
-              location,
-              bio,
-              verification_status
-            )
-          `)
-          .eq('id', id)
-          .maybeSingle(),
-        supabase
-          .from('reviews')
-          .select('rating')
-          .eq('service_id', id)
-      ]);
-
-      if (serviceRes.error) {
-        console.error('Database query error [service by id]:', serviceRes.error.message);
-        return { data: null, error: serviceRes.error.message };
-      }
-
-      const s = serviceRes.data;
-      if (!s) {
-        return { data: null };
-      }
-
-      const reviews = reviewsRes.data;
-      let rating = 0;
-      let reviewCount = 0;
-      if (reviews && reviews.length > 0) {
-        reviewCount = reviews.length;
-        const sum = reviews.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
-        rating = Number((sum / reviewCount).toFixed(1));
-      }
-
-      const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
-      const images: string[] = Array.isArray(s.image_url)
-        ? s.image_url.filter(Boolean)
-        : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
-
-      const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
-        type: isVideoUrl(imgUrl) ? 'video' : 'image',
-        url: imgUrl,
-        thumbnail: isVideoUrl(imgUrl) ? '' : imgUrl
-      }));
-
-      const primaryImage = images.find(img => !isVideoUrl(img)) || images[0] || '';
-
-      const serviceObj: Service = {
-        id: s.id,
-        name: s.name || 'Untitled Service',
-        category: s.category || 'General',
-        price: Number(s.price) || 0,
-        rating,
-        reviewCount,
-        description: s.description || '',
-        image: primaryImage,
-        durationMins: s.duration_mins || 0,
-        features: Array.isArray(s.features) ? s.features : [],
-        agentId: s.agent_id || agentProfile?.id || '',
-        agentName: agentProfile?.full_name || 'Beauty Specialist',
-        agentImage: agentProfile?.avatar_url || '',
-        agentSpecialty: agentProfile?.specialization || s.category || 'Specialist',
-        agentLocation: agentProfile?.location || 'Nigeria',
-        gallery
-      };
-
-      setCached(CACHE_KEY, serviceObj, 120000);
-      return { data: serviceObj };
-    } catch (err: any) {
-      console.error('getServiceById exception:', err);
-      return { data: null, error: err?.message || 'Failed to retrieve service' };
-    }
-  });
+  return withInFlight(CACHE_KEY, () => executeFetchServices(CACHE_KEY));
 }
 
-// ==========================================
-// AGENTS API (STRICT PRODUCTION)
-// ==========================================
-
-export async function getAgents(forceRefresh = false): Promise<{ data: Agent[]; error?: string }> {
-  const CACHE_KEY = 'agents:all';
-  if (!forceRefresh) {
-    const cached = getCached<Agent[]>(CACHE_KEY);
-    if (cached) return { data: cached };
-  }
-
-  return withInFlight(CACHE_KEY, async () => {
-    try {
-      // Parallelize: profiles, services map, and reviews are fetched simultaneously
-      const [agentsRes, servicesRes, reviewsRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_type', 'agent'),
-        supabase
-          .from('services')
-          .select('id, agent_id'),
-        supabase
-          .from('reviews')
-          .select('service_id, rating')
-      ]);
-
-      if (agentsRes.error) {
-        console.error('Database query error [agents]:', agentsRes.error.message);
-        return { data: [], error: agentsRes.error.message };
-      }
-
-      const dbAgents = agentsRes.data || [];
-      if (dbAgents.length === 0) {
-        setCached(CACHE_KEY, [], 30000);
-        return { data: [] };
-      }
-
-      const services = servicesRes.data || [];
-      const allReviews = reviewsRes.data || [];
-
-      const agentRatings: Record<string, { total: number; count: number }> = {};
-      if (services.length > 0 && allReviews.length > 0) {
-        const serviceToAgentMap: Record<string, string> = {};
-        services.forEach(s => {
-          if (s.agent_id) serviceToAgentMap[s.id] = s.agent_id;
-        });
-
-        allReviews.forEach(r => {
-          const agentId = serviceToAgentMap[r.service_id];
-          if (agentId) {
-            if (!agentRatings[agentId]) agentRatings[agentId] = { total: 0, count: 0 };
-            agentRatings[agentId].total += Number(r.rating || 5);
-            agentRatings[agentId].count += 1;
-          }
-        });
-      }
-
-      const agents: Agent[] = dbAgents.map((a: any) => {
-        const agentServiceIds = services
-          .filter(s => s.agent_id === a.id)
-          .map(s => s.id);
-
-        const rawGallery = Array.isArray(a.gallery) ? a.gallery : [];
-        const gallery = rawGallery.map((g: any) => ({
-          type: (g?.type === 'video' || isVideoUrl(g?.url) ? 'video' : 'image') as 'image' | 'video',
-          url: g?.url || '',
-          thumbnail: g?.thumbnail || g?.url || ''
-        }));
-
-        const rInfo = agentRatings[a.id];
-        const rating = rInfo && rInfo.count > 0 ? Number((rInfo.total / rInfo.count).toFixed(1)) : 0;
-        const reviewCount = rInfo ? rInfo.count : 0;
-
-        return {
-          id: a.id,
-          name: a.full_name || 'Beauty Specialist',
-          specialty: a.specialization || 'Beauty Professional',
-          rating,
-          reviews: reviewCount,
-          experience: a.years_exp || 0,
-          image: a.avatar_url || '',
-          banner: a.banner_url || '',
-          bio: a.bio || '',
-          location: a.location || 'Nigeria',
-          phone: a.phone || '',
-          serviceType: a.service_type || 'hybrid',
-          services: agentServiceIds,
-          gallery,
-          verificationStatus: mapVerificationStatus(a.verification_status)
-        };
-      });
-
-      setCached(CACHE_KEY, agents, 120000); // 2 minute cache
-      return { data: agents };
-    } catch (err: any) {
-      console.error('getAgents exception:', err);
-      return { data: [], error: err?.message || 'Failed to retrieve agents' };
-    }
-  });
-}
-
-export async function getAgentById(id: string, forceRefresh = false): Promise<{ data: Agent | null; error?: string }> {
-  const CACHE_KEY = `agent:${id}`;
-  if (!forceRefresh) {
-    const cached = getCached<Agent>(CACHE_KEY);
-    if (cached) return { data: cached };
-  }
-
-  return withInFlight(CACHE_KEY, async () => {
-    try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      let a: any = null;
-
-      if (isUuid) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', id)
-          .maybeSingle();
-        if (!error && data) a = data;
-      }
-
-      // Fallback if not found by UUID or if passed name/slug
-      if (!a) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_type', 'agent')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        a = data;
-      }
-
-      if (!a) {
-        return { data: null, error: 'Specialist profile not found in database' };
-      }
-
-      // Concurrently fetch agent's services and completed bookings count
-      const [servicesRes, completedRes] = await Promise.all([
-        supabase
-          .from('services')
-          .select('id')
-          .eq('agent_id', a.id),
-        supabase
-          .from('bookings')
-          .select('id', { count: 'exact', head: true })
-          .eq('agent_id', a.id)
-          .eq('status', 'completed')
-      ]);
-
-      const services = servicesRes.data || [];
-      const serviceIds = services.map((s: any) => s.id);
-
-      // Compute live rating and reviews count
-      let rating = 0;
-      let reviewCount = 0;
-      if (serviceIds.length > 0) {
-        const { data: revs } = await supabase
-          .from('reviews')
-          .select('rating')
-          .in('service_id', serviceIds);
-
-        if (revs && revs.length > 0) {
-          reviewCount = revs.length;
-          const sum = revs.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
-          rating = Number((sum / reviewCount).toFixed(1));
-        }
-      }
-
-      const completedCount = completedRes.count || 0;
-      const rawGallery = Array.isArray(a.gallery) ? a.gallery : [];
-      const gallery = rawGallery.map((g: any) => ({
-        type: (g?.type === 'video' || isVideoUrl(g?.url) ? 'video' : 'image') as 'image' | 'video',
-        url: g?.url || '',
-        thumbnail: g?.thumbnail || g?.url || ''
-      }));
-
-      const agentObj: Agent = {
-        id: a.id,
-        name: a.full_name || 'Beauty Specialist',
-        specialty: a.specialization || 'Beauty Professional',
-        rating,
-        reviews: reviewCount,
-        experience: a.years_exp || 0,
-        image: a.avatar_url || '',
-        banner: a.banner_url || '',
-        bio: a.bio || '',
-        location: a.location || 'Nigeria',
-        phone: a.phone || '',
-        serviceType: a.service_type || 'hybrid',
-        services: serviceIds,
-        gallery,
-        verificationStatus: mapVerificationStatus(a.verification_status),
-        completedBookings: completedCount
-      };
-
-      setCached(CACHE_KEY, agentObj, 120000);
-      setCached(`agent:${a.id}`, agentObj, 120000);
-      return { data: agentObj };
-    } catch (err: any) {
-      console.error('getAgentById exception:', err);
-      return { data: null, error: err?.message || 'Failed to retrieve agent' };
-    }
-  });
-}
-
-export async function getServicesByAgentId(agentId: string, forceRefresh = false): Promise<{ data: Service[]; error?: string }> {
-  const CACHE_KEY = `services:agent:${agentId}`;
-  if (!forceRefresh) {
-    const cached = getCached<Service[]>(CACHE_KEY);
-    if (cached) return { data: cached };
-  }
-
-  return withInFlight(CACHE_KEY, async () => {
-    try {
-      const { data: dbServices, error } = await supabase
+async function executeFetchServices(CACHE_KEY: string): Promise<{ data: Service[]; error?: string }> {
+  try {
+    // Fire services query and reviews query in PARALLEL to avoid sequential round trips
+    const [servicesRes, reviewsRes] = await Promise.all([
+      supabase
         .from('services')
         .select(`
           id,
@@ -556,80 +211,545 @@ export async function getServicesByAgentId(agentId: string, forceRefresh = false
             verification_status
           )
         `)
-        .eq('agent_id', agentId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('getServicesByAgentId query error:', error.message);
-        return { data: [], error: error.message };
-      }
-
-      if (!dbServices || dbServices.length === 0) {
-        setCached(CACHE_KEY, [], 30000);
-        return { data: [] };
-      }
-
-      const serviceIds = dbServices.map((s: any) => s.id);
-      const { data: reviews } = await supabase
+        .order('created_at', { ascending: false }),
+      supabase
         .from('reviews')
         .select('service_id, rating')
-        .in('service_id', serviceIds);
+    ]);
 
-      const ratingsMap: Record<string, { total: number; count: number }> = {};
-      if (reviews) {
-        for (const r of reviews) {
-          if (r.service_id) {
-            if (!ratingsMap[r.service_id]) ratingsMap[r.service_id] = { total: 0, count: 0 };
-            ratingsMap[r.service_id].total += Number(r.rating || 5);
-            ratingsMap[r.service_id].count += 1;
-          }
+    if (servicesRes.error) {
+      console.error('Database query error [services]:', servicesRes.error.message);
+      return { data: [], error: servicesRes.error.message };
+    }
+
+    const dbServices = servicesRes.data || [];
+    if (dbServices.length === 0) {
+      setCached(CACHE_KEY, [], 30000);
+      return { data: [] };
+    }
+
+    const reviews = reviewsRes.data || [];
+    const ratingsMap: Record<string, { total: number; count: number }> = {};
+    if (reviews) {
+      for (const r of reviews) {
+        if (r.service_id) {
+          if (!ratingsMap[r.service_id]) ratingsMap[r.service_id] = { total: 0, count: 0 };
+          ratingsMap[r.service_id].total += Number(r.rating || 5);
+          ratingsMap[r.service_id].count += 1;
         }
       }
+    }
 
-      const formatted: Service[] = dbServices.map((s: any) => {
-        const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
-        const images: string[] = Array.isArray(s.image_url)
-          ? s.image_url.filter(Boolean)
-          : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
+    const formattedServices: Service[] = dbServices.map((s: any) => {
+      const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
+      const images: string[] = Array.isArray(s.image_url)
+        ? s.image_url.filter(Boolean)
+        : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
 
-        const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
-          type: isVideoUrl(imgUrl) ? 'video' : 'image',
-          url: imgUrl,
-          thumbnail: isVideoUrl(imgUrl) ? '' : imgUrl
-        }));
+      const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
+        type: isVideoUrl(imgUrl) ? 'video' : 'image',
+        url: imgUrl,
+        thumbnail: isVideoUrl(imgUrl) ? '' : imgUrl
+      }));
 
-        const primaryImage = images.find(img => !isVideoUrl(img)) || images[0] || '';
-        const revInfo = ratingsMap[s.id];
-        const rating = revInfo && revInfo.count > 0 ? Number((revInfo.total / revInfo.count).toFixed(1)) : 0;
-        const reviewCount = revInfo ? revInfo.count : 0;
+      const primaryImage = images.find(img => !isVideoUrl(img)) || images[0] || '';
 
-        return {
-          id: s.id,
-          name: s.name || 'Untitled Service',
-          category: s.category || 'General',
-          price: Number(s.price) || 0,
-          rating,
-          reviewCount,
-          description: s.description || '',
-          image: primaryImage,
-          durationMins: s.duration_mins || 0,
-          features: Array.isArray(s.features) ? s.features : [],
-          agentId: s.agent_id || agentProfile?.id || '',
-          agentName: agentProfile?.full_name || 'Beauty Specialist',
-          agentImage: agentProfile?.avatar_url || '',
-          agentSpecialty: agentProfile?.specialization || s.category || 'Specialist',
-          agentLocation: agentProfile?.location || 'Nigeria',
-          gallery
-        };
+      const revInfo = ratingsMap[s.id];
+      const rating = revInfo && revInfo.count > 0 ? Number((revInfo.total / revInfo.count).toFixed(1)) : 0;
+      const reviewCount = revInfo ? revInfo.count : 0;
+
+      return {
+        id: s.id,
+        name: s.name || 'Untitled Service',
+        category: s.category || 'General',
+        price: Number(s.price) || 0,
+        rating,
+        reviewCount,
+        description: s.description || '',
+        image: primaryImage,
+        durationMins: s.duration_mins || 0,
+        features: Array.isArray(s.features) ? s.features : [],
+        agentId: s.agent_id || agentProfile?.id || '',
+        agentName: agentProfile?.full_name || 'Beauty Specialist',
+        agentImage: agentProfile?.avatar_url || '',
+        agentSpecialty: agentProfile?.specialization || s.category || 'Specialist',
+        agentLocation: agentProfile?.location || 'Nigeria',
+        gallery
+      };
+    });
+
+    setCached(CACHE_KEY, formattedServices, 120000); // 2 minute cache
+    return { data: formattedServices };
+  } catch (err: any) {
+    console.error('getServices exception:', err);
+    return { data: [], error: err?.message || 'Failed to load services' };
+  }
+}
+
+export async function getServiceById(id: string, forceRefresh = false): Promise<{ data: Service | null; error?: string }> {
+  const CACHE_KEY = `service:${id}`;
+  if (!forceRefresh) {
+    const cached = getCached<Service>(CACHE_KEY);
+    if (cached) {
+      if (isCacheFresh(CACHE_KEY)) {
+        return { data: cached };
+      }
+      // SWR: Return instant cached service for 0ms load, revalidate silently in background!
+      void withInFlight(CACHE_KEY, async () => {
+        await executeFetchServiceById(id, CACHE_KEY);
+      });
+      return { data: cached };
+    }
+  }
+
+  return withInFlight(CACHE_KEY, () => executeFetchServiceById(id, CACHE_KEY));
+}
+
+async function executeFetchServiceById(id: string, CACHE_KEY: string): Promise<{ data: Service | null; error?: string }> {
+  try {
+    // Parallelize service and review queries
+    const [serviceRes, reviewsRes] = await Promise.all([
+      supabase
+        .from('services')
+        .select(`
+          id,
+          agent_id,
+          name,
+          description,
+          price,
+          category,
+          image_url,
+          duration_mins,
+          features,
+          created_at,
+          profiles:agent_id (
+            id,
+            full_name,
+            avatar_url,
+            specialization,
+            location,
+            bio,
+            verification_status
+          )
+        `)
+        .eq('id', id)
+        .maybeSingle(),
+      supabase
+        .from('reviews')
+        .select('rating')
+        .eq('service_id', id)
+    ]);
+
+    if (serviceRes.error) {
+      console.error('Database query error [service by id]:', serviceRes.error.message);
+      return { data: null, error: serviceRes.error.message };
+    }
+
+    const s = serviceRes.data;
+    if (!s) {
+      return { data: null };
+    }
+
+    const reviews = reviewsRes.data;
+    let rating = 0;
+    let reviewCount = 0;
+    if (reviews && reviews.length > 0) {
+      reviewCount = reviews.length;
+      const sum = revsReduceRating(reviews);
+      rating = Number((sum / reviewCount).toFixed(1));
+    }
+
+    const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
+    const images: string[] = Array.isArray(s.image_url)
+      ? s.image_url.filter(Boolean)
+      : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
+
+    const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
+      type: isVideoUrl(imgUrl) ? 'video' : 'image',
+      url: imgUrl,
+      thumbnail: isVideoUrl(imgUrl) ? '' : imgUrl
+    }));
+
+    const primaryImage = images.find(img => !isVideoUrl(img)) || images[0] || '';
+
+    const serviceObj: Service = {
+      id: s.id,
+      name: s.name || 'Untitled Service',
+      category: s.category || 'General',
+      price: Number(s.price) || 0,
+      rating,
+      reviewCount,
+      description: s.description || '',
+      image: primaryImage,
+      durationMins: s.duration_mins || 0,
+      features: Array.isArray(s.features) ? s.features : [],
+      agentId: s.agent_id || agentProfile?.id || '',
+      agentName: agentProfile?.full_name || 'Beauty Specialist',
+      agentImage: agentProfile?.avatar_url || '',
+      agentSpecialty: agentProfile?.specialization || s.category || 'Specialist',
+      agentLocation: agentProfile?.location || 'Nigeria',
+      gallery
+    };
+
+    setCached(CACHE_KEY, serviceObj, 120000);
+    return { data: serviceObj };
+  } catch (err: any) {
+    console.error('getServiceById exception:', err);
+    return { data: null, error: err?.message || 'Failed to retrieve service' };
+  }
+}
+
+function revsReduceRating(reviews: any[]): number {
+  return reviews.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
+}
+
+// ==========================================
+// AGENTS API (STRICT PRODUCTION)
+// ==========================================
+
+export async function getAgents(forceRefresh = false): Promise<{ data: Agent[]; error?: string }> {
+  const CACHE_KEY = 'agents:all';
+  if (!forceRefresh) {
+    const cached = getCached<Agent[]>(CACHE_KEY);
+    if (cached) {
+      if (isCacheFresh(CACHE_KEY)) {
+        return { data: cached };
+      }
+      // SWR: Return instant cached agents for 0ms page load, revalidate silently in background!
+      void withInFlight(CACHE_KEY, async () => {
+        await executeFetchAgents(CACHE_KEY);
+      });
+      return { data: cached };
+    }
+  }
+
+  return withInFlight(CACHE_KEY, () => executeFetchAgents(CACHE_KEY));
+}
+
+async function executeFetchAgents(CACHE_KEY: string): Promise<{ data: Agent[]; error?: string }> {
+  try {
+    // Parallelize: profiles, services map, and reviews are fetched simultaneously
+    const [agentsRes, servicesRes, reviewsRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_type', 'agent'),
+      supabase
+        .from('services')
+        .select('id, agent_id'),
+      supabase
+        .from('reviews')
+        .select('service_id, rating')
+    ]);
+
+    if (agentsRes.error) {
+      console.error('Database query error [agents]:', agentsRes.error.message);
+      return { data: [], error: agentsRes.error.message };
+    }
+
+    const dbAgents = agentsRes.data || [];
+    if (dbAgents.length === 0) {
+      setCached(CACHE_KEY, [], 30000);
+      return { data: [] };
+    }
+
+    const services = servicesRes.data || [];
+    const allReviews = reviewsRes.data || [];
+
+    const agentRatings: Record<string, { total: number; count: number }> = {};
+    if (services.length > 0 && allReviews.length > 0) {
+      const serviceToAgentMap: Record<string, string> = {};
+      services.forEach(s => {
+        if (s.agent_id) serviceToAgentMap[s.id] = s.agent_id;
       });
 
-      setCached(CACHE_KEY, formatted, 120000);
-      return { data: formatted };
-    } catch (err: any) {
-      console.error('getServicesByAgentId exception:', err);
-      return { data: [], error: err?.message || 'Failed to retrieve agent services' };
+      allReviews.forEach(r => {
+        const agentId = serviceToAgentMap[r.service_id];
+        if (agentId) {
+          if (!agentRatings[agentId]) agentRatings[agentId] = { total: 0, count: 0 };
+          agentRatings[agentId].total += Number(r.rating || 5);
+          agentRatings[agentId].count += 1;
+        }
+      });
     }
-  });
+
+    const agents: Agent[] = dbAgents.map((a: any) => {
+      const agentServiceIds = services
+        .filter(s => s.agent_id === a.id)
+        .map(s => s.id);
+
+      const rawGallery = Array.isArray(a.gallery) ? a.gallery : [];
+      const gallery = rawGallery.map((g: any) => ({
+        type: (g?.type === 'video' || isVideoUrl(g?.url) ? 'video' : 'image') as 'image' | 'video',
+        url: g?.url || '',
+        thumbnail: g?.thumbnail || g?.url || ''
+      }));
+
+      const rInfo = agentRatings[a.id];
+      const rating = rInfo && rInfo.count > 0 ? Number((rInfo.total / rInfo.count).toFixed(1)) : 0;
+      const reviewCount = rInfo ? rInfo.count : 0;
+
+      return {
+        id: a.id,
+        name: a.full_name || 'Beauty Specialist',
+        specialty: a.specialization || 'Beauty Professional',
+        rating,
+        reviews: reviewCount,
+        experience: a.years_exp || 0,
+        image: a.avatar_url || '',
+        banner: a.banner_url || '',
+        bio: a.bio || '',
+        location: a.location || 'Nigeria',
+        phone: a.phone || '',
+        serviceType: a.service_type || 'hybrid',
+        services: agentServiceIds,
+        gallery,
+        verificationStatus: mapVerificationStatus(a.verification_status)
+      };
+    });
+
+    setCached(CACHE_KEY, agents, 120000); // 2 minute cache
+    return { data: agents };
+  } catch (err: any) {
+    console.error('getAgents exception:', err);
+    return { data: [], error: err?.message || 'Failed to retrieve agents' };
+  }
+}
+
+export async function getAgentById(id: string, forceRefresh = false): Promise<{ data: Agent | null; error?: string }> {
+  const CACHE_KEY = `agent:${id}`;
+  if (!forceRefresh) {
+    const cached = getCached<Agent>(CACHE_KEY);
+    if (cached) {
+      if (isCacheFresh(CACHE_KEY)) {
+        return { data: cached };
+      }
+      // SWR: Return instant cached copy for 0ms load, revalidate silently in background!
+      void withInFlight(CACHE_KEY, async () => {
+        await executeFetchAgentById(id, CACHE_KEY);
+      });
+      return { data: cached };
+    }
+  }
+
+  return withInFlight(CACHE_KEY, () => executeFetchAgentById(id, CACHE_KEY));
+}
+
+async function executeFetchAgentById(id: string, CACHE_KEY: string): Promise<{ data: Agent | null; error?: string }> {
+  try {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+    // If UUID, fire profile, services, and completed bookings in PARALLEL simultaneously
+    let a: any = null;
+    let services: any[] = [];
+    let completedCount = 0;
+
+    if (isUuid) {
+      const [profileRes, servicesRes, completedRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', id).maybeSingle(),
+        supabase.from('services').select('id').eq('agent_id', id),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('agent_id', id).eq('status', 'completed')
+      ]);
+
+      if (!profileRes.error && profileRes.data) a = profileRes.data;
+      services = servicesRes.data || [];
+      completedCount = completedRes.count || 0;
+    }
+
+    // Fallback if not found by UUID
+    if (!a) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_type', 'agent')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      a = data;
+
+      if (a) {
+        const [servicesRes, completedRes] = await Promise.all([
+          supabase.from('services').select('id').eq('agent_id', a.id),
+          supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('agent_id', a.id).eq('status', 'completed')
+        ]);
+        services = servicesRes.data || [];
+        completedCount = completedRes.count || 0;
+      }
+    }
+
+    if (!a) {
+      return { data: null, error: 'Specialist profile not found in database' };
+    }
+
+    const serviceIds = services.map((s: any) => s.id);
+
+    // Compute live rating and reviews count
+    let rating = 0;
+    let reviewCount = 0;
+    if (serviceIds.length > 0) {
+      const { data: revs } = await supabase
+        .from('reviews')
+        .select('rating')
+        .in('service_id', serviceIds);
+
+      if (revs && revs.length > 0) {
+        reviewCount = revs.length;
+        const sum = revs.reduce((acc, curr) => acc + (Number(curr.rating) || 5), 0);
+        rating = Number((sum / reviewCount).toFixed(1));
+      }
+    }
+
+    const rawGallery = Array.isArray(a.gallery) ? a.gallery : [];
+    const gallery = rawGallery.map((g: any) => ({
+      type: (g?.type === 'video' || isVideoUrl(g?.url) ? 'video' : 'image') as 'image' | 'video',
+      url: g?.url || '',
+      thumbnail: g?.thumbnail || g?.url || ''
+    }));
+
+    const agentObj: Agent = {
+      id: a.id,
+      name: a.full_name || 'Beauty Specialist',
+      specialty: a.specialization || 'Beauty Professional',
+      rating,
+      reviews: reviewCount,
+      experience: a.years_exp || 0,
+      image: a.avatar_url || '',
+      banner: a.banner_url || '',
+      bio: a.bio || '',
+      location: a.location || 'Nigeria',
+      phone: a.phone || '',
+      serviceType: a.service_type || 'hybrid',
+      services: serviceIds,
+      gallery,
+      verificationStatus: mapVerificationStatus(a.verification_status),
+      completedBookings: completedCount
+    };
+
+    setCached(CACHE_KEY, agentObj, 120000);
+    setCached(`agent:${a.id}`, agentObj, 120000);
+    return { data: agentObj };
+  } catch (err: any) {
+    console.error('getAgentById exception:', err);
+    return { data: null, error: err?.message || 'Failed to retrieve agent' };
+  }
+}
+
+export async function getServicesByAgentId(agentId: string, forceRefresh = false): Promise<{ data: Service[]; error?: string }> {
+  const CACHE_KEY = `services:agent:${agentId}`;
+  if (!forceRefresh) {
+    const cached = getCached<Service[]>(CACHE_KEY);
+    if (cached) {
+      if (isCacheFresh(CACHE_KEY)) {
+        return { data: cached };
+      }
+      // SWR: Return instant cached services for 0ms load, revalidate silently in background!
+      void withInFlight(CACHE_KEY, async () => {
+        await executeFetchServicesByAgentId(agentId, CACHE_KEY);
+      });
+      return { data: cached };
+    }
+  }
+
+  return withInFlight(CACHE_KEY, () => executeFetchServicesByAgentId(agentId, CACHE_KEY));
+}
+
+async function executeFetchServicesByAgentId(agentId: string, CACHE_KEY: string): Promise<{ data: Service[]; error?: string }> {
+  try {
+    const { data: dbServices, error } = await supabase
+      .from('services')
+      .select(`
+        id,
+        agent_id,
+        name,
+        description,
+        price,
+        category,
+        image_url,
+        duration_mins,
+        features,
+        created_at,
+        profiles:agent_id (
+          id,
+          full_name,
+          avatar_url,
+          specialization,
+          location,
+          verification_status
+        )
+      `)
+      .eq('agent_id', agentId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('getServicesByAgentId query error:', error.message);
+      return { data: [], error: error.message };
+    }
+
+    if (!dbServices || dbServices.length === 0) {
+      setCached(CACHE_KEY, [], 30000);
+      return { data: [] };
+    }
+
+    const serviceIds = dbServices.map((s: any) => s.id);
+    const { data: reviews } = await supabase
+      .from('reviews')
+      .select('service_id, rating')
+      .in('service_id', serviceIds);
+
+    const ratingsMap: Record<string, { total: number; count: number }> = {};
+    if (reviews) {
+      for (const r of reviews) {
+        if (r.service_id) {
+          if (!ratingsMap[r.service_id]) ratingsMap[r.service_id] = { total: 0, count: 0 };
+          ratingsMap[r.service_id].total += Number(r.rating || 5);
+          ratingsMap[r.service_id].count += 1;
+        }
+      }
+    }
+
+    const formatted: Service[] = dbServices.map((s: any) => {
+      const agentProfile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
+      const images: string[] = Array.isArray(s.image_url)
+        ? s.image_url.filter(Boolean)
+        : (typeof s.image_url === 'string' && s.image_url.trim() ? [s.image_url] : []);
+
+      const gallery: ServiceGalleryItem[] = images.map((imgUrl) => ({
+        type: isVideoUrl(imgUrl) ? 'video' : 'image',
+        url: imgUrl,
+        thumbnail: isVideoUrl(imgUrl) ? '' : imgUrl
+      }));
+
+      const primaryImage = images.find(img => !isVideoUrl(img)) || images[0] || '';
+      const revInfo = ratingsMap[s.id];
+      const rating = revInfo && revInfo.count > 0 ? Number((revInfo.total / revInfo.count).toFixed(1)) : 0;
+      const reviewCount = revInfo ? revInfo.count : 0;
+
+      return {
+        id: s.id,
+        name: s.name || 'Untitled Service',
+        category: s.category || 'General',
+        price: Number(s.price) || 0,
+        rating,
+        reviewCount,
+        description: s.description || '',
+        image: primaryImage,
+        durationMins: s.duration_mins || 0,
+        features: Array.isArray(s.features) ? s.features : [],
+        agentId: s.agent_id || agentProfile?.id || '',
+        agentName: agentProfile?.full_name || 'Beauty Specialist',
+        agentImage: agentProfile?.avatar_url || '',
+        agentSpecialty: agentProfile?.specialization || s.category || 'Specialist',
+        agentLocation: agentProfile?.location || 'Nigeria',
+        gallery
+      };
+    });
+
+    setCached(CACHE_KEY, formatted, 120000);
+    return { data: formatted };
+  } catch (err: any) {
+    console.error('getServicesByAgentId exception:', err);
+    return { data: [], error: err?.message || 'Failed to retrieve agent services' };
+  }
 }
 
 // ==========================================

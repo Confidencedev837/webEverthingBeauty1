@@ -462,14 +462,16 @@ const CustomerHome: React.FC = () => {
 
                           <div className="flex items-center space-x-3.5 min-w-0 relative z-10">
                             {/* Round circle avatar with brand Instagram gradient ring */}
-                            <div className="relative shrink-0">
-                              <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm">
-                                <div className="p-0.5 bg-white dark:bg-[#161616] rounded-full">
-                                  <img
-                                    src={agent.image || agent.avatar || `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${agent.name.slice(0, 2).toUpperCase()}</text></svg>`)}`}
-                                    alt={agent.name}
-                                    className="w-14 h-14 rounded-full object-cover"
-                                  />
+                            <div className="relative shrink-0 aspect-square">
+                              <div className="w-14 h-14 aspect-square rounded-full p-[2px] bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm shrink-0">
+                                <div className="w-full h-full p-0.5 bg-white dark:bg-[#161616] rounded-full aspect-square">
+                                  <div className="w-full h-full rounded-full overflow-hidden aspect-square">
+                                    <img
+                                      src={agent.image || agent.avatar || `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${agent.name.slice(0, 2).toUpperCase()}</text></svg>`)}`}
+                                      alt={agent.name}
+                                      className="w-full h-full rounded-full object-cover object-center block"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                               <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-brand-interactive text-white rounded-full shadow-sm border border-white dark:border-[#161616]">
@@ -596,14 +598,16 @@ const CustomerHome: React.FC = () => {
 
                         <div className="flex items-start space-x-3.5 mb-4 relative z-10">
                           {/* Round circle avatar with brand Instagram gradient ring */}
-                          <div className="relative shrink-0">
-                            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm">
-                              <div className="p-0.5 bg-white dark:bg-[#161616] rounded-full">
-                                <img
-                                  src={agent.image || agent.avatar || `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${agent.name.slice(0, 2).toUpperCase()}</text></svg>`)}`}
-                                  alt={agent.name}
-                                  className="w-14 h-14 rounded-full object-cover"
-                                />
+                          <div className="relative shrink-0 aspect-square">
+                            <div className="w-14 h-14 aspect-square rounded-full p-[2px] bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm shrink-0">
+                              <div className="w-full h-full p-0.5 bg-white dark:bg-[#161616] rounded-full aspect-square">
+                                <div className="w-full h-full rounded-full overflow-hidden aspect-square">
+                                  <img
+                                    src={agent.image || agent.avatar || `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${agent.name.slice(0, 2).toUpperCase()}</text></svg>`)}`}
+                                    alt={agent.name}
+                                    className="w-full h-full rounded-full object-cover object-center block"
+                                  />
+                                </div>
                               </div>
                             </div>
                             <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-brand-interactive text-white rounded-full shadow-sm border border-white dark:border-[#161616]">
@@ -865,7 +869,7 @@ const CustomerHome: React.FC = () => {
             })()}
 
             {/* --- 3. CATEGORY PILLS (GESTURE SCROLL) -> GLOWING SQUIRCLES --- */}
-            <div className="flex items-center space-x-2 overflow-x-auto pb-4 mb-6 no-scrollbar touch-pan-x">
+            <div className="flex items-center space-x-2 overflow-x-auto pb-4 mb-6 no-scrollbar touch-pan-x scroll-smooth overscroll-x-contain">
               {QUICK_CATEGORIES.map((cat) => {
                 const isActive = selectedCategory.toLowerCase() === cat.toLowerCase();
                 return (
@@ -1041,14 +1045,16 @@ const CustomerHome: React.FC = () => {
 
                     <div className="flex items-start space-x-3.5 relative z-10">
                       {/* Round circle avatar with brand Instagram gradient ring */}
-                      <div className="relative shrink-0">
-                        <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm">
-                          <div className="p-0.5 bg-white dark:bg-[#161616] rounded-full">
-                            <img
-                              src={agent.image || agent.avatar || `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${agent.name.slice(0, 2).toUpperCase()}</text></svg>`)}`}
-                              alt={agent.name}
-                              className="w-14 h-14 app-agent-avatar rounded-full object-cover"
-                            />
+                      <div className="relative shrink-0 aspect-square">
+                        <div className="w-14 h-14 aspect-square rounded-full p-[2px] bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm shrink-0">
+                          <div className="w-full h-full p-0.5 bg-white dark:bg-[#161616] rounded-full aspect-square">
+                            <div className="w-full h-full rounded-full overflow-hidden aspect-square">
+                              <img
+                                src={agent.image || agent.avatar || `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${agent.name.slice(0, 2).toUpperCase()}</text></svg>`)}`}
+                                alt={agent.name}
+                                className="w-full h-full rounded-full object-cover object-center block"
+                              />
+                            </div>
                           </div>
                         </div>
                         <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-brand-interactive text-white rounded-full shadow-[0_0_8px_rgba(108,53,166,0.4)] border border-white dark:border-[#161616]">

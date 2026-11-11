@@ -11,7 +11,7 @@ import BookingModal from '../components/BookingModal';
 
 export function getInitialsSvg(name: string) {
   const initials = name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'A';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#6C35A6" /><text x="50%" y="50%" fill="white" font-family="sans-serif" font-size="40" font-weight="bold" text-anchor="middle" dominant-baseline="central">${initials}</text></svg>`;
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }
 
@@ -25,7 +25,6 @@ const Agents: React.FC = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState('All');
   const [sortBy, setSortBy] = useState('relevance');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const ITEMS_PER_PAGE = 12;
@@ -52,19 +51,20 @@ const Agents: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
+    // SWR: Silently accept background data refreshes without freezing UI
+    const onCacheUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key: string; data: any }>;
+      if (customEvent.detail?.key === 'agents:all' && customEvent.detail.data) {
+        setAgents(customEvent.detail.data);
+      }
+      if (customEvent.detail?.key === 'services:all' && customEvent.detail.data) {
+        setServices(customEvent.detail.data);
+      }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('eb:cache-updated', onCacheUpdated);
+    return () => window.removeEventListener('eb:cache-updated', onCacheUpdated);
   }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const handleBookAgent = (agent: Agent) => {
     const agentService = services.find(s => s.agentId === agent.id);
@@ -273,11 +273,10 @@ const Agents: React.FC = () => {
                             setSelectedSpecialty(spec);
                             setCurrentPage(1);
                           }}
-                          className={`px-3 sm:px-5 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-sm font-black transition-all whitespace-nowrap cursor-pointer ${
-                            selectedSpecialty.toLowerCase() === spec.toLowerCase() 
-                              ? 'bg-brand-interactive text-white shadow-lg' 
+                          className={`px-3 sm:px-5 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-sm font-black transition-all whitespace-nowrap cursor-pointer ${selectedSpecialty.toLowerCase() === spec.toLowerCase()
+                              ? 'bg-brand-interactive text-white shadow-lg'
                               : 'text-[#6C757D] hover:text-brand-interactive'
-                          }`}
+                            }`}
                         >
                           {spec}
                         </button>
@@ -351,7 +350,7 @@ const Agents: React.FC = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.04 }}
                   viewport={{ once: true }}
-                  className="group relative overflow-hidden bg-white dark:bg-[#161616] rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-[#E9ECEF] dark:border-[#262626] hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_32px_rgba(108,53,166,0.15)] dark:hover:shadow-[0_12px_32px_rgba(0,0,0,0.6)] hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-5"
+                  className="group relative overflow-hidden bg-white dark:bg-[#161616] rounded-2xl sm:rounded-3xl p-3 sm:p-5 md:p-6 border border-[#E9ECEF] dark:border-[#262626] hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_32px_rgba(108,53,166,0.15)] dark:hover:shadow-[0_12px_32px_rgba(0,0,0,0.6)] hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-5"
                 >
                   {/* Translucent Banner Backdrop in that 15% sweet spot */}
                   <div className="absolute inset-0 rounded-2xl sm:rounded-3xl overflow-hidden pointer-events-none z-0">
@@ -369,104 +368,107 @@ const Agents: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-white/96 via-white/92 to-white/98 dark:from-[#161616]/96 dark:via-[#161616]/92 dark:to-[#161616]/98 backdrop-blur-[1px]" />
                   </div>
 
-                  {/* Left: Round Avatar with Brand Instagram Gradient Ring */}
-                  <div className="relative shrink-0 z-10">
-                    <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-md group-hover:shadow-[0_0_15px_rgba(244,63,94,0.35)] transition-all duration-300">
-                      <div className="p-0.5 bg-white dark:bg-[#161616] rounded-full">
-                        <div className="w-18 h-18 sm:w-20 sm:h-20 md:w-22 md:h-22 rounded-full overflow-hidden bg-brand-surface dark:bg-[#202020]">
-                          <img
-                            src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
-                            alt={agent.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => { e.currentTarget.src = getInitialsSvg(agent.name); }}
-                          />
+                  {/* Top / Main Section: Perfectly Round Avatar + Agent Details */}
+                  <div className="flex items-start sm:items-center gap-3 sm:gap-4.5 flex-1 min-w-0 z-10">
+                    {/* Left: Round Avatar with Brand Instagram Gradient Ring - 100% Circular Guarantees */}
+                    <div className="relative shrink-0 aspect-square">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 aspect-square rounded-full p-[2px] sm:p-[2.5px] bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shadow-sm group-hover:shadow-[0_0_15px_rgba(244,63,94,0.35)] transition-all duration-300 shrink-0">
+                        <div className="w-full h-full p-0.5 bg-white dark:bg-[#161616] rounded-full aspect-square">
+                          <div className="w-full h-full rounded-full overflow-hidden bg-brand-surface dark:bg-[#202020] aspect-square">
+                            <img
+                              src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
+                              alt={agent.name}
+                              className="w-full h-full object-cover object-center rounded-full block group-hover:scale-105 transition-transform duration-500"
+                              onError={(e) => { e.currentTarget.src = getInitialsSvg(agent.name); }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {agent.verificationStatus === 'VERIFIED' && (
-                      <div 
-                        className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center border-2 border-white dark:border-[#161616] shadow-sm"
-                        title="Verified Specialist"
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Middle: Details, Specialty, Bio, Stats */}
-                  <div className="flex-1 min-w-0 space-y-2 z-10">
-                    {/* Header Row: Name & Rating */}
-                    <div className="flex items-center justify-between gap-2">
-                      <Link 
-                        to={`/agent/${agent.id}`}
-                        className="text-base sm:text-lg md:text-xl font-serif font-bold text-[#1A1A1A] dark:text-white truncate group-hover:text-brand-interactive transition-colors"
-                      >
-                        {agent.name}
-                      </Link>
-                      
-                      <div className="flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-black shrink-0">
-                        <Star className={`w-3.5 h-3.5 ${agent.rating > 0 ? 'fill-current' : 'text-gray-300 dark:text-gray-600'}`} />
-                        <span>{agent.rating > 0 ? agent.rating.toFixed(1) : 'New'}</span>
-                      </div>
+                      {agent.verificationStatus === 'VERIFIED' && (
+                        <div
+                          className="absolute -bottom-0.5 -right-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center border-2 border-white dark:border-[#161616] shadow-sm"
+                          title="Verified Specialist"
+                        >
+                          <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                        </div>
+                      )}
                     </div>
 
-                    {/* Specialty & Location */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-black uppercase tracking-wider bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/20">
-                        {agent.specialty}
-                      </span>
-                      {agent.location && (
-                        <span className="flex items-center text-xs text-[#6C757D] dark:text-[#A0A0A0]">
-                          <MapPin className="w-3 h-3 text-brand-interactive mr-1 shrink-0" />
-                          <span className="truncate max-w-[150px]">{agent.location}</span>
+                    {/* Middle: Details, Specialty, Bio, Stats */}
+                    <div className="flex-1 min-w-0 space-y-1 sm:space-y-1.5">
+                      {/* Header Row: Name & Rating */}
+                      <div className="flex items-center justify-between gap-1.5">
+                        <Link
+                          to={`/agent/${agent.id}`}
+                          className="text-sm sm:text-base md:text-lg font-serif font-bold text-[#1A1A1A] dark:text-white truncate group-hover:text-brand-interactive transition-colors"
+                        >
+                          {agent.name}
+                        </Link>
+
+                        <div className="flex items-center space-x-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-black shrink-0">
+                          <Star className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${agent.rating > 0 ? 'fill-current' : 'text-gray-300 dark:text-gray-600'}`} />
+                          <span>{agent.rating > 0 ? agent.rating.toFixed(1) : 'New'}</span>
+                        </div>
+                      </div>
+
+                      {/* Specialty & Location */}
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className="px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-brand-interactive/10 text-brand-interactive border border-brand-interactive/20">
+                          {agent.specialty}
                         </span>
-                      )}
-                    </div>
-
-                    {/* Bio Snippet */}
-                    {agent.bio && (
-                      <p className="text-xs text-[#6C757D] dark:text-[#B0B0B0] line-clamp-2 leading-relaxed">
-                        {agent.bio}
-                      </p>
-                    )}
-
-                    {/* Compact Inline Stats */}
-                    <div className="flex items-center gap-3 pt-1 text-[11px] font-bold text-[#6C757D] dark:text-[#999]">
-                      <span className="flex items-center space-x-1">
-                        <Briefcase className="w-3 h-3 text-brand-interactive" />
-                        <span>{agent.experience}y exp</span>
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center space-x-1">
-                        <Award className="w-3 h-3 text-brand-interactive" />
-                        <span>{agent.services?.length || 0} services</span>
-                      </span>
-                      {agent.completedBookings && agent.completedBookings > 0 && (
-                        <>
-                          <span>•</span>
-                          <span className="text-emerald-600 dark:text-emerald-400 font-black">
-                            {agent.completedBookings} completed
+                        {agent.location && (
+                          <span className="flex items-center text-[11px] sm:text-xs text-[#6C757D] dark:text-[#A0A0A0]">
+                            <MapPin className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-interactive mr-0.5 shrink-0" />
+                            <span className="truncate max-w-[120px] sm:max-w-[150px]">{agent.location}</span>
                           </span>
-                        </>
+                        )}
+                      </div>
+
+                      {/* Bio Snippet */}
+                      {agent.bio && (
+                        <p className="text-[11px] sm:text-xs text-[#6C757D] dark:text-[#B0B0B0] line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                          {agent.bio}
+                        </p>
                       )}
+
+                      {/* Compact Inline Stats */}
+                      <div className="flex items-center gap-2 sm:gap-3 pt-0.5 text-[10px] sm:text-[11px] font-bold text-[#6C757D] dark:text-[#999]">
+                        <span className="flex items-center space-x-1">
+                          <Briefcase className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-interactive" />
+                          <span>{agent.experience}y exp</span>
+                        </span>
+                        <span>•</span>
+                        <span className="flex items-center space-x-1">
+                          <Award className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-brand-interactive" />
+                          <span>{agent.services?.length || 0} services</span>
+                        </span>
+                        {agent.completedBookings && agent.completedBookings > 0 && (
+                          <>
+                            <span>•</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-black">
+                              {agent.completedBookings} completed
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Right: Actions (Book Now + View Profile) */}
-                  <div className="w-full sm:w-auto shrink-0 flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-3 sm:border-l sm:border-[#E9ECEF] sm:dark:border-[#262626] z-10">
+                  {/* Right / Bottom: Actions (Book Now + View Profile) */}
+                  <div className="w-full sm:w-auto shrink-0 flex sm:flex-col items-center justify-between sm:justify-center gap-2 sm:pl-3 sm:border-l sm:border-[#E9ECEF] sm:dark:border-[#262626] z-10 pt-1 sm:pt-0">
                     <button
                       onClick={() => navigate(`/agent/${agent.id}?book=true#services`)}
-                      className="w-full sm:w-36 px-4 py-2.5 rounded-xl bg-brand-interactive text-white font-black text-xs hover:bg-brand-interactive/90 transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-brand-interactive/25 active:scale-95 cursor-pointer"
+                      className="flex-1 sm:flex-none sm:w-36 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl bg-brand-interactive text-white font-black text-[11px] sm:text-xs hover:bg-brand-interactive/90 transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-brand-interactive/25 active:scale-95 cursor-pointer"
                     >
-                      <Calendar className="w-3.5 h-3.5" />
+                      <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       <span>Book Now</span>
                     </button>
                     <Link
                       to={`/agent/${agent.id}`}
-                      className="w-full sm:w-36 px-4 py-2 rounded-xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:border-brand-interactive hover:text-brand-interactive font-bold text-xs transition-all flex items-center justify-center space-x-1 active:scale-95 cursor-pointer"
+                      className="flex-1 sm:flex-none sm:w-36 py-2 px-3 sm:px-4 rounded-xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] hover:border-brand-interactive hover:text-brand-interactive font-bold text-[11px] sm:text-xs transition-all flex items-center justify-center space-x-1 active:scale-95 cursor-pointer"
                     >
                       <span>View Profile</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
                 </motion.div>
@@ -478,8 +480,8 @@ const Agents: React.FC = () => {
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold mb-2">No beauty specialists found</h3>
                 <p className="text-sm sm:text-base text-[#6C757D] dark:text-[#B0B0B0] max-w-md mx-auto mb-6">
-                  {agents.length === 0 
-                    ? 'No beauty professionals have registered yet.' 
+                  {agents.length === 0
+                    ? 'No beauty professionals have registered yet.'
                     : 'Try refining your search terms or selecting another specialization.'}
                 </p>
                 {agents.length > 0 && (
@@ -522,21 +524,6 @@ const Agents: React.FC = () => {
           </div>
         </section>
       </div>
-
-      {/* Floating Back to Top Button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-2xl shadow-[0_10px_25px_rgba(108,53,166,0.45)] hover:bg-brand-interactive/90 transition-all transform hover:-translate-y-1 hover:shadow-[0_15px_30px_rgba(108,53,166,0.6)]"
-          >
-            <ArrowUp className="w-6 h-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
 
       {/* Booking Modal */}
       {selectedServiceForBooking && (

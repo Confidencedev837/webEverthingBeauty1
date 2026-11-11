@@ -4,6 +4,7 @@ import { X, Calendar as CalendarIcon, Clock, MapPin, MessageSquare, CheckCircle,
 import { Service, AgentAvailability } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { createBooking, getAgentAvailability, getBookedSlots } from '../services/supabaseService';
+import { dispatchBookingCreatedAlert } from '../services/whatsappService';
 
 interface BookingModalProps {
   service: Service;
@@ -48,6 +49,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [confirmedBookingId, setConfirmedBookingId] = useState<string>('');
+  const [createdWhatsAppUrls, setCreatedWhatsAppUrls] = useState<{
+    clientWhatsAppUrl: string;
+    agentWhatsAppUrl: string;
+    conciergeWhatsAppUrl: string;
+  } | null>(null);
 
   const travelFee = 2500;
   const totalAmount = (service.price || 0) + travelFee;
@@ -135,17 +142,26 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
     setIsLoading(false);
 
     if (result.success) {
+      const refId = result.data?.id ? result.data.id.slice(0, 8).toUpperCase() : 'EB-NEW';
+      setConfirmedBookingId(refId);
+
+      // Real-time WhatsApp dispatch to Customer, Agent, and Concierge
+      const whatsappLinks = await dispatchBookingCreatedAlert({
+        booking: result.data,
+        serviceName: service.name,
+        agentName: service.agentName || 'Specialist',
+        agentPhone: (service as any).agentPhone,
+        customerName: currentUser?.name || 'Valued Client',
+        customerPhone: currentUser?.phone,
+        date: date || defaultDateStr,
+        time,
+        address: address || 'Client location',
+        totalAmount
+      });
+      setCreatedWhatsAppUrls(whatsappLinks);
       setIsSuccess(true);
-      setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-      }, 2500);
     } else {
-      setIsSuccess(true);
-      setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-      }, 2500);
+      setErrorMessage(result.error || 'Failed to complete appointment booking. Please retry.');
     }
   };
 
@@ -168,7 +184,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             className="relative w-full max-w-lg bg-brand-background dark:bg-[#161616] rounded-3xl shadow-2xl overflow-hidden border border-black/10 dark:border-white/10"
           >
-            <div className="p-6 overflow-y-auto max-h-[90vh]">
+            <div data-lenis-prevent className="p-6 overflow-y-auto max-h-[90vh] overscroll-contain">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] dark:text-white">Book Appointment</h2>
@@ -338,19 +354,48 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                   </div>
                 </form>
               ) : (
-                <div className="py-12 flex flex-col items-center text-center">
+                <div className="py-6 sm:py-8 flex flex-col items-center text-center">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 450, damping: 20 }}
-                    className="w-20 h-20 bg-green-500 rounded-3xl flex items-center justify-center text-white mb-6 shadow-[0_0_30px_rgba(34,197,94,0.4)] border border-white/20"
+                    className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white mb-4 shadow-[0_0_25px_rgba(16,185,129,0.35)] border border-white/20"
                   >
-                    <CheckCircle className="w-12 h-12" />
+                    <CheckCircle className="w-9 h-9" />
                   </motion.div>
-                  <h3 className="text-2xl font-serif font-bold mb-2 text-[#1A1A1A] dark:text-white">Booking Placed!</h3>
-                  <p className="text-xs sm:text-sm text-[#6C757D] dark:text-[#B0B0B0] max-w-xs leading-relaxed">
-                    Your appointment has been registered in the system. The specialist has been notified and you can track updates in real time.
+
+                  <h3 className="text-2xl font-serif font-bold mb-1 text-[#1A1A1A] dark:text-white">Appointment Dispatched</h3>
+                  
+                  <div className="inline-block px-3 py-1 rounded-xl bg-brand-interactive/10 text-brand-interactive text-xs font-black tracking-wider uppercase mb-3">
+                    Booking Reference #{confirmedBookingId}
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-[#6C757D] dark:text-[#B0B0B0] max-w-sm leading-relaxed mb-6">
+                    Your appointment has been registered and real-time updates are active. Open WhatsApp to receive immediate confirmation directly on your phone.
                   </p>
+
+                  <div className="w-full flex flex-col sm:flex-row gap-3">
+                    {createdWhatsAppUrls && (
+                      <a
+                        href={createdWhatsAppUrls.clientWhatsAppUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Open WhatsApp Update</span>
+                      </a>
+                    )}
+                    <button
+                      onClick={() => {
+                        onClose();
+                        setIsSuccess(false);
+                      }}
+                      className="flex-1 py-3.5 px-4 bg-brand-surface dark:bg-[#222] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] rounded-2xl font-bold text-xs hover:border-brand-interactive transition-all cursor-pointer"
+                    >
+                      Done & Close
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

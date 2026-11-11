@@ -121,7 +121,7 @@ const StickyBookFAB: React.FC<StickyBookFABProps> = ({ services, onSelectService
               </div>
 
               {/* Service list */}
-              <div className="overflow-y-auto space-y-2.5 pr-1 flex-1 max-h-[50vh]">
+              <div data-lenis-prevent className="overflow-y-auto space-y-2.5 pr-1 flex-1 max-h-[50vh] overscroll-contain">
                 {filteredServices.length > 0 ? (
                   filteredServices.map((s) => (
                     <motion.div

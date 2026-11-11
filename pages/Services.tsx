@@ -6,6 +6,7 @@ import { getServices, getAgents } from '../services/supabaseService';
 import { searchServicesIntelligently } from '../services/intelligentSearch';
 import ServiceCard from '../components/ServiceCard';
 import IntelligentSearchBar from '../components/IntelligentSearchBar';
+import { smoothScrollTo } from '../components/SmoothScroll';
 
 const Services: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -17,7 +18,6 @@ const Services: React.FC = () => {
   const [priceRange, setPriceRange] = useState(500000);
   const [sortBy, setSortBy] = useState('relevance');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const ITEMS_PER_PAGE = 12;
 
   const loadData = async () => {
@@ -42,19 +42,20 @@ const Services: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
+    // SWR: Silently accept background data refreshes without freezing UI
+    const onCacheUpdated = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key: string; data: any }>;
+      if (customEvent.detail?.key === 'services:all' && customEvent.detail.data) {
+        setServices(customEvent.detail.data);
+      }
+      if (customEvent.detail?.key === 'agents:all' && customEvent.detail.data) {
+        setAgents(customEvent.detail.data);
+      }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('eb:cache-updated', onCacheUpdated);
+    return () => window.removeEventListener('eb:cache-updated', onCacheUpdated);
   }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   // Derive categories dynamically from Supabase services
   const categories = useMemo(() => {
@@ -327,7 +328,7 @@ const Services: React.FC = () => {
             <button
               onClick={() => {
                 setCurrentPage(prev => Math.max(prev - 1, 1));
-                window.scrollTo({ top: 300, behavior: 'smooth' });
+                smoothScrollTo(300, { duration: 0.9 });
               }}
               disabled={currentPage === 1}
               className="p-3 rounded-2xl bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-md border border-[#E9ECEF] dark:border-[#2D2D2D] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white hover:shadow-[0_0_15px_rgba(108,53,166,0.3)] transition-all"
@@ -340,7 +341,7 @@ const Services: React.FC = () => {
             <button
               onClick={() => {
                 setCurrentPage(prev => Math.min(prev + 1, totalPages));
-                window.scrollTo({ top: 300, behavior: 'smooth' });
+                smoothScrollTo(300, { duration: 0.9 });
               }}
               disabled={currentPage === totalPages}
               className="p-3 rounded-2xl bg-brand-background dark:bg-[#1A1A1A] text-[#1A1A1A] dark:text-white shadow-md border border-[#E9ECEF] dark:border-[#2D2D2D] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-brand-interactive hover:text-white hover:shadow-[0_0_15px_rgba(108,53,166,0.3)] transition-all"
@@ -350,21 +351,6 @@ const Services: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Floating Back to Top Button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-50 p-4 bg-brand-interactive text-white rounded-2xl shadow-[0_8px_25px_rgba(108,53,166,0.5)] hover:bg-brand-interactive/90 hover:shadow-[0_12px_35px_rgba(108,53,166,0.65)] transition-all transform hover:-translate-y-1 border border-white/20"
-          >
-            <ArrowUp className="w-6 h-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

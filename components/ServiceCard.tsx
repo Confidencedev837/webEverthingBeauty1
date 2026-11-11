@@ -29,7 +29,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
       viewport={{ once: true }}
-      className="group bg-brand-background dark:bg-[#1A1A1A] rounded-3xl overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-2 flex flex-col h-full"
+      className="group bg-brand-background dark:bg-[#1A1A1A] rounded-3xl overflow-hidden border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-2 flex flex-col h-full transform-gpu"
     >
       <Link to={`/services/${service.id}`} className="relative h-56 app-service-img-h overflow-hidden block bg-gray-950">
         {hasVideo && videoSrc && !videoError ? (
@@ -52,6 +52,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
         ) : primaryImage && !imgError ? (
           <img 
             src={primaryImage} 
+            loading="lazy"
+            decoding="async"
             onError={() => setImgError(true)}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             alt={service.name} 

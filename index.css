@@ -91,4 +91,70 @@ button:active:not(:disabled), [role="button"]:active:not(:disabled) {
   animation: float-subtle 3s ease-in-out infinite;
 }
 
+/* ── Luxury Smooth Horizontal Carousel & Snap Physics ── */
+.smooth-scroll-x {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.snap-card {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+/* Prevent modal/panel backdrop scroll chaining */
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
+/* ── 120Hz High-Refresh Hardware Acceleration & Lenis Integration ── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Universal 120Hz touch & scroll optimization */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  overscroll-behavior-y: none; /* Prevents rubber-band jarring and white flashes */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* GPU acceleration for cards and animated sections to maintain steady 120 FPS */
+.gpu-layer,
+.stagger-child,
+.service-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Smooth kinetic tap feedback without flicker */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+
 

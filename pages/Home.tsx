@@ -13,7 +13,7 @@ const Home: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-surface dark:bg-[#0D0D0D]">
-        <LoadingState text="Preparing your beauty experience..." />
+        <LoadingState message="Preparing your beauty experience..." />
       </div>
     );
   }

@@ -54,12 +54,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data) {
         setProfile(data);
         const userType = data.user_type?.toLowerCase();
-        if (userType === 'admin') setRole(UserRole.ADMIN);
-        else if (userType === 'agent') setRole(UserRole.AGENT);
-        else setRole(UserRole.CUSTOMER);
+        const targetRole = userType === 'admin' ? UserRole.ADMIN : (userType === 'agent' ? UserRole.AGENT : UserRole.CUSTOMER);
+        setRole(targetRole);
+        return { profile: data, role: targetRole };
       }
+      return { profile: null, role: UserRole.CUSTOMER };
     } catch (err) {
       console.error('Error fetching profile from Supabase:', err);
+      return { profile: null, role: UserRole.CUSTOMER };
     }
   };
 
@@ -108,10 +110,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         setUser(data.user);
-        await fetchProfile(data.user.id);
-        const userType = profile?.user_type?.toLowerCase();
-        const targetRole = userType === 'admin' ? UserRole.ADMIN : (userType === 'agent' ? UserRole.AGENT : UserRole.CUSTOMER);
-        return { success: true, role: targetRole };
+        const profileRes = await fetchProfile(data.user.id);
+        return { success: true, role: profileRes.role };
       }
 
       return { success: true };

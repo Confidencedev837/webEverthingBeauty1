@@ -20,6 +20,9 @@ import ResetPassword from './pages/ResetPassword';
 import { AuthProvider } from './context/AuthContext';
 import { SnackbarProvider } from './components/Snackbar';
 import ErrorBoundary from './components/ErrorBoundary';
+import SmoothScroll from './components/SmoothScroll';
+import ScrollProgressBar from './components/ScrollProgressBar';
+import ScrollToTopButton from './components/ScrollToTopButton';
 
 const App: React.FC = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
@@ -68,107 +71,111 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <AuthProvider>
-        <SnackbarProvider>
-          <div className="min-h-screen transition-colors duration-300">
-            <Navbar themeMode={themeMode} toggleTheme={toggleTheme} />
-          <main>
-            <ErrorBoundary>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/agents" element={<Agents />} />
-                <Route path="/services/:id" element={<ServiceDetail />} />
-                <Route path="/agent/:id" element={<AgentProfile />} />
-                <Route path="/agents/:id" element={<AgentProfile />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/terms" element={<Legal />} />
-                <Route path="/privacy" element={<Legal />} />
-                <Route path="/partner-agreement" element={<Legal />} />
+      <SmoothScroll>
+        <AuthProvider>
+          <SnackbarProvider>
+            <ScrollProgressBar />
+            <div className="min-h-screen transition-colors duration-300">
+              <Navbar themeMode={themeMode} toggleTheme={toggleTheme} />
+              <main>
+                <ErrorBoundary>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/services" element={<Services />} />
+                    <Route path="/agents" element={<Agents />} />
+                    <Route path="/services/:id" element={<ServiceDetail />} />
+                    <Route path="/agent/:id" element={<AgentProfile />} />
+                    <Route path="/agents/:id" element={<AgentProfile />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/terms" element={<Legal />} />
+                    <Route path="/privacy" element={<Legal />} />
+                    <Route path="/partner-agreement" element={<Legal />} />
 
-                {/* New Dashboard Routes */}
-                <Route path="/customer/dashboard" element={<CustomerDashboard />} />
-                <Route path="/agent/dashboard" element={<AgentDashboard />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/login" element={<Auth />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-              </Routes>
-            </ErrorBoundary>
-          </main>
+                    {/* New Dashboard Routes */}
+                    <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+                    <Route path="/agent/dashboard" element={<AgentDashboard />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/login" element={<Auth />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                  </Routes>
+                </ErrorBoundary>
+              </main>
 
-          <footer className="py-12 sm:py-16 md:py-20 lg:py-24 bg-brand-surface dark:bg-[#111] border-t border-[#E9ECEF] dark:border-[#2D2D2D] relative z-30">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              {/* Main Footer Flex Container */}
-              <div className="flex flex-wrap gap-8 sm:gap-10 md:gap-12 lg:gap-16 mb-12 sm:mb-16 md:mb-20">
+              <footer className="py-12 sm:py-16 md:py-20 lg:py-24 bg-brand-surface dark:bg-[#111] border-t border-[#E9ECEF] dark:border-[#2D2D2D] relative z-30">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  {/* Main Footer Flex Container */}
+                  <div className="flex flex-wrap gap-8 sm:gap-10 md:gap-12 lg:gap-16 mb-12 sm:mb-16 md:mb-20">
 
-                {/* Brand Section - Takes full width on mobile, half on tablet, auto on desktop */}
-                <div className="w-full sm:w-[calc(50%-1.25rem)] lg:w-auto lg:flex-[2]">
-                  <div className="flex items-center space-x-2 sm:space-x-3 mb-6 sm:mb-8 md:mb-10">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl md:rounded-[1.25rem] flex items-center justify-center shadow-xl sm:shadow-2xl overflow-hidden">
-                      <img src="/logo.jpg" alt="Everything Beauty Logo" className="w-full h-full object-cover" />
+                    {/* Brand Section - Takes full width on mobile, half on tablet, auto on desktop */}
+                    <div className="w-full sm:w-[calc(50%-1.25rem)] lg:w-auto lg:flex-[2]">
+                      <div className="flex items-center space-x-2 sm:space-x-3 mb-6 sm:mb-8 md:mb-10">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl md:rounded-[1.25rem] flex items-center justify-center shadow-xl sm:shadow-2xl overflow-hidden">
+                          <img src="/logo.jpg" alt="Everything Beauty Logo" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-2xl sm:text-3xl md:text-4xl font-serif font-black tracking-tighter">Everything Beauty</span>
+                      </div>
+                      <p className="text-[#6C757D] dark:text-[#B0B0B0] max-w-sm mb-8 sm:mb-10 md:mb-12 leading-relaxed text-sm sm:text-base md:text-lg lg:text-xl font-medium">
+                        Defining the future of on-demand beauty services. Verified professionals, premium results, total convenience.
+                      </p>
+                      <div className="flex space-x-4 sm:space-x-5 md:space-x-6">
+                        <InstagramIcon />
+                        <TwitterIcon />
+                        <LinkedInIcon />
+                        <FacebookIcon />
+                      </div>
                     </div>
-                    <span className="text-2xl sm:text-3xl md:text-4xl font-serif font-black tracking-tighter">Everything Beauty</span>
+
+                    {/* Platform Links */}
+                    <div className="w-[calc(50%-1rem)] sm:w-[calc(33.333%-1rem)] lg:w-auto lg:flex-1">
+                      <h4 className="font-black mb-4 sm:mb-6 md:mb-8 lg:mb-10 tracking-[0.1em] sm:tracking-[0.15em] text-sm sm:text-base text-brand-interactive">Platform</h4>
+                      <ul className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 text-[#6C757D] dark:text-[#B0B0B0] font-bold text-xs sm:text-sm">
+                        <li><Link to="/" className="hover:text-brand-interactive transition-all flex items-center">Home</Link></li>
+                        <li><Link to="/services" className="hover:text-brand-interactive transition-all flex items-center">Services</Link></li>
+                        <li><Link to="/agents" className="hover:text-brand-interactive transition-all flex items-center">Agents</Link></li>
+                        <li><Link to="/about" className="hover:text-brand-interactive transition-all flex items-center">Founders</Link></li>
+                        <li><Link to="/contact" className="hover:text-brand-interactive transition-all flex items-center">Contact</Link></li>
+                      </ul>
+                    </div>
+
+                    {/* Support Links */}
+                    <div className="w-[calc(50%-1rem)] sm:w-[calc(33.333%-1rem)] lg:w-auto lg:flex-1">
+                      <h4 className="font-black mb-4 sm:mb-6 md:mb-8 lg:mb-10 tracking-[0.1em] sm:tracking-[0.15em] text-sm sm:text-base text-brand-interactive">Support</h4>
+                      <ul className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 text-[#6C757D] dark:text-[#B0B0B0] font-bold text-xs sm:text-sm">
+                        <li><Link to="/contact" className="hover:text-brand-interactive transition-all">Help Center</Link></li>
+                        <li><Link to="/contact" className="hover:text-brand-interactive transition-all">Safety Center</Link></li>
+                        <li><Link to="/auth" className="hover:text-brand-interactive transition-all">Agent FAQ</Link></li>
+                        <li><Link to="/contact" className="hover:text-brand-interactive transition-all">Accessibility</Link></li>
+                      </ul>
+                    </div>
+
+                    {/* Legal Links */}
+                    <div className="w-[calc(50%-1rem)] sm:w-[calc(33.333%-1rem)] lg:w-auto lg:flex-1">
+                      <h4 className="font-black mb-4 sm:mb-6 md:mb-8 lg:mb-10 tracking-[0.1em] sm:tracking-[0.15em] text-sm sm:text-base text-brand-interactive">Legal Hub</h4>
+                      <ul className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 text-[#6C757D] dark:text-[#B0B0B0] font-bold text-xs sm:text-sm">
+                        <li><Link to="/terms" className="hover:text-brand-interactive transition-all">Terms of Service</Link></li>
+                        <li><Link to="/privacy" className="hover:text-brand-interactive transition-all">Privacy Policy</Link></li>
+                        <li><Link to="/partner-agreement" className="hover:text-brand-interactive transition-all">Partner Agreement</Link></li>
+                        <li><Link to="/terms" className="hover:text-brand-interactive transition-all">Cookie Policy</Link></li>
+                      </ul>
+                    </div>
                   </div>
-                  <p className="text-[#6C757D] dark:text-[#B0B0B0] max-w-sm mb-8 sm:mb-10 md:mb-12 leading-relaxed text-sm sm:text-base md:text-lg lg:text-xl font-medium">
-                    Defining the future of on-demand beauty services. Verified professionals, premium results, total convenience.
-                  </p>
-                  <div className="flex space-x-4 sm:space-x-5 md:space-x-6">
-                    <InstagramIcon />
-                    <TwitterIcon />
-                    <LinkedInIcon />
-                    <FacebookIcon />
+
+                  {/* Bottom Bar */}
+                  <div className="pt-6 sm:pt-8 md:pt-10 lg:pt-12 border-t border-[#E9ECEF] dark:border-[#2D2D2D] flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 text-[#6C757D] text-[9px] sm:text-[10px] md:text-[11px] font-black tracking-[0.15em] sm:tracking-[0.2em]">
+                    <p className="text-center md:text-left">© {new Date().getFullYear()} Everything Beauty Marketplace. Where Beauty Comes to You.</p>
                   </div>
                 </div>
-
-                {/* Platform Links */}
-                <div className="w-[calc(50%-1rem)] sm:w-[calc(33.333%-1rem)] lg:w-auto lg:flex-1">
-                  <h4 className="font-black mb-4 sm:mb-6 md:mb-8 lg:mb-10 tracking-[0.1em] sm:tracking-[0.15em] text-sm sm:text-base text-brand-interactive">Platform</h4>
-                  <ul className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 text-[#6C757D] dark:text-[#B0B0B0] font-bold text-xs sm:text-sm">
-                    <li><Link to="/" className="hover:text-brand-interactive transition-all flex items-center">Home</Link></li>
-                    <li><Link to="/services" className="hover:text-brand-interactive transition-all flex items-center">Services</Link></li>
-                    <li><Link to="/agents" className="hover:text-brand-interactive transition-all flex items-center">Agents</Link></li>
-                    <li><Link to="/about" className="hover:text-brand-interactive transition-all flex items-center">Founders</Link></li>
-                    <li><Link to="/contact" className="hover:text-brand-interactive transition-all flex items-center">Contact</Link></li>
-                  </ul>
-                </div>
-
-                {/* Support Links */}
-                <div className="w-[calc(50%-1rem)] sm:w-[calc(33.333%-1rem)] lg:w-auto lg:flex-1">
-                  <h4 className="font-black mb-4 sm:mb-6 md:mb-8 lg:mb-10 tracking-[0.1em] sm:tracking-[0.15em] text-sm sm:text-base text-brand-interactive">Support</h4>
-                  <ul className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 text-[#6C757D] dark:text-[#B0B0B0] font-bold text-xs sm:text-sm">
-                    <li><Link to="/contact" className="hover:text-brand-interactive transition-all">Help Center</Link></li>
-                    <li><Link to="/contact" className="hover:text-brand-interactive transition-all">Safety Center</Link></li>
-                    <li><Link to="/auth" className="hover:text-brand-interactive transition-all">Agent FAQ</Link></li>
-                    <li><Link to="/contact" className="hover:text-brand-interactive transition-all">Accessibility</Link></li>
-                  </ul>
-                </div>
-
-                {/* Legal Links */}
-                <div className="w-[calc(50%-1rem)] sm:w-[calc(33.333%-1rem)] lg:w-auto lg:flex-1">
-                  <h4 className="font-black mb-4 sm:mb-6 md:mb-8 lg:mb-10 tracking-[0.1em] sm:tracking-[0.15em] text-sm sm:text-base text-brand-interactive">Legal Hub</h4>
-                  <ul className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 text-[#6C757D] dark:text-[#B0B0B0] font-bold text-xs sm:text-sm">
-                    <li><Link to="/terms" className="hover:text-brand-interactive transition-all">Terms of Service</Link></li>
-                    <li><Link to="/privacy" className="hover:text-brand-interactive transition-all">Privacy Policy</Link></li>
-                    <li><Link to="/partner-agreement" className="hover:text-brand-interactive transition-all">Partner Agreement</Link></li>
-                    <li><Link to="/terms" className="hover:text-brand-interactive transition-all">Cookie Policy</Link></li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Bottom Bar */}
-              <div className="pt-6 sm:pt-8 md:pt-10 lg:pt-12 border-t border-[#E9ECEF] dark:border-[#2D2D2D] flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6 text-[#6C757D] text-[9px] sm:text-[10px] md:text-[11px] font-black tracking-[0.15em] sm:tracking-[0.2em]">
-                <p className="text-center md:text-left">© {new Date().getFullYear()} Everything Beauty Marketplace. Where Beauty Comes to You.</p>
-              </div>
+              </footer>
+              <ScrollToTopButton />
             </div>
-          </footer>
-        </div>
-      </SnackbarProvider>
-    </AuthProvider>
-  </Router>
-);
+          </SnackbarProvider>
+        </AuthProvider>
+      </SmoothScroll>
+    </Router>
+  );
 };
 
 const WhatsAppIcon = () => (

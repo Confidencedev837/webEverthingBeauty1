@@ -1,0 +1,22 @@
+# Everything Beauty - Robots.txt
+# Proper crawling permissions for optimal search engine ranking
+
+User-agent: *
+Allow: /
+Allow: /services
+Allow: /agents
+Allow: /about
+Allow: /faq
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+
+# Disallow private user dashboards and session reset paths from indexing
+Disallow: /customer/dashboard
+Disallow: /agent/dashboard
+Disallow: /admin/
+Disallow: /reset-password
+
+# Sitemap
+Sitemap: https://everythingbeauty.app/sitemap.xml
+

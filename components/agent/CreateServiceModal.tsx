@@ -216,7 +216,8 @@ const CreateServiceModal: React.FC<CreateServiceModalProps> = ({
         initial={{ scale: 0.95, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0, y: 15 }}
-        className="relative w-full max-w-2xl bg-white dark:bg-[#161616] rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] z-10 my-8 max-h-[90vh] overflow-y-auto"
+        data-lenis-prevent
+        className="relative w-full max-w-2xl bg-white dark:bg-[#161616] rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] z-10 my-8 max-h-[90vh] overflow-y-auto overscroll-contain"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E9ECEF] dark:border-[#2D2D2D] mb-6">

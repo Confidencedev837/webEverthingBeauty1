@@ -4,11 +4,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Everything Beauty | Professional On-Demand Beauty Services</title>
+
+    <!-- ── Primary SEO & Brand Ranking Metadata ── -->
+    <title>Everything Beauty | Verified On-Demand Beauty Professionals</title>
+    <meta name="description" content="Discover and book vetted beauty specialists, makeup artists, hairstylists, and nail technicians on-demand. Luxury door-to-door salon appointments with instant confirmation.">
+    <meta name="keywords" content="Everything Beauty, beauty services, makeup artist on-demand, home salon, hairstylist, nail specialist, bridal makeup, luxury beauty marketplace, doorstep beauty, beauty bookings">
+    <meta name="author" content="Everything Beauty Marketplace">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://everythingbeauty.app/">
+
+    <!-- ── Favicon & Web App Icons ── -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- ── Mobile Browser Theme & PWA Settings ── -->
+    <meta name="theme-color" content="#32104D">
+    <meta name="msapplication-TileColor" content="#32104D">
+    <meta name="color-scheme" content="light dark">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Everything Beauty">
+
+    <!-- ── Open Graph / Facebook / WhatsApp Sharing ── -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Everything Beauty">
+    <meta property="og:url" content="https://everythingbeauty.app/">
+    <meta property="og:title" content="Everything Beauty | Verified On-Demand Beauty Professionals">
+    <meta property="og:description" content="Book top-rated makeup artists, hairstylists, and nail specialists directly to your doorstep with guaranteed professional results.">
+    <meta property="og:image" content="/logo.jpg">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="Everything Beauty Official Logo">
+    <meta property="og:locale" content="en_US">
+
+    <!-- ── Twitter Card Metadata ── -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@everythingbeauty">
+    <meta name="twitter:creator" content="@everythingbeauty">
+    <meta name="twitter:title" content="Everything Beauty | Verified On-Demand Beauty Professionals">
+    <meta name="twitter:description" content="Book vetted makeup artists, hairstylists, and nail specialists right to your doorstep.">
+    <meta name="twitter:image" content="/logo.jpg">
+
+    <!-- ── Google Rich Results Structured Data (JSON-LD) ── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://everythingbeauty.app/#organization",
+          "name": "Everything Beauty",
+          "url": "https://everythingbeauty.app/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://everythingbeauty.app/logo.jpg",
+            "caption": "Everything Beauty Logo"
+          },
+          "description": "On-demand beauty service marketplace connecting clients with vetted beauty professionals.",
+          "sameAs": [
+            "https://instagram.com/everythingbeauty",
+            "https://twitter.com/everythingbeauty",
+            "https://linkedin.com/company/everythingbeauty",
+            "https://facebook.com/everythingbeauty"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://everythingbeauty.app/#website",
+          "url": "https://everythingbeauty.app/",
+          "name": "Everything Beauty",
+          "publisher": {
+            "@id": "https://everythingbeauty.app/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://everythingbeauty.app/#/services?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "BeautySalon",
+          "@id": "https://everythingbeauty.app/#localbusiness",
+          "name": "Everything Beauty Marketplace",
+          "url": "https://everythingbeauty.app/",
+          "image": "https://everythingbeauty.app/logo.jpg",
+          "priceRange": "₦₦ - ₦₦₦₦",
+          "paymentAccepted": "Cash, Credit Card, Bank Transfer",
+          "currenciesAccepted": "NGN, USD",
+          "openingHours": "Mo-Su 08:00-21:00",
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "1280",
+            "bestRating": "5"
+          }
+        }
+      ]
+    }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"></script>
     <style>
         :root {
             --color-brand-primary: #32104D;     /* Deep Plum */
@@ -28,27 +132,69 @@
         .dark :focus-visible {
             outline-color: var(--color-brand-accent);
         }
+
+        /* ── Core Smooth Scrolling & Typography Optimization ── */
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+        html.lenis, html.lenis body {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis.lenis-smooth iframe {
+            pointer-events: none;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            -webkit-overflow-scrolling: touch;
         }
         h1, h2, h3, h4, .font-elegant {
             font-family: 'Plus Jakarta Sans', sans-serif;
             letter-spacing: 0.02em;
         }
-        /* Custom scrollbar */
+
+        /* ── Luxury Slim Floating Scrollbar ── */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .dark ::-webkit-scrollbar-track {
-            background: #1a1a1a;
+            background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background: var(--color-brand-interactive);
-            border-radius: 4px;
+            background: rgba(108, 53, 166, 0.28);
+            border-radius: 9999px;
+            transition: background 0.25s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(108, 53, 166, 0.7);
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(167, 139, 206, 0.3);
+        }
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: rgba(167, 139, 206, 0.75);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(108, 53, 166, 0.3) transparent;
+        }
+        .dark * {
+            scrollbar-color: rgba(167, 139, 206, 0.35) transparent;
         }
         /* .glass {
             background: rgba(255, 255, 255, 0.8);
