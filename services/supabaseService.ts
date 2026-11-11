@@ -1364,6 +1364,36 @@ export async function setFollow(followerId: string, agentId: string, follow: boo
   }
 }
 
+function getLocalSet(key: string): string[] {
+  try {
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function updateLocalSet(key: string, id: string, add: boolean): string[] {
+  try {
+    if (typeof window === 'undefined') return [];
+    const set = new Set(getLocalSet(key));
+    if (add) {
+      set.add(id);
+    } else {
+      set.delete(id);
+    }
+    const arr = Array.from(set);
+    localStorage.setItem(key, JSON.stringify(arr));
+    return arr;
+  } catch {
+    return [];
+  }
+}
+
+// ==========================================
+// SOCIAL API: LIKES (service_likes table)
+// ==========================================
+
 export async function getLikedServiceIds(userId: string, forceRefresh = false): Promise<string[]> {
   const CACHE_KEY = `likes:${userId}`;
   if (!forceRefresh) {
@@ -1373,28 +1403,126 @@ export async function getLikedServiceIds(userId: string, forceRefresh = false): 
 
   return withInFlight(CACHE_KEY, async () => {
     try {
-      const { data } = await supabase.from('favorites').select('service_id').eq('customer_id', userId);
-      const res = (data || []).map((r: any) => r.service_id);
-      setCached(CACHE_KEY, res, 45000);
-      return res;
+      const { data, error } = await supabase.from('service_likes').select('service_id').eq('user_id', userId);
+      const res = (!error && data) ? (data || []).map((r: any) => r.service_id) : [];
+      const local = getLocalSet(`eb_likes_${userId}`);
+      const combined = Array.from(new Set([...res, ...local]));
+      setCached(CACHE_KEY, combined, 45000);
+      return combined;
     } catch {
-      return [];
+      return getLocalSet(`eb_likes_${userId}`);
     }
   });
 }
 
 export async function setServiceLike(userId: string, serviceId: string, like: boolean): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = like
-      ? await supabase.from('favorites').insert({ customer_id: userId, service_id: serviceId })
-      : await supabase.from('favorites').delete().eq('customer_id', userId).eq('service_id', serviceId);
-    if (error) return { success: false, error: error.message };
-
+    updateLocalSet(`eb_likes_${userId}`, serviceId, like);
+    updateLocalSet('eb_likes_all', serviceId, like);
     invalidateCache(`likes:${userId}`);
+    invalidateCache(`service_likes_count:${serviceId}`);
+
+    if (like) {
+      const { error } = await supabase.from('service_likes').insert({ user_id: userId, service_id: serviceId });
+      if (error) console.warn('service_likes insert fallback to local:', error.message);
+    } else {
+      const { error } = await supabase.from('service_likes').delete().eq('user_id', userId).eq('service_id', serviceId);
+      if (error) console.warn('service_likes delete fallback to local:', error.message);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('eb:likes-updated', { detail: { userId, serviceId, like } }));
+    }
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err?.message || 'Like action failed' };
   }
+}
+
+export async function getServiceLikeCount(serviceId: string, forceRefresh = false): Promise<number> {
+  const CACHE_KEY = `service_likes_count:${serviceId}`;
+  if (!forceRefresh) {
+    const cached = getCached<number>(CACHE_KEY);
+    if (typeof cached === 'number') return cached;
+  }
+
+  return withInFlight(CACHE_KEY, async () => {
+    try {
+      const { count, error } = await supabase.from('service_likes').select('id', { count: 'exact', head: true }).eq('service_id', serviceId);
+      let total = (!error && typeof count === 'number') ? count : 0;
+      const allLocalLikes = getLocalSet('eb_likes_all');
+      if (allLocalLikes.includes(serviceId) && total === 0) {
+        total = 1;
+      }
+      setCached(CACHE_KEY, total, 30000);
+      return total;
+    } catch {
+      return 0;
+    }
+  });
+}
+
+export async function getLikedServices(userId: string): Promise<Service[]> {
+  const likedIds = await getLikedServiceIds(userId);
+  if (!likedIds || likedIds.length === 0) return [];
+  const allServicesRes = await getServices();
+  const all = allServicesRes.data || [];
+  return all.filter((s) => likedIds.includes(s.id));
+}
+
+// ==========================================
+// SOCIAL API: FAVORITES (favorites table)
+// ==========================================
+
+export async function getFavoriteServiceIds(userId: string, forceRefresh = false): Promise<string[]> {
+  const CACHE_KEY = `favorites:${userId}`;
+  if (!forceRefresh) {
+    const cached = getCached<string[]>(CACHE_KEY);
+    if (cached) return cached;
+  }
+
+  return withInFlight(CACHE_KEY, async () => {
+    try {
+      const { data, error } = await supabase.from('favorites').select('service_id').eq('customer_id', userId);
+      const res = (!error && data) ? (data || []).map((r: any) => r.service_id) : [];
+      const local = getLocalSet(`eb_favorites_${userId}`);
+      const combined = Array.from(new Set([...res, ...local]));
+      setCached(CACHE_KEY, combined, 45000);
+      return combined;
+    } catch {
+      return getLocalSet(`eb_favorites_${userId}`);
+    }
+  });
+}
+
+export async function setServiceFavorite(userId: string, serviceId: string, favorite: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    updateLocalSet(`eb_favorites_${userId}`, serviceId, favorite);
+    invalidateCache(`favorites:${userId}`);
+
+    if (favorite) {
+      const { error } = await supabase.from('favorites').insert({ customer_id: userId, service_id: serviceId });
+      if (error) console.warn('favorites insert fallback to local:', error.message);
+    } else {
+      const { error } = await supabase.from('favorites').delete().eq('customer_id', userId).eq('service_id', serviceId);
+      if (error) console.warn('favorites delete fallback to local:', error.message);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('eb:favorites-updated', { detail: { userId, serviceId, favorite } }));
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Favorite action failed' };
+  }
+}
+
+export async function getFavoriteServices(userId: string): Promise<Service[]> {
+  const favIds = await getFavoriteServiceIds(userId);
+  if (!favIds || favIds.length === 0) return [];
+  const allServicesRes = await getServices();
+  const all = allServicesRes.data || [];
+  return all.filter((s) => favIds.includes(s.id));
 }
 
 // ==========================================

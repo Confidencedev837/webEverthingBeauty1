@@ -48,7 +48,7 @@ export const SnackbarProvider: React.FC<SnackbarProviderProps> = ({ children }) 
     return (
         <SnackbarContext.Provider value={{ showSnackbar }}>
             {children}
-            <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-4 pointer-events-none">
+            <div className="fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-[100] flex flex-col gap-3 pointer-events-none max-w-[calc(100vw-2rem)] sm:max-w-md">
                 <AnimatePresence>
                     {snackbars.map((snackbar) => (
                         <SnackbarItem key={snackbar.id} snackbar={snackbar} onClose={() => removeSnackbar(snackbar.id)} />

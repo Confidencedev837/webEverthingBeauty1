@@ -1,5 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useReducedMotion } from 'framer-motion';
+
+// ============================================================================
+// SCROLL-LINKED STAT BOX TUNING CONSTANTS
+// ============================================================================
+/** Spring physics configuration for fast, ultra-responsive scroll tracking */
+export const STAT_BOX_SPRING_CONFIG = {
+  stiffness: 500,
+  damping: 32,
+  mass: 0.08
+} as const;
+
+/** Progress checkpoints: [entering viewport, peak scale point, exiting viewport] */
+export const STAT_BOX_SCALE_INPUT: number[] = [0, 0.55, 1];
+
+/** Scale multipliers corresponding to progress checkpoints: [at entry, at focal peak, after leaving top] */
+export const STAT_BOX_SCALE_OUTPUT: number[] = [0.8, 1, 0.92];
+
+/** Progress checkpoints for box opacity interpolation */
+export const STAT_BOX_OPACITY_INPUT: number[] = [0, 0.2, 0.85, 1];
+
+/** Opacity levels corresponding to progress checkpoints */
+export const STAT_BOX_OPACITY_OUTPUT: number[] = [0.35, 1, 1, 0.5];
+
+/** Scroll intersection target boundaries */
+export const STAT_BOX_SCROLL_OFFSET: ['start end', 'end start'] = ['start end', 'end start'];
 import { 
   House, 
   Briefcase, 
@@ -455,7 +480,7 @@ const AgentDashboard: React.FC = () => {
         <header className="flex flex-wrap justify-between items-center gap-4 mb-8 sm:mb-10">
           <div>
             <h1 className="text-2xl sm:text-4xl font-serif font-black text-[#1A1A1A] dark:text-white">
-              {view === 'overview' && 'Specialist Command Center'}
+              {view === 'overview' && `Welcome back, ${currentUser?.name || user?.user_metadata?.name || ''}`}
               {view === 'bookings' && 'Appointments Pipeline'}
               {view === 'availability' && 'Working Hours & Schedule'}
               {view === 'services' && 'Services Catalog'}
@@ -463,21 +488,41 @@ const AgentDashboard: React.FC = () => {
               {view === 'reviews' && 'Client Feedback & Reviews'}
               {view === 'profile' && 'Public Profile Studio'}
             </h1>
-            <p className="text-xs sm:text-sm text-[#6C757D] font-medium hidden sm:block mt-1">
-              Welcome back, {currentUser?.name}. Live operational control with instant client synchronization.
-            </p>
+            {view !== 'overview' && (
+              <p className="text-xs sm:text-sm text-[#6C757D] font-medium hidden sm:block mt-1">
+                Welcome back, {currentUser?.name || user?.user_metadata?.name || ''}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center space-x-3">
-            {/* Quick emergency status indicator */}
-            <div className={`px-4 py-2.5 rounded-2xl text-xs font-black flex items-center space-x-2 border shadow-sm ${
-              availability.isEmergencyOff 
-                ? 'bg-red-500/10 border-red-500/20 text-red-500' 
-                : 'bg-green-500/10 border-green-500/20 text-green-500'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${availability.isEmergencyOff ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`} />
-              <span>{availability.isEmergencyOff ? 'Unavailable Today' : 'Accepting Appointments'}</span>
-            </div>
+            {/* Quick emergency status indicator - Neumorphic Glass Effect */}
+            <button
+              type="button"
+              onClick={() => setView('availability')}
+              title="Click to view & edit appointment schedule"
+              className={`px-4 sm:px-5 py-2.5 rounded-2xl text-xs font-black flex items-center space-x-2.5 transition-all duration-300 backdrop-blur-2xl cursor-pointer select-none active:scale-95 hover:scale-[1.02] ${
+                availability.isEmergencyOff
+                  ? 'bg-rose-500/[0.08] dark:bg-rose-500/[0.14] text-rose-600 dark:text-rose-400 border border-rose-500/30 dark:border-rose-400/25 shadow-[inset_0_1px_2px_rgba(255,255,255,0.7),0_8px_20px_-4px_rgba(244,63,94,0.22),0_2px_6px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_-1px_2px_rgba(0,0,0,0.5),0_10px_24px_-4px_rgba(0,0,0,0.5)]'
+                  : 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14] text-emerald-600 dark:text-emerald-400 border border-emerald-500/35 dark:border-emerald-400/25 shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),0_8px_20px_-4px_rgba(16,185,129,0.24),0_2px_6px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),inset_0_-1px_2px_rgba(0,0,0,0.5),0_10px_24px_-4px_rgba(0,0,0,0.5)]'
+              }`}
+            >
+              <span className="relative flex h-2.5 w-2.5 items-center justify-center shrink-0">
+                {!availability.isEmergencyOff && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                )}
+                <span
+                  className={`relative inline-flex rounded-full h-2 w-2 ${
+                    availability.isEmergencyOff
+                      ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]'
+                      : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.95)]'
+                  }`}
+                />
+              </span>
+              <span className="tracking-tight">
+                {availability.isEmergencyOff ? 'Unavailable Today' : 'Accepting Appointments'}
+              </span>
+            </button>
 
             <motion.button 
               whileTap={{ scale: 0.92 }}
@@ -512,39 +557,44 @@ const AgentDashboard: React.FC = () => {
               {/* TAB 1: OVERVIEW */}
               {view === 'overview' && (
                 <div className="space-y-10">
-                  {/* KPI Cards */}
+                  {/* KPI Cards with Scroll-Linked Scale Effect */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <StatSquircle 
-                      label="Total Earnings" 
-                      value={`₦${totalRevenue.toLocaleString()}`} 
-                      highlightColor="text-green-500"
-                      subtext="Completed appointments"
-                    />
-                    <StatSquircle 
-                      label="Client Rating" 
-                      value={Number(averageRating) > 0 ? averageRating : 'New'} 
-                      hasStar={Number(averageRating) > 0}
-                      subtext={`${reviews.length} verified reviews`}
-                    />
-                    <StatSquircle 
-                      label="Pending Requests" 
-                      value={pendingBookings.length.toString()} 
-                      highlight={pendingBookings.length > 0}
-                      subtext="Requires your action"
-                    />
-                    <StatSquircle 
-                      label="Active Offerings" 
-                      value={services.length.toString()} 
-                      subtext="Published in boutique"
-                    />
+                    <ScrollScaleBox>
+                      <StatSquircle 
+                        label="Total Earnings" 
+                        value={`₦${totalRevenue.toLocaleString()}`} 
+                        highlightColor="text-green-500"
+                        subtext="Completed appointments"
+                      />
+                    </ScrollScaleBox>
+                    <ScrollScaleBox>
+                      <StatSquircle 
+                        label="Client Rating" 
+                        value={Number(averageRating) > 0 ? averageRating : 'New'} 
+                        hasStar={Number(averageRating) > 0}
+                        subtext={`${reviews.length} verified reviews`}
+                      />
+                    </ScrollScaleBox>
+                    <ScrollScaleBox>
+                      <StatSquircle 
+                        label="Pending Requests" 
+                        value={pendingBookings.length.toString()} 
+                        highlight={pendingBookings.length > 0}
+                        subtext="Requires your action"
+                      />
+                    </ScrollScaleBox>
+                    <ScrollScaleBox>
+                      <StatSquircle 
+                        label="Active Offerings" 
+                        value={services.length.toString()} 
+                        subtext="Published in boutique"
+                      />
+                    </ScrollScaleBox>
                   </div>
 
                   {/* Quick Action Banner */}
                   <div className="p-6 sm:p-8 bg-gradient-to-r from-[#32104D] via-[#6C35A6] to-[#A78BCE] rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
                     <div className="relative z-10 max-w-xl">
-                      <span className="text-[10px] uppercase tracking-widest font-black bg-white/20 px-3 py-1 rounded-xl mb-3 inline-block">
-                        Instant Setup
-                      </span>
                       <h2 className="text-2xl sm:text-3xl font-serif font-black mb-2">
                         Grow Your Beauty Business
                       </h2>
@@ -1234,6 +1284,56 @@ const SidebarItem: React.FC<{
   </motion.button>
 );
 
+/**
+ * ScrollScaleBox
+ * Implements a performant, scroll-linked transform scale & opacity effect
+ * on individual stat cards with zero React re-renders during scroll.
+ */
+interface ScrollScaleBoxProps {
+  children: React.ReactNode;
+  containerRef?: React.RefObject<HTMLElement | null>;
+}
+
+export const ScrollScaleBox: React.FC<ScrollScaleBoxProps> = ({ children, containerRef }) => {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = Boolean(useReducedMotion());
+
+  const { scrollYProgress } = useScroll({
+    target: wrapperRef,
+    offset: STAT_BOX_SCROLL_OFFSET,
+    ...(containerRef ? { container: containerRef } : {})
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, STAT_BOX_SPRING_CONFIG);
+
+  const scaleTransform = useTransform<number, number>(
+    smoothProgress,
+    STAT_BOX_SCALE_INPUT,
+    STAT_BOX_SCALE_OUTPUT
+  );
+
+  const opacityTransform = useTransform<number, number>(
+    smoothProgress,
+    STAT_BOX_OPACITY_INPUT,
+    STAT_BOX_OPACITY_OUTPUT
+  );
+
+  // When prefers-reduced-motion is active, render static styles with no animation
+  const scale = shouldReduceMotion ? undefined : scaleTransform;
+  const opacity = shouldReduceMotion ? undefined : opacityTransform;
+
+  return (
+    <div ref={wrapperRef} className="w-full">
+      <motion.div
+        style={{ scale, opacity }}
+        className="will-change-transform w-full"
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+};
+
 const StatSquircle: React.FC<{ 
   label: string; 
   value: string; 
@@ -1242,16 +1342,14 @@ const StatSquircle: React.FC<{
   highlightColor?: string; 
   hasStar?: boolean;
 }> = ({ label, value, subtext, highlight, highlightColor, hasStar }) => (
-  <motion.div 
-    whileHover={{ scale: 1.02 }}
-    transition={springTransition}
-    className={`bg-brand-background dark:bg-[#1A1A1A] p-6 rounded-[2.5rem] shadow-xl border ${
+  <div 
+    className={`bg-brand-background/90 dark:bg-[#1A1A1A]/90 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-xl border transition-colors ${
       highlight 
         ? 'border-brand-interactive shadow-brand-interactive/10' 
         : 'border-[#E9ECEF] dark:border-[#2D2D2D]'
     }`}
   >
-    <div className="text-[10px] font-black tracking-wider text-[#6C757D] mb-3 uppercase">{label}</div>
+    <div className="text-[11px] font-black tracking-wider text-[#6C757D] dark:text-[#A0AEC0] mb-3 uppercase">{label}</div>
     <div className={`text-2xl sm:text-3xl font-serif font-black flex items-center space-x-1.5 ${
       highlightColor ? highlightColor : highlight ? 'text-brand-interactive' : 'text-[#1A1A1A] dark:text-white'
     }`}>
@@ -1259,9 +1357,9 @@ const StatSquircle: React.FC<{
       {hasStar && <Star className="w-5 h-5 fill-amber-400 text-amber-400 inline" />}
     </div>
     {subtext && (
-      <div className="text-[11px] text-[#A0AEC0] mt-1.5 font-medium">{subtext}</div>
+      <div className="text-xs text-[#6C757D] dark:text-[#A0AEC0] mt-1.5 font-medium">{subtext}</div>
     )}
-  </motion.div>
+  </div>
 );
 
 const BookingCard: React.FC<{ 
@@ -1291,15 +1389,27 @@ const BookingCard: React.FC<{
         </div>
       )}
 
-      <div className="flex-grow text-center md:text-left">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
+      <div className="flex-grow text-center md:text-left space-y-2">
+        <div className="flex flex-col md:flex-row md:items-center gap-2">
           <h4 className="font-bold text-base sm:text-lg text-[#1A1A1A] dark:text-white">{booking.customerName}</h4>
-          <span className="md:ml-2 text-[10px] bg-gray-100 dark:bg-white/10 px-2.5 py-0.5 rounded-lg text-gray-500 font-bold self-center md:self-auto">
-            #{booking.id.slice(0, 8)}
-          </span>
+          <div className="flex items-center justify-center md:justify-start gap-2">
+            <span className="text-[10px] bg-gray-100 dark:bg-white/10 px-2.5 py-0.5 rounded-lg text-gray-500 font-bold">
+              #{booking.id.slice(0, 8)}
+            </span>
+            {booking.customerPhone && (
+              <a 
+                href={`tel:${booking.customerPhone}`}
+                className="inline-flex items-center text-[11px] font-bold text-brand-interactive hover:underline px-2 py-0.5 rounded-lg bg-brand-interactive/10"
+                title="Call client directly"
+              >
+                <Phone className="w-3 h-3 mr-1" />
+                {booking.customerPhone}
+              </a>
+            )}
+          </div>
         </div>
 
-        <p className="text-xs sm:text-sm text-brand-interactive font-black mb-2">{booking.serviceName}</p>
+        <p className="text-xs sm:text-sm text-brand-interactive font-black">{booking.serviceName}</p>
 
         <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs text-[#6C757D]">
           <span className="flex items-center"><Calendar className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> {booking.date || 'Flexible'}</span>
@@ -1308,10 +1418,23 @@ const BookingCard: React.FC<{
         </div>
 
         {booking.address && (
-          <p className="text-xs text-[#6C757D] mt-2 font-medium flex items-center justify-center md:justify-start">
-            <MapPin className="w-3.5 h-3.5 mr-1 text-brand-interactive shrink-0" />
-            <span className="truncate max-w-sm">{booking.address}</span>
-          </p>
+          <div className="p-2.5 bg-brand-surface dark:bg-white/5 rounded-xl border border-[#E9ECEF] dark:border-white/10 text-xs text-[#1A1A1A] dark:text-white flex items-start text-left">
+            <MapPin className="w-4 h-4 mr-2 text-brand-interactive shrink-0 mt-0.5" />
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#6C757D] dark:text-gray-400 block mb-0.5">Doorstep Address</span>
+              <span className="font-semibold leading-relaxed break-words">{booking.address}</span>
+            </div>
+          </div>
+        )}
+
+        {booking.notes && (
+          <div className="p-2.5 bg-brand-interactive/5 dark:bg-brand-interactive/10 rounded-xl border border-brand-interactive/20 text-xs text-[#1A1A1A] dark:text-white flex items-start text-left">
+            <MessageSquare className="w-4 h-4 mr-2 text-brand-interactive shrink-0 mt-0.5" />
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-brand-interactive dark:text-brand-accent block mb-0.5">Client Notes & Preferences</span>
+              <span className="font-normal italic leading-relaxed break-words">{booking.notes}</span>
+            </div>
+          </div>
         )}
       </div>
 

@@ -165,11 +165,11 @@ const AgentHome: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions Header Buttons: Large Touch Target, Google Pills, Generous Padding */}
+            {/* Quick Actions Header Buttons: Large Touch Target, Google Pills, Generous Padding & Tactile 3D Jiggle */}
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 to="/agent/dashboard?tab=profile"
-                className="px-5 py-3 sm:px-6 sm:py-3.5 rounded-full bg-white/80 dark:bg-[#161616]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 hover:border-brand-interactive/50 text-xs sm:text-sm font-bold text-[#1A1A1A] dark:text-white flex items-center space-x-2 shadow-sm hover:shadow-[0_8px_20px_rgba(108,53,166,0.15)] hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-200 ease-out cursor-pointer"
+                className="tactile-3d px-5 py-3 sm:px-6 sm:py-3.5 rounded-full bg-white/80 dark:bg-[#161616]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 hover:border-brand-interactive/50 text-xs sm:text-sm font-bold text-[#1A1A1A] dark:text-white flex items-center space-x-2 shadow-sm hover:shadow-[0_8px_20px_rgba(108,53,166,0.15)] cursor-pointer"
               >
                 <Pencil className="w-4 h-4 text-brand-interactive" />
                 <span>Edit Profile</span>
@@ -177,7 +177,7 @@ const AgentHome: React.FC = () => {
 
               <button
                 onClick={handleCopyProfileLink}
-                className="px-5 py-3 sm:px-6 sm:py-3.5 rounded-full bg-white/80 dark:bg-[#161616]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 hover:border-brand-interactive/50 text-xs sm:text-sm font-bold text-[#1A1A1A] dark:text-white flex items-center space-x-2 shadow-sm hover:shadow-[0_8px_20px_rgba(108,53,166,0.15)] hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-200 ease-out cursor-pointer"
+                className="tactile-3d px-5 py-3 sm:px-6 sm:py-3.5 rounded-full bg-white/80 dark:bg-[#161616]/80 backdrop-blur-xl border border-white/80 dark:border-white/10 hover:border-brand-interactive/50 text-xs sm:text-sm font-bold text-[#1A1A1A] dark:text-white flex items-center space-x-2 shadow-sm hover:shadow-[0_8px_20px_rgba(108,53,166,0.15)] cursor-pointer"
               >
                 {copied ? (
                   <>
@@ -194,9 +194,9 @@ const AgentHome: React.FC = () => {
 
               <Link
                 to="/agent/dashboard"
-                className="px-6 py-3.5 sm:px-7 sm:py-3.5 rounded-full bg-gradient-to-r from-[#6C35A6] via-[#7B3DB8] to-[#9146E8] text-white text-xs sm:text-sm font-black flex items-center space-x-2 shadow-[0_8px_24px_rgba(108,53,166,0.35)] hover:shadow-[0_12px_32px_rgba(108,53,166,0.5)] border-t border-white/25 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-200 ease-out cursor-pointer"
+                className="tactile-3d px-6 py-3.5 sm:px-7 sm:py-3.5 rounded-full bg-gradient-to-r from-[#6C35A6] via-[#7B3DB8] to-[#9146E8] text-white text-xs sm:text-sm font-black flex items-center space-x-2 shadow-[0_8px_24px_rgba(108,53,166,0.35)] hover:shadow-[0_12px_32px_rgba(108,53,166,0.5)] border-t border-white/25 cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-white/90" />
+                <Briefcase className="w-4 h-4 text-white/90" />
                 <span>Launch Studio</span>
                 <ChevronRight className="w-4 h-4 text-white/80" />
               </Link>
@@ -359,7 +359,7 @@ const AgentHome: React.FC = () => {
                       <button
                         onClick={() => handleUpdateStatus(booking.id, BookingStatus.CONFIRMED)}
                         disabled={updatingId === booking.id}
-                        className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs sm:text-sm font-bold shadow-[0_6px_20px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_24px_rgba(16,185,129,0.45)] hover:scale-[1.04] active:scale-[0.95] active:translate-y-0.5 transition-all duration-200 ease-out flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                        className="tactile-3d px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs sm:text-sm font-bold shadow-[0_6px_20px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_24px_rgba(16,185,129,0.45)] flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
                       >
                         <CheckCircle className="w-4 h-4" />
                         <span>Accept Slot</span>
@@ -370,7 +370,7 @@ const AgentHome: React.FC = () => {
                       <button
                         onClick={() => handleUpdateStatus(booking.id, BookingStatus.COMPLETED)}
                         disabled={updatingId === booking.id}
-                        className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white text-xs sm:text-sm font-bold shadow-[0_6px_20px_rgba(108,53,166,0.3)] hover:shadow-[0_8px_24px_rgba(108,53,166,0.45)] hover:scale-[1.04] active:scale-[0.95] active:translate-y-0.5 transition-all duration-200 ease-out flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                        className="tactile-3d px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white text-xs sm:text-sm font-bold shadow-[0_6px_20px_rgba(108,53,166,0.3)] hover:shadow-[0_8px_24px_rgba(108,53,166,0.45)] flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
                       >
                         <CheckCircle className="w-4 h-4" />
                         <span>Complete Session</span>
@@ -380,7 +380,7 @@ const AgentHome: React.FC = () => {
                     <button
                       onClick={() => handleUpdateStatus(booking.id, BookingStatus.CANCELLED)}
                       disabled={updatingId === booking.id}
-                      className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-full border border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-500/10 hover:border-red-500/60 text-xs sm:text-sm font-bold hover:scale-[1.02] active:scale-[0.95] active:translate-y-0.5 transition-all duration-200 ease-out cursor-pointer disabled:opacity-50"
+                      className="tactile-3d px-4 py-2.5 sm:px-5 sm:py-3 rounded-full border border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-500/10 hover:border-red-500/60 text-xs sm:text-sm font-bold cursor-pointer disabled:opacity-50"
                     >
                       Decline
                     </button>
@@ -415,7 +415,7 @@ const AgentHome: React.FC = () => {
             </div>
             <Link
               to="/agent/dashboard"
-              className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white text-xs sm:text-sm font-black shadow-[0_6px_20px_rgba(108,53,166,0.3)] hover:shadow-[0_8px_24px_rgba(108,53,166,0.45)] hover:scale-[1.03] active:scale-[0.95] active:translate-y-0.5 transition-all duration-200 ease-out flex items-center space-x-2 cursor-pointer"
+              className="tactile-3d px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white text-xs sm:text-sm font-black shadow-[0_6px_20px_rgba(108,53,166,0.3)] hover:shadow-[0_8px_24px_rgba(108,53,166,0.45)] flex items-center space-x-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Add Service</span>

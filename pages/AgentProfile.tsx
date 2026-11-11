@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, animate } from 'framer-motion';
 import {
@@ -16,9 +16,11 @@ import {
   UserPlus,
   UserCheck,
   Heart,
+  Bookmark,
   ChevronLeft,
   Share2,
   Film,
+  Layers,
   MessageCircle,
   ExternalLink,
   Check,
@@ -41,6 +43,8 @@ import {
   setFollow,
   getLikedServiceIds,
   setServiceLike,
+  getFavoriteServiceIds,
+  setServiceFavorite,
   type SocialUser
 } from '../services/supabaseService';
 import { useAuth } from '../context/AuthContext';
@@ -297,6 +301,49 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, agent, handle 
   );
 };
 
+// Auto-plays video tile when scrolled past/into viewport
+const AutoPlayVideoTile: React.FC<{ src: string; poster?: string }> = ({ src, poster }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    if (!video || !container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [src]);
+
+  return (
+    <div ref={containerRef} className="w-full h-full">
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        className="w-full h-full object-cover"
+      />
+    </div>
+  );
+};
+
 const AgentProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -322,6 +369,7 @@ const AgentProfile: React.FC = () => {
   const [following, setFollowing] = useState<SocialUser[]>([]);
   const [myFollowingIds, setMyFollowingIds] = useState<string[]>([]);
   const [likedIds, setLikedIds] = useState<string[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [followBusy, setFollowBusy] = useState<string | null>(null);
 
   // Booking Modal
@@ -330,14 +378,16 @@ const AgentProfile: React.FC = () => {
   // Fast initial social metrics (counts + my follow status only)
   const loadSocialCounts = async (agentId: string) => {
     try {
-      const [c, liked, mine] = await Promise.all([
+      const [c, liked, favs, mine] = await Promise.all([
         getFollowCounts(agentId),
         user ? getLikedServiceIds(user.id) : Promise.resolve([] as string[]),
+        user ? getFavoriteServiceIds(user.id) : Promise.resolve([] as string[]),
         user ? getMyFollowingIds(user.id) : Promise.resolve([] as string[])
       ]);
 
       setCounts({ followers: c.followers, following: c.following });
       setLikedIds(liked);
+      setFavoriteIds(favs);
       setMyFollowingIds(mine);
     } catch {
       setCounts({ followers: 0, following: 0 });
@@ -467,7 +517,30 @@ const AgentProfile: React.FC = () => {
     setLikedIds((prev) =>
       isLiked ? prev.filter((item) => item !== serviceId) : [...prev, serviceId]
     );
-    showSnackbar?.(isLiked ? 'Removed from liked items' : 'Saved to liked items', 'success');
+    showSnackbar?.(isLiked ? 'Removed like from service' : 'Liked service! Thank you for the love', 'success');
+  };
+
+  const handleToggleFavorite = async (serviceId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
+
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    const isFav = favoriteIds.includes(serviceId);
+    const res = await setServiceFavorite(user.id, serviceId, !isFav);
+
+    if (!res.success) {
+      showSnackbar?.(res.error || 'Could not update favorites', 'error');
+      return;
+    }
+
+    setFavoriteIds((prev) =>
+      isFav ? prev.filter((item) => item !== serviceId) : [...prev, serviceId]
+    );
+    showSnackbar?.(isFav ? 'Removed service from favorites' : 'Saved service to favorites!', 'success');
   };
 
   // Video reels items
@@ -649,12 +722,12 @@ const AgentProfile: React.FC = () => {
                 </h1>
 
                 <div className="flex items-center space-x-3 ml-auto">
-                  {/* Follow Button */}
+                  {/* Follow Button with 3D tactile perspective skew & sideways jiggle */}
                   {!isOwnProfile ? (
                     <button
                       onClick={() => handleToggleFollow(agent.id)}
                       disabled={followBusy === agent.id}
-                      className={`h-11 px-6 rounded-2xl text-sm font-black transition-all duration-150 ease-out flex items-center space-x-2 disabled:opacity-60 cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner ${isAgentFollowed
+                      className={`tactile-3d h-11 px-6 rounded-2xl text-sm font-black flex items-center space-x-2 disabled:opacity-60 cursor-pointer ${isAgentFollowed
                         ? 'bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rose-500/50 hover:text-rose-500 shadow-sm'
                         : 'bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20'
                         }`}
@@ -674,13 +747,13 @@ const AgentProfile: React.FC = () => {
                   ) : (
                     <Link
                       to="/agent-dashboard"
-                      className="h-11 px-6 rounded-2xl text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm"
+                      className="tactile-3d h-11 px-6 rounded-2xl text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive shadow-sm"
                     >
                       <span>Edit Profile</span>
                     </Link>
                   )}
 
-                  {/* Book Now Button with physical tactile feedback */}
+                  {/* Book Now Button with 3D tactile perspective skew & sideways jiggle */}
                   <button
                     onClick={() => {
                       if (services.length > 0) {
@@ -689,7 +762,7 @@ const AgentProfile: React.FC = () => {
                         showSnackbar?.('No bookable services listed yet', 'info');
                       }
                     }}
-                    className="h-11 px-6 rounded-2xl text-sm font-black bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20 flex items-center space-x-2 transition-all duration-150 ease-out hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner cursor-pointer"
+                    className="tactile-3d h-11 px-6 rounded-2xl text-sm font-black bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20 flex items-center space-x-2 cursor-pointer"
                   >
                     <Calendar className="w-4 h-4" />
                     <span>Book Now</span>
@@ -699,7 +772,7 @@ const AgentProfile: React.FC = () => {
                   {agent.phone ? (
                     <a
                       href={`tel:${agent.phone}`}
-                      className="h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:text-brand-interactive hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm"
+                      className="tactile-3d h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:text-brand-interactive shadow-sm"
                       title="Call specialist"
                     >
                       <Phone className="w-4 h-4" />
@@ -708,7 +781,7 @@ const AgentProfile: React.FC = () => {
                   ) : (
                     <button
                       onClick={() => showSnackbar?.(`Message sent to ${agent.name}`, 'info')}
-                      className="h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:text-brand-interactive hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm cursor-pointer"
+                      className="tactile-3d h-11 px-4 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center space-x-2 hover:border-brand-interactive hover:text-brand-interactive shadow-sm cursor-pointer"
                       title="Send message"
                     >
                       <MessageCircle className="w-4 h-4" />
@@ -719,7 +792,7 @@ const AgentProfile: React.FC = () => {
                   {/* Custom Share Button (Opens Share Modal) */}
                   <button
                     onClick={() => setIsShareModalOpen(true)}
-                    className="h-11 w-11 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center justify-center hover:text-brand-interactive transition-all active:scale-95 cursor-pointer"
+                    className="tactile-3d h-11 w-11 rounded-2xl bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#333] flex items-center justify-center hover:text-brand-interactive cursor-pointer"
                     title="Share profile"
                   >
                     <Share2 className="w-4 h-4" />
@@ -947,13 +1020,13 @@ const AgentProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Row 3: Action Buttons with physical tactile feedback */}
+            {/* Row 3: Action Buttons with physical 3D tactile perspective skew & sideways jiggle */}
             <div className="flex items-center gap-2.5 mb-4">
               {!isOwnProfile ? (
                 <button
                   onClick={() => handleToggleFollow(agent.id)}
                   disabled={followBusy === agent.id}
-                  className={`flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black transition-all duration-150 ease-out flex items-center justify-center space-x-2 disabled:opacity-60 cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner ${isAgentFollowed
+                  className={`tactile-3d flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black flex items-center justify-center space-x-2 disabled:opacity-60 cursor-pointer ${isAgentFollowed
                     ? 'bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-rose-500/50 hover:text-rose-500 shadow-sm'
                     : 'bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20'
                     }`}
@@ -973,13 +1046,13 @@ const AgentProfile: React.FC = () => {
               ) : (
                 <Link
                   to="/agent-dashboard"
-                  className="flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 transition-all duration-150 ease-out shadow-sm"
+                  className="tactile-3d flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center shadow-sm"
                 >
                   <span>Edit Profile</span>
                 </Link>
               )}
 
-              {/* Book Now Button with generous padding and physical tactile feedback */}
+              {/* Book Now Button with generous padding and physical 3D tactile feedback */}
               <button
                 onClick={() => {
                   if (services.length > 0) {
@@ -988,17 +1061,17 @@ const AgentProfile: React.FC = () => {
                     showSnackbar?.('No bookable services listed yet', 'info');
                   }
                 }}
-                className="flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive hover:text-brand-interactive flex items-center justify-center space-x-2 transition-all duration-150 ease-out hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.96] active:translate-y-0.5 active:shadow-inner shadow-sm cursor-pointer"
+                className="tactile-3d flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive hover:text-brand-interactive flex items-center justify-center space-x-2 shadow-sm cursor-pointer"
               >
                 <Calendar className="w-4 h-4 text-brand-interactive" />
                 <span>Book Now</span>
               </button>
 
-              {/* Contact / Phone with physical tactile feedback */}
+              {/* Contact / Phone with physical 3D tactile feedback */}
               {agent.phone ? (
                 <a
                   href={`tel:${agent.phone}`}
-                  className="w-12 h-12 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center shrink-0 transition-all duration-150 ease-out hover:scale-105 hover:-translate-y-0.5 hover:border-brand-interactive hover:text-brand-interactive active:scale-[0.94] active:translate-y-0.5 shadow-sm"
+                  className="tactile-3d w-12 h-12 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center shrink-0 hover:border-brand-interactive hover:text-brand-interactive shadow-sm"
                   title="Call specialist"
                 >
                   <Phone className="w-4 h-4" />
@@ -1006,7 +1079,7 @@ const AgentProfile: React.FC = () => {
               ) : (
                 <button
                   onClick={() => showSnackbar?.(`Message sent to ${agent.name}`, 'info')}
-                  className="w-12 h-12 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center shrink-0 transition-all duration-150 ease-out hover:scale-105 hover:-translate-y-0.5 hover:border-brand-interactive hover:text-brand-interactive active:scale-[0.94] active:translate-y-0.5 shadow-sm cursor-pointer"
+                  className="tactile-3d w-12 h-12 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] flex items-center justify-center shrink-0 hover:border-brand-interactive hover:text-brand-interactive shadow-sm cursor-pointer"
                   title="Send message"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -1140,6 +1213,15 @@ const AgentProfile: React.FC = () => {
                     {services.map((service) => {
                       const isVideo = isVideoUrl(service.image);
                       const isLiked = likedIds.includes(service.id);
+                      const isFavorite = favoriteIds.includes(service.id);
+                      const galleryVideos = (service.gallery || []).filter(
+                        (item) => item.type === 'video' || isVideoUrl(item.url)
+                      );
+                      const videoCount = galleryVideos.length + (isVideo ? 1 : 0);
+                      const firstVideoUrl = isVideo
+                        ? service.image
+                        : galleryVideos[0]?.url || null;
+                      const hasAnyVideo = Boolean(firstVideoUrl);
 
                       return (
                         <div
@@ -1148,25 +1230,21 @@ const AgentProfile: React.FC = () => {
                           onClick={() => navigate(`/services/${service.id}`)}
                         >
                           {/* Media Thumbnail with broken image fallback */}
-                          {service.image ? (
-                            isVideo ? (
-                              <video
-                                src={service.image}
-                                muted
-                                playsInline
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <img
-                                src={service.image}
-                                alt={service.name}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                loading="lazy"
-                                onError={(e) => {
-                                  e.currentTarget.src = getInitialsSvg(service.name);
-                                }}
-                              />
-                            )
+                          {hasAnyVideo && firstVideoUrl ? (
+                            <AutoPlayVideoTile
+                              src={firstVideoUrl}
+                              poster={!isVideo ? service.image : undefined}
+                            />
+                          ) : service.image ? (
+                            <img
+                              src={service.image}
+                              alt={service.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.src = getInitialsSvg(service.name);
+                              }}
+                            />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-brand-surface dark:bg-[#1E1E1E]">
                               <span className="text-[10px] md:text-sm font-black text-brand-interactive line-clamp-2">
@@ -1175,24 +1253,44 @@ const AgentProfile: React.FC = () => {
                             </div>
                           )}
 
-                          {/* Video Slate Indicator */}
-                          {isVideo && (
-                            <div className="absolute top-1.5 right-1.5 md:top-3 md:right-3 p-1 md:p-1.5 rounded-md md:rounded-xl bg-black/60 text-white backdrop-blur-sm pointer-events-none">
-                              <Play className="w-2.5 h-2.5 md:w-4 md:h-4 fill-current" />
+                          {/* Video Slate Indicator - Top Left (Shows multiple count or single play icon) */}
+                          {videoCount > 1 ? (
+                            <div className="absolute top-1.5 left-1.5 md:top-3 md:left-3 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-xl bg-black/75 text-white backdrop-blur-md pointer-events-none z-10 flex items-center space-x-1 text-[9px] md:text-xs font-black border border-white/20 shadow-md">
+                              <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-brand-interactive" />
+                              <span>{videoCount}</span>
                             </div>
-                          )}
+                          ) : hasAnyVideo ? (
+                            <div className="absolute top-1.5 left-1.5 md:top-3 md:left-3 p-1 md:p-1.5 rounded-md md:rounded-xl bg-black/60 text-white backdrop-blur-sm pointer-events-none z-10 shadow-md">
+                              <Play className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 fill-current" />
+                            </div>
+                          ) : null}
 
-                          {/* Top-Right Heart like toggle */}
-                          <button
-                            onClick={(e) => handleToggleLike(service.id, e)}
-                            className="absolute top-1.5 right-1.5 md:top-3 md:right-3 p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/50 text-white backdrop-blur-sm hover:scale-110 active:scale-95 transition-transform z-10 cursor-pointer"
-                            title={isLiked ? 'Unlike' : 'Like'}
-                          >
-                            <Heart
-                              className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'
-                                }`}
-                            />
-                          </button>
+                          {/* Top-Right Quick Actions: Like & Favorite */}
+                          <div className="absolute top-1.5 right-1.5 md:top-3 md:right-3 flex items-center space-x-1 md:space-x-1.5 z-10">
+                            {/* Like Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => handleToggleLike(service.id, e)}
+                              className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/50 text-white backdrop-blur-sm hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                              title={isLiked ? 'Unlike' : 'Like'}
+                            >
+                              <Heart
+                                className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'}`}
+                              />
+                            </button>
+
+                            {/* Favorite Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => handleToggleFavorite(service.id, e)}
+                              className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/50 text-white backdrop-blur-sm hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                              title={isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
+                            >
+                              <Bookmark
+                                className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isFavorite ? 'text-amber-500 fill-amber-500' : 'text-white'}`}
+                              />
+                            </button>
+                          </div>
 
                           {/* Price Overlay */}
                           <div className="absolute bottom-1.5 left-1.5 md:bottom-3 md:left-3 px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-xl bg-black/80 backdrop-blur-md text-[10px] md:text-xs font-black text-white shadow-sm pointer-events-none">

@@ -246,5 +246,7 @@ showSnackbar('Booking confirmed!', 'success');   // 'success' | 'error' | 'info'
 - **Loading states**: Use `<LoadingState message="..." />` for page-level loading
 - **Error states**: Show inline error UI with `AlertCircle` from lucide-react; don't throw to ErrorBoundary for recoverable errors
 - **Icons**: Always from `lucide-react` — do NOT introduce other icon libraries
+- **STRICTLY PROHIBITED ICON**: NEVER use the `Sparkles` icon (`<Sparkles />` or any AI-style 4-pointed sparkle star icon) anywhere in the application. Everything Beauty is an elite human-to-human marketplace, not an AI playground.
+- **Button Micro-Interactions**: Use tactile 3D perspective skew, subtle sideways jiggle, and elastic press compression (`tactile-3d`) instead of flat box shadows.
 - **Image fallback**: For agent avatars, use `getInitialsSvg(agent.name)` from `pages/Agents.tsx` as the `onError` fallback
 

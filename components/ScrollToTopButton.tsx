@@ -63,7 +63,7 @@ const ScrollToTopButton: React.FC = () => {
           transition={{ type: 'spring', stiffness: 420, damping: 26 }}
           onClick={scrollToTop}
           aria-label="Scroll to top"
-          className="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 z-40 w-11 h-11 sm:w-12 sm:h-12 aspect-square rounded-2xl bg-white/90 dark:bg-[#141414]/90 backdrop-blur-2xl border border-black/8 dark:border-white/15 shadow-[0_8px_30px_rgba(108,53,166,0.18)] hover:shadow-[0_14px_40px_rgba(108,53,166,0.35)] dark:hover:shadow-[0_14px_40px_rgba(108,53,166,0.5)] hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50 text-brand-interactive dark:text-brand-accent transition-all duration-200 flex items-center justify-center cursor-pointer group active:outline-none focus:outline-none"
+          className="fixed bottom-24 right-4 sm:bottom-8 sm:right-8 z-40 w-11 h-11 sm:w-12 sm:h-12 aspect-square rounded-2xl bg-white/90 dark:bg-[#141414]/90 backdrop-blur-2xl border border-black/8 dark:border-white/15 shadow-[0_8px_30px_rgba(108,53,166,0.18)] hover:shadow-[0_14px_40px_rgba(108,53,166,0.35)] dark:hover:shadow-[0_14px_40px_rgba(108,53,166,0.5)] hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50 text-brand-interactive dark:text-brand-accent transition-all duration-200 flex items-center justify-center cursor-pointer group active:outline-none focus:outline-none"
         >
           <ArrowUp className="w-5 h-5 group-hover:-translate-y-1 transition-transform duration-200 ease-out" />
           <span className="sr-only">Back to top</span>

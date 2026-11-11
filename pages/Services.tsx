@@ -1,20 +1,25 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, SlidersHorizontal, MapPin, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, X, Compass, Tag } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, X, Compass, Tag, Heart, Bookmark } from 'lucide-react';
 import { Service, Agent } from '../types';
-import { getServices, getAgents } from '../services/supabaseService';
+import { getServices, getAgents, getFavoriteServiceIds, getLikedServiceIds } from '../services/supabaseService';
 import { searchServicesIntelligently } from '../services/intelligentSearch';
+import { useAuth } from '../context/AuthContext';
 import ServiceCard from '../components/ServiceCard';
 import IntelligentSearchBar from '../components/IntelligentSearchBar';
 import { smoothScrollTo } from '../components/SmoothScroll';
 
 const Services: React.FC = () => {
+  const { user } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [specialFilter, setSpecialFilter] = useState<'all' | 'favorites' | 'liked'>('all');
+  const [userFavIds, setUserFavIds] = useState<string[]>([]);
+  const [userLikedIds, setUserLikedIds] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState(500000);
   const [sortBy, setSortBy] = useState('relevance');
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,9 +30,12 @@ const Services: React.FC = () => {
       setLoading(true);
     }
     setError(null);
-    const [servRes, agentRes] = await Promise.all([
+    const targetUserId = user?.id || 'guest_user';
+    const [servRes, agentRes, favIds, likedIds] = await Promise.all([
       getServices(),
-      getAgents()
+      getAgents(),
+      getFavoriteServiceIds(targetUserId),
+      getLikedServiceIds(targetUserId)
     ]);
     if (servRes.error) {
       setError(servRes.error);
@@ -37,6 +45,8 @@ const Services: React.FC = () => {
     if (agentRes.data) {
       setAgents(agentRes.data);
     }
+    setUserFavIds(favIds || []);
+    setUserLikedIds(likedIds || []);
     setLoading(false);
   };
 
@@ -53,9 +63,24 @@ const Services: React.FC = () => {
         setAgents(customEvent.detail.data);
       }
     };
+
+    const targetUserId = user?.id || 'guest_user';
+    const onFavsUpdated = () => {
+      getFavoriteServiceIds(targetUserId).then(setUserFavIds);
+    };
+    const onLikesUpdated = () => {
+      getLikedServiceIds(targetUserId).then(setUserLikedIds);
+    };
+
     window.addEventListener('eb:cache-updated', onCacheUpdated);
-    return () => window.removeEventListener('eb:cache-updated', onCacheUpdated);
-  }, []);
+    window.addEventListener('eb:favorites-updated', onFavsUpdated);
+    window.addEventListener('eb:likes-updated', onLikesUpdated);
+    return () => {
+      window.removeEventListener('eb:cache-updated', onCacheUpdated);
+      window.removeEventListener('eb:favorites-updated', onFavsUpdated);
+      window.removeEventListener('eb:likes-updated', onLikesUpdated);
+    };
+  }, [user]);
 
   // Derive categories dynamically from Supabase services
   const categories = useMemo(() => {
@@ -68,10 +93,18 @@ const Services: React.FC = () => {
   // Real-time intelligent search evaluation
   const intelligentResult = useMemo(() => {
     if (isSearchActive) {
-      return searchServicesIntelligently(services || [], search, priceRange);
+      const res = searchServicesIntelligently(services || [], search, priceRange);
+      if (specialFilter === 'favorites') {
+        res.matches = res.matches.filter(s => userFavIds.includes(s.id));
+      } else if (specialFilter === 'liked') {
+        res.matches = res.matches.filter(s => userLikedIds.includes(s.id));
+      }
+      return res;
     }
     const matched = (services || []).filter(service => {
       if (!service) return false;
+      if (specialFilter === 'favorites' && !userFavIds.includes(service.id)) return false;
+      if (specialFilter === 'liked' && !userLikedIds.includes(service.id)) return false;
       const sCat = (service.category || '').toLowerCase();
       const matchesCategory = selectedCategory === 'All' || sCat === (selectedCategory || '').toLowerCase();
       const matchesPrice = (service.price ?? 0) <= priceRange;
@@ -84,7 +117,7 @@ const Services: React.FC = () => {
       suggestedQueries: [] as string[],
       message: null as string | null
     };
-  }, [services, search, isSearchActive, selectedCategory, priceRange]);
+  }, [services, search, isSearchActive, selectedCategory, priceRange, specialFilter, userFavIds, userLikedIds]);
 
   const sortedServices = useMemo(() => {
     const list = [...(intelligentResult?.matches || [])];
@@ -177,52 +210,141 @@ const Services: React.FC = () => {
               transition={{ duration: 0.2 }}
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                {/* Sort Control */}
-                <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 w-fit">
-                  <div className="bg-brand-interactive/10 p-1.5 rounded-xl shadow-inner">
-                    <MapPin className="w-4 h-4 text-brand-interactive" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Order by</span>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
-                    >
-                      <option value="relevance">Relevance & Popularity</option>
-                      <option value="rating">Top Rated</option>
-                      <option value="price_low">Price: Low to High</option>
-                      <option value="price_high">Price: High to Low</option>
-                    </select>
-                  </div>
+                {/* Special Filter Tabs: All / Favorites / Liked - No bounding box, bouncy sliding pill */}
+                <div className="flex items-center gap-1 sm:gap-2 w-fit">
+                  <button
+                    onClick={() => { setSpecialFilter('all'); setCurrentPage(1); }}
+                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none active:scale-95 ${
+                      specialFilter === 'all'
+                        ? 'text-white'
+                        : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                    }`}
+                  >
+                    {specialFilter === 'all' && (
+                      <motion.div
+                        layoutId="specialFilterPill"
+                        className="absolute inset-0 bg-brand-interactive rounded-xl sm:rounded-2xl shadow-md shadow-brand-interactive/30"
+                        transition={{
+                          type: "spring",
+                          stiffness: 450,
+                          damping: 26,
+                          mass: 0.8
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10 font-black">All Services</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setSpecialFilter('favorites'); setCurrentPage(1); }}
+                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${
+                      specialFilter === 'favorites'
+                        ? 'text-white'
+                        : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-amber-500'
+                    }`}
+                  >
+                    {specialFilter === 'favorites' && (
+                      <motion.div
+                        layoutId="specialFilterPill"
+                        className="absolute inset-0 bg-amber-500 rounded-xl sm:rounded-2xl shadow-md shadow-amber-500/30"
+                        transition={{
+                          type: "spring",
+                          stiffness: 450,
+                          damping: 26,
+                          mass: 0.8
+                        }}
+                      />
+                    )}
+                    <Bookmark className={`w-3.5 h-3.5 relative z-10 ${specialFilter === 'favorites' ? 'fill-current' : ''}`} />
+                    <span className="relative z-10 font-black">Favorites ({userFavIds.length})</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setSpecialFilter('liked'); setCurrentPage(1); }}
+                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${
+                      specialFilter === 'liked'
+                        ? 'text-white'
+                        : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-rose-500'
+                    }`}
+                  >
+                    {specialFilter === 'liked' && (
+                      <motion.div
+                        layoutId="specialFilterPill"
+                        className="absolute inset-0 bg-rose-500 rounded-xl sm:rounded-2xl shadow-md shadow-rose-500/30"
+                        transition={{
+                          type: "spring",
+                          stiffness: 450,
+                          damping: 26,
+                          mass: 0.8
+                        }}
+                      />
+                    )}
+                    <Heart className={`w-3.5 h-3.5 relative z-10 ${specialFilter === 'liked' ? 'fill-current' : ''}`} />
+                    <span className="relative z-10 font-black">Liked ({userLikedIds.length})</span>
+                  </button>
                 </div>
 
-                <div className="text-xs text-[#6C757D] font-bold">
-                  Showing <span className="text-brand-interactive font-black">{sortedServices.length}</span> services
+                <div className="flex items-center space-x-4">
+                  {/* Sort Control */}
+                  <div className="flex items-center space-x-3 bg-brand-background dark:bg-[#1A1A1A] px-4 py-2.5 rounded-2xl shadow-md border border-brand-interactive/20 w-fit">
+                    <div className="bg-brand-interactive/10 p-1.5 rounded-xl shadow-inner">
+                      <MapPin className="w-4 h-4 text-brand-interactive" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-[#6C757D] leading-none mb-0.5">Order by</span>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="bg-transparent text-[#1A1A1A] dark:text-white outline-none cursor-pointer font-bold text-xs sm:text-sm hover:text-brand-interactive transition-colors appearance-none pr-4"
+                      >
+                        <option value="relevance">Relevance & Popularity</option>
+                        <option value="rating">Top Rated</option>
+                        <option value="price_low">Price: Low to High</option>
+                        <option value="price_high">Price: High to Low</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-[#6C757D] font-bold hidden md:block">
+                    Showing <span className="text-brand-interactive font-black">{sortedServices.length}</span> services
+                  </div>
                 </div>
               </div>
 
-              {/* Category Filters */}
+              {/* Category Filters - No bounding box, bouncy sliding pill */}
               {categories.length > 1 && (
-                <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                  <div className="flex bg-brand-background dark:bg-[#1A1A1A] p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
-                    {categories.map((cat) => (
+                <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 pt-1 scrollbar-hide">
+                  {categories.map((cat) => {
+                    const isSelected = selectedCategory.toLowerCase() === cat.toLowerCase();
+                    return (
                       <button
                         key={cat}
                         onClick={() => {
                           setSelectedCategory(cat);
                           setCurrentPage(1);
                         }}
-                        className={`px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
-                          selectedCategory.toLowerCase() === cat.toLowerCase()
-                            ? 'bg-brand-interactive text-white shadow-md'
-                            : 'text-[#6C757D] hover:text-brand-interactive'
+                        className={`relative px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap cursor-pointer select-none active:scale-95 ${
+                          isSelected
+                            ? 'text-white'
+                            : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
                         }`}
                       >
-                        {cat}
+                        {isSelected && (
+                          <motion.div
+                            layoutId="activeCategoryPill"
+                            className="absolute inset-0 bg-brand-interactive rounded-xl sm:rounded-2xl shadow-md shadow-brand-interactive/30"
+                            transition={{
+                              type: "spring",
+                              stiffness: 450,
+                              damping: 26,
+                              mass: 0.8
+                            }}
+                          />
+                        )}
+                        <span className="relative z-10 font-black">{cat}</span>
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               )}
             </motion.div>

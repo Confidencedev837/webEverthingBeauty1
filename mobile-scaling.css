@@ -67,14 +67,14 @@
   /* Card squircle corner radius: 18px */
   --service-card-mobile-img-h: 11.5rem;
   /* Service card image height: 184px */
-  --card-title-mobile-size: 0.875rem;
-  /* Service / Specialist card title: 14px */
-  --card-desc-mobile-size: 0.71875rem;
-  /* Card bio / description snippet: 11.5px */
-  --card-price-mobile-size: 0.9375rem;
-  /* Price tag size: 15px */
-  --card-meta-mobile-size: 0.71875rem;
-  /* Rating stars, reviews, distance: 11.5px */
+  --card-title-mobile-size: 1.5rem;
+  /* Service / Specialist card title: 24px (Large, highly legible) */
+  --card-desc-mobile-size: 1.125rem;
+  /* Card bio / description snippet: 18px (Comfortable reading size) */
+  --card-price-mobile-size: 1.875rem;
+  /* Price tag size: 30px (Prominent, high contrast) */
+  --card-meta-mobile-size: 1rem;
+  /* Rating stars, reviews, distance: 16px */
   --agent-card-mobile-avatar: 3.5rem;
   /* Specialist circular avatar: 56px */
   --quickstrip-mobile-card-w: 16.5rem;

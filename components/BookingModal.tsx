@@ -37,7 +37,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
 
   const [date, setDate] = useState(defaultDateStr);
   const [time, setTime] = useState('11:00 AM');
-  const [address, setAddress] = useState(currentUser?.address || '');
+  const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   
   // Availability & conflict prevention state
@@ -104,6 +104,39 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
     checkConflicts();
   }, [date, service.agentId, availability]);
 
+  const validateDoorstepAddress = (addr: string): { valid: boolean; error?: string } => {
+    const clean = addr.trim();
+    if (!clean || clean.length < 12) {
+      return {
+        valid: false,
+        error: 'Please enter a complete doorstep delivery address (minimum 12 characters including house/building number, street name, and area).'
+      };
+    }
+
+    // Require at least one number (building, plot, flat, or street number)
+    if (!/\d/.test(clean)) {
+      return {
+        valid: false,
+        error: 'Please include your building, plot, house or apartment number (e.g. "No. 14", "Plot 8", "Flat 2B") so your beauty specialist can locate your doorstep.'
+      };
+    }
+
+    // Reject vague single-word or generic locations
+    const vagueTerms = [
+      'lagos', 'abuja', 'ibadan', 'port harcourt', 'calabar', 'uyo', 'kano', 'benin', 'enugu', 'asaba',
+      'home', 'my home', 'my house', 'house', 'office', 'my office', 'location', 'client location',
+      'around', 'nearby', 'anywhere', 'call me', 'gate', 'somewhere', 'na', 'nil', 'none'
+    ];
+    if (vagueTerms.includes(clean.toLowerCase())) {
+      return {
+        valid: false,
+        error: 'The address entered is too vague. Please enter your full physical doorstep address with building number, street name, and area.'
+      };
+    }
+
+    return { valid: true };
+  };
+
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -122,6 +155,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
       return;
     }
 
+    // Strict Doorstep Address Validation
+    const addressCheck = validateDoorstepAddress(address);
+    if (!addressCheck.valid) {
+      setErrorMessage(addressCheck.error || 'Please provide a valid, complete doorstep delivery address.');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMessage('');
 
@@ -134,8 +174,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
       serviceId: service.id,
       date: date || defaultDateStr,
       time,
-      address: address || 'Client location',
-      customerNotes: notes,
+      address: address.trim(),
+      customerNotes: notes.trim(),
       totalAmount
     });
 
@@ -188,7 +228,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] dark:text-white">Book Appointment</h2>
-                  <p className="text-xs text-[#6C757D]">Direct calendar synchronization</p>
                 </div>
                 <button onClick={onClose} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-colors">
                   <X className="w-6 h-6 text-[#6C757D]" />
@@ -283,30 +322,39 @@ const BookingModal: React.FC<BookingModalProps> = ({ service, isOpen, onClose })
                   </div>
 
                   {/* Location */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-[#6C757D] flex items-center">
-                      <MapPin className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> CLIENT ADDRESS
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-[#6C757D] flex items-center justify-between">
+                      <span className="flex items-center">
+                        <MapPin className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> CLIENT ADDRESS
+                      </span>
+                      <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">Strict Doorstep Verification</span>
                     </label>
                     <input 
                       type="text" 
                       placeholder="e.g. 15 Admiralty Way, Lekki Phase 1, Lagos" 
                       required 
                       value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      onChange={(e) => {
+                        setAddress(e.target.value);
+                        if (errorMessage) setErrorMessage('');
+                      }}
                       className="w-full p-3 bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm outline-none focus:border-brand-interactive transition-all text-[#1A1A1A] dark:text-white" 
                     />
+                    <p className="text-[11px] text-[#6C757D] dark:text-gray-400">
+                      Must include building/plot/flat number and area so the specialist can reach your exact doorstep.
+                    </p>
                   </div>
 
                   {/* Requests */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-black text-[#6C757D] flex items-center">
                       <MessageSquare className="w-3.5 h-3.5 mr-1 text-brand-interactive" /> NOTES & PREFERENCES
                     </label>
                     <textarea 
-                      placeholder="Hair texture, allergies, skin tone notes, gate code..." 
+                      placeholder="Hair texture, allergies, skin tone notes, estate gate code, special requests..." 
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full p-3 bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm h-16 resize-none outline-none focus:border-brand-interactive transition-all text-[#1A1A1A] dark:text-white"
+                      className="w-full p-3 bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/10 rounded-xl text-sm h-18 resize-none outline-none focus:border-brand-interactive transition-all text-[#1A1A1A] dark:text-white"
                     />
                   </div>
 

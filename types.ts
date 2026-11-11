@@ -58,6 +58,9 @@ export interface Service {
   agentSpecialty: string;
   agentLocation?: string;
   gallery?: ServiceGalleryItem[];
+  likesCount?: number;
+  isLiked?: boolean;
+  isFavorite?: boolean;
 }
 
 export interface Agent {
