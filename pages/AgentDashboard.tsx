@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useReducedMotion } from 'framer-motion';
 
 // ============================================================================
@@ -60,7 +60,8 @@ import {
   CreditCard,
   Phone,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Smile
 } from 'lucide-react';
 import { 
   VerificationStatus, 
@@ -83,7 +84,7 @@ import {
   getReviewsForAgent,
   AgentBankSecurityStatus
 } from '../services/supabaseService';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import CreateServiceModal from '../components/agent/CreateServiceModal';
 import ServiceShareModal from '../components/agent/ServiceShareModal';
 import AgentProfileEditor from '../components/agent/AgentProfileEditor';
@@ -127,9 +128,92 @@ const springTransition = {
   damping: 25
 };
 
+/**
+ * SkewedBounceTypewriter
+ * Animates text character-by-character with tactile 3D perspective skew,
+ * energetic spring bounce, and word-safe wrapping.
+ * Re-triggers on page reload or tab navigation.
+ */
+interface SkewedBounceTypewriterProps {
+  text: string;
+  trailingNode?: React.ReactNode;
+  triggerKey?: string | number;
+}
+
+const SkewedBounceTypewriter: React.FC<SkewedBounceTypewriterProps> = ({ text, trailingNode, triggerKey }) => {
+  const words = useMemo(() => text.split(' '), [text]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.034,
+        delayChildren: 0.06,
+      },
+    },
+  };
+
+  const charVariants = {
+    hidden: {
+      opacity: 0,
+      y: 16,
+      scale: 0.35,
+      skewX: -18,
+      rotate: -5,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      skewX: 0,
+      rotate: 0,
+      transition: {
+        type: 'spring' as const,
+        stiffness: 460,
+        damping: 18,
+        mass: 0.5,
+      },
+    },
+  };
+
+  return (
+    <motion.span
+      key={triggerKey ?? text}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="inline-flex flex-wrap items-baseline gap-x-[0.28em]"
+    >
+      {words.map((word, wIdx) => (
+        <span key={wIdx} className="inline-flex items-baseline whitespace-nowrap">
+          {word.split('').map((char: string, cIdx: number) => (
+            <motion.span
+              key={`${wIdx}-${cIdx}`}
+              variants={charVariants}
+              className="inline-block transform-gpu will-change-transform origin-bottom"
+            >
+              {char}
+            </motion.span>
+          ))}
+        </span>
+      ))}
+      {trailingNode && (
+        <motion.span
+          variants={charVariants}
+          className="inline-flex items-center self-center transform-gpu will-change-transform ml-1"
+        >
+          {trailingNode}
+        </motion.span>
+      )}
+    </motion.span>
+  );
+};
+
 const AgentDashboard: React.FC = () => {
   const { user, currentUser, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { showSnackbar } = useSnackbar();
 
@@ -145,6 +229,26 @@ const AgentDashboard: React.FC = () => {
   });
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // 4 Rotating motivating prompts on Overview tab cycling every 4 seconds
+  const displayName = currentUser?.name || user?.user_metadata?.name || 'Confidence Orok';
+
+  const overviewPrompts = useMemo(() => [
+    { text: `Welcome back, ${displayName}`, hasSmile: false },
+    { text: 'Ready to start earning?', hasSmile: true },
+    { text: 'Update your services to attract clients', hasSmile: false },
+    { text: 'Set your active times to get booked', hasSmile: false },
+  ], [displayName]);
+
+  const [promptIdx, setPromptIdx] = useState(0);
+
+  useEffect(() => {
+    if (view !== 'overview') return;
+    const timer = setInterval(() => {
+      setPromptIdx((prev) => (prev + 1) % overviewPrompts.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [view, overviewPrompts.length]);
   
   // Modals state
   const [isCreateServiceOpen, setIsCreateServiceOpen] = useState(false);
@@ -356,17 +460,6 @@ const AgentDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-brand-surface dark:bg-[#0D0D0D] flex pt-20">
-      {/* Mobile Menu Toggle */}
-      <div className="lg:hidden fixed top-24 right-6 z-40">
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-3 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl shadow-xl border border-[#E9ECEF] dark:border-[#2D2D2D]"
-        >
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </motion.button>
-      </div>
-
       {/* Sidebar Navigation */}
       <AnimatePresence>
         {(isMobileMenuOpen || window.innerWidth >= 1024) && (
@@ -384,18 +477,26 @@ const AgentDashboard: React.FC = () => {
           >
             {/* Mobile Header in Menu */}
             <div className="lg:hidden flex justify-between items-center mb-6">
-              <span className="font-serif font-black text-xl">Specialist Studio</span>
-              <button onClick={() => setIsMobileMenuOpen(false)}>
+              <span className="font-serif font-black text-xl text-[#1A1A1A] dark:text-white">Actions</span>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white cursor-pointer"
+                aria-label="Close actions menu"
+              >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Specialist Profile Card in Sidebar */}
-            <div className="flex items-center space-x-4 mb-8 p-3 rounded-2xl bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/5">
+            {/* Specialist Profile Card in Sidebar - Round Circular Avatar */}
+            <div className="flex items-center space-x-4 mb-8 p-3.5 rounded-2xl bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/5">
               {currentUser?.avatar ? (
-                <img src={currentUser.avatar} className="w-14 h-14 rounded-2xl object-cover shadow-md" alt="" />
+                <img 
+                  src={currentUser.avatar} 
+                  className="w-14 h-14 rounded-full object-cover shadow-md ring-2 ring-brand-interactive/20 shrink-0" 
+                  alt={currentUser.name || 'Specialist'} 
+                />
               ) : (
-                <div className="w-14 h-14 rounded-2xl bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold text-lg shadow-md">
+                <div className="w-14 h-14 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold text-lg shadow-md ring-2 ring-brand-interactive/20 shrink-0">
                   <User className="w-7 h-7" />
                 </div>
               )}
@@ -411,10 +512,10 @@ const AgentDashboard: React.FC = () => {
             </div>
 
             {/* Navigation links */}
-            <nav className="flex-grow space-y-1.5">
+            <nav className="flex-grow space-y-2">
               <SidebarItem 
                 icon={<House />} 
-                label="Command Center" 
+                label="Overview" 
                 badge={pendingBookings.length > 0 ? `${pendingBookings.length}` : undefined}
                 active={view === 'overview'} 
                 onClick={() => { setView('overview'); setIsMobileMenuOpen(false); }} 
@@ -477,25 +578,48 @@ const AgentDashboard: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-grow p-4 sm:p-8 lg:p-12 overflow-y-auto w-full">
         {/* Top Header */}
-        <header className="flex flex-wrap justify-between items-center gap-4 mb-8 sm:mb-10">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-serif font-black text-[#1A1A1A] dark:text-white">
-              {view === 'overview' && `Welcome back, ${currentUser?.name || user?.user_metadata?.name || ''}`}
-              {view === 'bookings' && 'Appointments Pipeline'}
-              {view === 'availability' && 'Working Hours & Schedule'}
-              {view === 'services' && 'Services Catalog'}
-              {view === 'payouts' && 'Bank Payouts & Security'}
-              {view === 'reviews' && 'Client Feedback & Reviews'}
-              {view === 'profile' && 'Public Profile Studio'}
-            </h1>
-            {view !== 'overview' && (
-              <p className="text-xs sm:text-sm text-[#6C757D] font-medium hidden sm:block mt-1">
-                Welcome back, {currentUser?.name || user?.user_metadata?.name || ''}
-              </p>
-            )}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10">
+          <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-4xl font-serif font-black text-[#1A1A1A] dark:text-white leading-tight">
+                {view === 'overview' && (
+                  <SkewedBounceTypewriter 
+                    text={overviewPrompts[promptIdx].text}
+                    trailingNode={
+                      overviewPrompts[promptIdx].hasSmile ? (
+                        <Smile className="w-6 h-6 sm:w-8 sm:h-8 inline text-amber-500 fill-amber-500/20 drop-shadow-sm ml-1" />
+                      ) : undefined
+                    }
+                    triggerKey={`overview-${promptIdx}-${location.key}`}
+                  />
+                )}
+                {view === 'bookings' && 'Appointments Pipeline'}
+                {view === 'availability' && 'Working Hours & Schedule'}
+                {view === 'services' && 'Services Catalog'}
+                {view === 'payouts' && 'Bank Payouts & Security'}
+                {view === 'reviews' && 'Client Feedback & Reviews'}
+                {view === 'profile' && 'Public Profile Studio'}
+              </h1>
+              {view !== 'overview' && (
+                <p className="text-xs sm:text-sm text-[#6C757D] font-medium hidden sm:block mt-1">
+                  Welcome back, {currentUser?.name || user?.user_metadata?.name || ''}
+                </p>
+              )}
+            </div>
+
+            {/* Mobile Menu Toggle - Fixed in document flow next to header on small screens */}
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden shrink-0 p-3 bg-brand-background dark:bg-[#1A1A1A] rounded-2xl shadow-md border border-[#E9ECEF] dark:border-[#2D2D2D] text-[#1A1A1A] dark:text-white cursor-pointer active:scale-95"
+              aria-label="Toggle navigation menu"
+              title="Open Navigation Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </motion.button>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 self-start sm:self-auto">
             {/* Quick emergency status indicator - Neumorphic Glass Effect */}
             <button
               type="button"
@@ -1264,20 +1388,27 @@ const SidebarItem: React.FC<{
   onClick?: () => void;
 }> = ({ icon, label, active, badge, badgeColor, onClick }) => (
   <motion.button
-    whileTap={{ scale: 0.96 }}
+    whileTap={{ scale: 0.97 }}
+    whileHover={{ x: 2 }}
     onClick={onClick}
-    className={`w-full flex items-center justify-between p-3.5 rounded-2xl font-bold transition-all text-left ${
+    className={`w-full flex items-center justify-between py-4 px-4.5 sm:py-4.5 sm:px-5 rounded-2xl font-bold transition-all text-left cursor-pointer group ${
       active 
-        ? 'bg-[#6C35A6] text-white shadow-xl shadow-[#6C35A6]/25' 
+        ? 'bg-[#6C35A6] text-white shadow-xl shadow-[#6C35A6]/30' 
         : 'text-[#6C757D] hover:bg-brand-surface dark:hover:bg-white/5 hover:text-[#1A1A1A] dark:hover:text-white'
     }`}
   >
-    <div className="flex items-center space-x-3.5">
-      <span className="w-4 h-4 shrink-0">{icon}</span>
-      <span className="text-xs sm:text-sm">{label}</span>
+    <div className="flex items-center space-x-4 min-w-0">
+      <div className={`w-6 h-6 flex items-center justify-center shrink-0 [&>svg]:w-5 [&>svg]:h-5 transition-transform duration-200 group-hover:scale-110 ${
+        active ? 'text-white' : 'text-[#6C757D] group-hover:text-brand-interactive'
+      }`}>
+        {icon}
+      </div>
+      <span className="text-sm font-bold tracking-tight truncate leading-tight">
+        {label}
+      </span>
     </div>
     {badge && (
-      <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg ${badgeColor ? badgeColor : active ? 'bg-white/20 text-white' : 'bg-brand-interactive/10 text-brand-interactive'}`}>
+      <span className={`text-[10px] font-black px-2.5 py-1 rounded-xl ml-2 shrink-0 shadow-sm ${badgeColor ? badgeColor : active ? 'bg-white/20 text-white' : 'bg-brand-interactive/10 text-brand-interactive'}`}>
         {badge}
       </span>
     )}
