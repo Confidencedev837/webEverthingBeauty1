@@ -69,8 +69,7 @@ const Agents: React.FC = () => {
   const handleBookAgent = (agent: Agent) => {
     const agentService = services.find(s => s.agentId === agent.id);
     if (agentService) {
-      setSelectedServiceForBooking(agentService);
-      setIsBookingModalOpen(true);
+      navigate(`/book/${agentService.id}`);
     } else {
       navigate(`/agent/${agent.id}`);
     }
@@ -137,11 +136,12 @@ const Agents: React.FC = () => {
         <header className="mb-8 sm:mb-12 md:mb-16 text-center lg:text-left flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-10 md:gap-12">
           <div className="max-w-2xl">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center px-4 py-2 bg-brand-interactive/10 text-brand-interactive rounded-xl text-[10px] font-black tracking-[0.2em] mb-6 shadow-sm border border-brand-interactive/20 shadow-[0_0_15px_rgba(108,53,166,0.15)]"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center space-x-2 text-brand-interactive text-xs font-black uppercase tracking-[0.22em] mb-4 sm:mb-6 justify-center lg:justify-start"
             >
-              <Users className="w-4 h-4 mr-2" /> Elite Professionals
+              <Users className="w-4 h-4 text-brand-interactive" />
+              <span>Elite Professionals</span>
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, x: -30 }}
@@ -274,8 +274,8 @@ const Agents: React.FC = () => {
                             setCurrentPage(1);
                           }}
                           className={`px-3 sm:px-5 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-sm font-black transition-all whitespace-nowrap cursor-pointer ${selectedSpecialty.toLowerCase() === spec.toLowerCase()
-                              ? 'bg-brand-interactive text-white shadow-lg'
-                              : 'text-[#6C757D] hover:text-brand-interactive'
+                            ? 'bg-brand-interactive text-white shadow-lg'
+                            : 'text-[#6C757D] hover:text-brand-interactive'
                             }`}
                         >
                           {spec}
@@ -502,8 +502,8 @@ const Agents: React.FC = () => {
           <div className="absolute top-0 right-0 w-1/2 h-full bg-white/10 -skew-x-12 translate-x-32 hidden md:block" />
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 sm:gap-12 md:gap-16">
             <div>
-              <motion.div {...fadeInUp} className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 rounded-xl text-[9px] sm:text-[10px] font-black tracking-[0.15em] sm:tracking-[0.2em] mb-4 sm:mb-6 md:mb-8 border border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" /> Elite Expansion
+              <motion.div {...fadeInUp} className="text-white/90 text-xs sm:text-sm font-black uppercase tracking-[0.22em] mb-4 sm:mb-6">
+                Elite Expansion
               </motion.div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-4 sm:mb-6 md:mb-8 leading-tight">Are you an elite <br /> beauty artist?</h2>
               <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-white/80 mb-6 sm:mb-8 md:mb-12 font-medium leading-relaxed">

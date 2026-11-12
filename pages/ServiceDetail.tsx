@@ -305,10 +305,10 @@ const ServiceDetail: React.FC = () => {
     if (!loading && service) {
       const searchParams = new URLSearchParams(location.search);
       if (searchParams.get('book') === 'true') {
-        setIsBookingOpen(true);
+        navigate(`/book/${service.id}`);
       }
     }
-  }, [loading, service, location.search]);
+  }, [loading, service, location.search, navigate]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -613,32 +613,11 @@ const ServiceDetail: React.FC = () => {
                 {/* Smooth Bottom Fade Gradient Mask - Blends portrait into page background without pushing content */}
                 <div
                   className={`absolute inset-x-0 bottom-0 h-44 sm:h-52 bg-gradient-to-t pointer-events-none z-10 transition-colors duration-300 ${currentMedia?.type === 'video'
-                      ? 'from-black/80 via-black/35 to-transparent'
-                      : 'from-brand-background dark:from-[#0D0D0D] via-brand-background/85 dark:via-[#0D0D0D]/85 to-transparent'
+                    ? 'from-black/80 via-black/35 to-transparent'
+                    : 'from-brand-background dark:from-[#0D0D0D] via-brand-background/85 dark:via-[#0D0D0D]/85 to-transparent'
                     }`}
                   aria-hidden="true"
                 />
-
-                {/* Animated Nudge Cue for Swipeable Gallery (Only on photo slides to avoid cluttering video playback) */}
-                {gallery.length > 1 && currentMedia?.type !== 'video' && (
-                  <div className="absolute bottom-28 sm:bottom-32 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="px-3.5 py-1.5 rounded-full bg-black/65 backdrop-blur-xl text-white text-[11px] font-bold border border-white/20 flex items-center space-x-2 shadow-xl"
-                    >
-                      <motion.div
-                        animate={{ x: [-4, 4, -4] }}
-                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                        className="flex items-center space-x-0.5 text-brand-accent"
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5" />
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </motion.div>
-                      <span>Swipe or click to view gallery</span>
-                    </motion.div>
-                  </div>
-                )}
 
                 {/* Glassmorphic Navigation Arrows */}
                 {gallery.length > 1 && (
@@ -699,7 +678,7 @@ const ServiceDetail: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => setIsBookingOpen(true)}
+                  onClick={() => navigate(`/book/${service.id}`)}
                   onMouseEnter={triggerShimmer}
                   className="relative overflow-hidden group shrink-0 py-4 sm:py-5 px-7 sm:px-10 rounded-[2.2rem] bg-gradient-to-r from-[#6C35A6] via-[#8238CA] to-[#32104D] text-white tracking-wide shadow-[0_16px_40px_rgba(108,53,166,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_20px_48px_rgba(108,53,166,0.65)] border border-white/35 active:outline-none transition-all flex items-center justify-between gap-6 sm:gap-9 cursor-pointer active:translate-y-0.5"
                 >
@@ -827,21 +806,21 @@ const ServiceDetail: React.FC = () => {
                 )}
               </div>
 
-              {/* Description - Larger typography with expandable Read More */}
+              {/* Description - Glassmorphic like Client Reviews */}
               {service.description && (
                 <div className="mb-8">
-                  <div className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-interactive dark:text-brand-accent mb-2.5 flex items-center gap-2">
-                    <span>Description</span>
+                  <div className="text-[11px] sm:text-xs font-black uppercase tracking-[0.22em] text-brand-interactive dark:text-brand-accent mb-2.5">
+                    Description
                   </div>
-                  <div className="rounded-2xl sm:rounded-3xl p-5 sm:p-6 bg-white/70 dark:bg-white/[0.05] backdrop-blur-xl border border-white/60 dark:border-white/10 border-l-4 !border-l-brand-interactive shadow-sm">
-                    <p className={`text-base sm:text-lg lg:text-[19px] leading-relaxed text-[#2A2A2A] dark:text-[#E2DCE8] ${isDescExpanded ? '' : 'line-clamp-3 sm:line-clamp-4'}`}>
+                  <div className="glass-panel p-6 sm:p-7">
+                    <p className={`text-base sm:text-lg lg:text-[19px] leading-relaxed font-normal text-[#2A2A2A] dark:text-[#E2DCE8] tracking-normal ${isDescExpanded ? '' : 'line-clamp-3 sm:line-clamp-4'}`}>
                       {service.description}
                     </p>
                     {service.description.length > 150 && (
                       <button
                         type="button"
                         onClick={() => setIsDescExpanded(!isDescExpanded)}
-                        className="mt-3 text-xs sm:text-sm font-black text-brand-interactive dark:text-brand-accent hover:underline cursor-pointer flex items-center gap-1 active:scale-95 transition-transform"
+                        className="mt-3 text-xs sm:text-sm font-black text-brand-interactive dark:text-brand-accent hover:underline cursor-pointer inline-flex items-center gap-1 active:scale-95 transition-transform"
                       >
                         <span>{isDescExpanded ? 'Show less' : 'Read more'}</span>
                       </button>
@@ -1024,7 +1003,7 @@ const ServiceDetail: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => setIsBookingOpen(true)}
+                  onClick={() => navigate(`/book/${service.id}`)}
                   className="w-full py-3.5 px-4 bg-brand-interactive text-white rounded-xl font-bold text-sm sm:text-base hover:bg-brand-interactive/90 transition-all shadow-md shadow-brand-interactive/20 active:scale-[0.98] flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4" />

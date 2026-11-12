@@ -17,6 +17,7 @@ import CustomerDashboard from './pages/CustomerDashboard';
 import AgentDashboard from './pages/AgentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ResetPassword from './pages/ResetPassword';
+import Booking from './pages/Booking';
 import { AuthProvider } from './context/AuthContext';
 import { SnackbarProvider } from './components/Snackbar';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -85,6 +86,8 @@ const App: React.FC = () => {
                     <Route path="/services" element={<Services />} />
                     <Route path="/agents" element={<Agents />} />
                     <Route path="/services/:id" element={<ServiceDetail />} />
+                    <Route path="/book/:id" element={<Booking />} />
+                    <Route path="/booking/:id" element={<Booking />} />
                     <Route path="/agent/:id" element={<AgentProfile />} />
                     <Route path="/agents/:id" element={<AgentProfile />} />
                     <Route path="/about" element={<About />} />

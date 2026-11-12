@@ -143,8 +143,8 @@ button:active:not(:disabled),
 }
 
 .tactile-3d:active {
-  transform: perspective(800px) scale3d(0.95, 0.95, 1) rotate(1.2deg) skewX(2deg) translateY(1.5px) !important;
-  transition: transform 0.08s ease-out;
+  transform: perspective(800px) scale3d(0.96, 0.96, 1) rotate(0deg) skewX(0deg) translateY(2px) !important;
+  transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .tactile-jiggle:hover {

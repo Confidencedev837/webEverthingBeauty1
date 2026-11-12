@@ -25,28 +25,28 @@ export const STAT_BOX_OPACITY_OUTPUT: number[] = [0.35, 1, 1, 0.5];
 
 /** Scroll intersection target boundaries */
 export const STAT_BOX_SCROLL_OFFSET: ['start end', 'end start'] = ['start end', 'end start'];
-import { 
-  House, 
-  Briefcase, 
-  Calendar, 
-  TrendingUp, 
-  Star, 
-  User, 
-  Settings, 
-  LogOut, 
-  ShieldCheck, 
-  Clock, 
-  FileText, 
-  Upload, 
-  Plus, 
-  CheckCircle, 
-  XCircle, 
-  Trash2, 
-  DollarSign, 
-  Image as ImageIcon, 
-  Menu, 
-  X, 
-  RefreshCw, 
+import {
+  House,
+  Briefcase,
+  Calendar,
+  TrendingUp,
+  Star,
+  User,
+  Settings,
+  LogOut,
+  ShieldCheck,
+  Clock,
+  FileText,
+  Upload,
+  Plus,
+  CheckCircle,
+  XCircle,
+  Trash2,
+  DollarSign,
+  Image as ImageIcon,
+  Menu,
+  X,
+  RefreshCw,
   AlertCircle,
   Pencil,
   MapPin,
@@ -61,22 +61,25 @@ import {
   Phone,
   ArrowRight,
   ExternalLink,
-  Smile
+  Smile,
+  Coins,
+  Palette
 } from 'lucide-react';
-import { 
-  VerificationStatus, 
-  BookingStatus, 
-  Service, 
-  Booking, 
+import {
+  VerificationStatus,
+  BookingStatus,
+  Service,
+  Booking,
   Review,
-  AgentAvailability, 
-  AgentBankDetails 
+  AgentAvailability,
+  AgentBankDetails
 } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { 
-  getBookingsForUser, 
-  getServices, 
-  updateBookingStatus, 
+import {
+  getBookingsForUser,
+  getServices,
+  getServicesByAgentId,
+  updateBookingStatus,
   getAgentAvailability,
   updateAgentAvailability,
   getAgentBankDetails,
@@ -230,14 +233,58 @@ const AgentDashboard: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 4 Rotating motivating prompts on Overview tab cycling every 4 seconds
+  // 4 Rotating motivating prompts on Overview tab cycling every 4 seconds with playful animated matching icons
   const displayName = currentUser?.name || user?.user_metadata?.name || 'Confidence Orok';
 
   const overviewPrompts = useMemo(() => [
-    { text: `Welcome back, ${displayName}`, hasSmile: false },
-    { text: 'Ready to start earning?', hasSmile: true },
-    { text: 'Update your services to attract clients', hasSmile: false },
-    { text: 'Set your active times to get booked', hasSmile: false },
+    {
+      text: `Welcome back, ${displayName}`,
+      trailingNode: (
+        <motion.span
+          animate={{ rotate: [0, 16, -10, 16, 0] }}
+          transition={{ repeat: Infinity, duration: 2, repeatDelay: 1 }}
+          className="inline-block origin-bottom-right"
+        >
+          <Smile className="w-6 h-6 sm:w-8 sm:h-8 inline text-brand-interactive fill-brand-interactive/20 drop-shadow-sm ml-1" />
+        </motion.span>
+      )
+    },
+    {
+      text: 'Ready to start earning today?',
+      trailingNode: (
+        <motion.span
+          animate={{ scale: [1, 1.25, 0.95, 1.15, 1], y: [0, -3, 0] }}
+          transition={{ repeat: Infinity, duration: 1.8, repeatDelay: 0.8 }}
+          className="inline-block"
+        >
+          <Coins className="w-6 h-6 sm:w-8 sm:h-8 inline text-amber-400 fill-amber-400/25 drop-shadow-sm ml-1" />
+        </motion.span>
+      )
+    },
+    {
+      text: 'Update your services to attract clients',
+      trailingNode: (
+        <motion.span
+          animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.12, 1] }}
+          transition={{ repeat: Infinity, duration: 2.2, repeatDelay: 0.8 }}
+          className="inline-block"
+        >
+          <Palette className="w-6 h-6 sm:w-8 sm:h-8 inline text-rose-400 fill-rose-400/25 drop-shadow-sm ml-1" />
+        </motion.span>
+      )
+    },
+    {
+      text: 'Set your active times to get booked',
+      trailingNode: (
+        <motion.span
+          animate={{ rotate: [0, 20, 0], scale: [1, 1.15, 1] }}
+          transition={{ repeat: Infinity, duration: 2.2, repeatDelay: 0.8 }}
+          className="inline-block"
+        >
+          <Clock className="w-6 h-6 sm:w-8 sm:h-8 inline text-emerald-400 fill-emerald-400/25 drop-shadow-sm ml-1" />
+        </motion.span>
+      )
+    },
   ], [displayName]);
 
   const [promptIdx, setPromptIdx] = useState(0);
@@ -249,7 +296,7 @@ const AgentDashboard: React.FC = () => {
     }, 4000);
     return () => clearInterval(timer);
   }, [view, overviewPrompts.length]);
-  
+
   // Modals state
   const [isCreateServiceOpen, setIsCreateServiceOpen] = useState(false);
   const [createdServiceForShare, setCreatedServiceForShare] = useState<Partial<Service> | null>(null);
@@ -264,7 +311,7 @@ const AgentDashboard: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [bookingFilter, setBookingFilter] = useState<'ALL' | BookingStatus>('ALL');
-  
+
   // Availability state
   const [availability, setAvailability] = useState<AgentAvailability>({
     days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -303,27 +350,34 @@ const AgentDashboard: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Load all live Supabase data
+  // Ultra-fast progressive loading: loads core overview instantly, then streams secondary settings
   const loadData = async () => {
     if (!agentId) return;
-    setLoading(true);
 
     try {
-      const [bookingsRes, allServicesRes, availData, bankSec, agentReviews] = await Promise.all([
-        getBookingsForUser(agentId, 'agent', true),
-        getServices(true),
-        getAgentAvailability(agentId),
-        getAgentBankDetails(agentId, user?.created_at),
-        getReviewsForAgent(agentId)
+      // 1. FAST CORE DATA (Only this agent's bookings and services)
+      const [bookingsRes, myServicesRes] = await Promise.all([
+        getBookingsForUser(agentId, 'agent', false),
+        getServicesByAgentId(agentId, false)
       ]);
 
       if (bookingsRes.data) {
         setBookings(bookingsRes.data);
       }
-      if (allServicesRes.data) {
-        const myServices = allServicesRes.data.filter(s => s.agentId === agentId);
-        setServices(myServices);
+      if (myServicesRes.data) {
+        setServices(myServicesRes.data);
       }
+
+      // Immediately lift loading screen so overview and KPIs appear in milliseconds!
+      setLoading(false);
+
+      // 2. SECONDARY PREFERENCES & SECURITY IN BACKGROUND (Non-blocking)
+      const [availData, bankSec, agentReviews] = await Promise.all([
+        getAgentAvailability(agentId),
+        getAgentBankDetails(agentId, user?.created_at),
+        getReviewsForAgent(agentId)
+      ]);
+
       setAvailability(availData);
       setBankStatus(bankSec);
       if (bankSec.details) {
@@ -366,7 +420,7 @@ const AgentDashboard: React.FC = () => {
           date: targetBooking.date,
           time: targetBooking.time,
           address: targetBooking.address
-        }).catch(() => {});
+        }).catch(() => { });
       }
     } else {
       showSnackbar('Failed to update status', 'error');
@@ -478,7 +532,7 @@ const AgentDashboard: React.FC = () => {
             {/* Mobile Header in Menu */}
             <div className="lg:hidden flex justify-between items-center mb-6">
               <span className="font-serif font-black text-xl text-[#1A1A1A] dark:text-white">Actions</span>
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-2 text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white cursor-pointer"
                 aria-label="Close actions menu"
@@ -490,10 +544,10 @@ const AgentDashboard: React.FC = () => {
             {/* Specialist Profile Card in Sidebar - Round Circular Avatar */}
             <div className="flex items-center space-x-4 mb-8 p-3.5 rounded-2xl bg-brand-surface dark:bg-white/5 border border-[#E9ECEF] dark:border-white/5">
               {currentUser?.avatar ? (
-                <img 
-                  src={currentUser.avatar} 
-                  className="w-14 h-14 rounded-full object-cover shadow-md ring-2 ring-brand-interactive/20 shrink-0" 
-                  alt={currentUser.name || 'Specialist'} 
+                <img
+                  src={currentUser.avatar}
+                  className="w-14 h-14 rounded-full object-cover shadow-md ring-2 ring-brand-interactive/20 shrink-0"
+                  alt={currentUser.name || 'Specialist'}
                 />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-brand-interactive/10 text-brand-interactive flex items-center justify-center font-bold text-lg shadow-md ring-2 ring-brand-interactive/20 shrink-0">
@@ -513,57 +567,57 @@ const AgentDashboard: React.FC = () => {
 
             {/* Navigation links */}
             <nav className="flex-grow space-y-2">
-              <SidebarItem 
-                icon={<House />} 
-                label="Overview" 
+              <SidebarItem
+                icon={<House />}
+                label="Overview"
                 badge={pendingBookings.length > 0 ? `${pendingBookings.length}` : undefined}
-                active={view === 'overview'} 
-                onClick={() => { setView('overview'); setIsMobileMenuOpen(false); }} 
+                active={view === 'overview'}
+                onClick={() => { setView('overview'); setIsMobileMenuOpen(false); }}
               />
-              <SidebarItem 
-                icon={<Calendar />} 
-                label="Bookings Pipeline" 
+              <SidebarItem
+                icon={<Calendar />}
+                label="Bookings Pipeline"
                 badge={bookings.length > 0 ? `${bookings.length}` : undefined}
-                active={view === 'bookings'} 
-                onClick={() => { setView('bookings'); setIsMobileMenuOpen(false); }} 
+                active={view === 'bookings'}
+                onClick={() => { setView('bookings'); setIsMobileMenuOpen(false); }}
               />
-              <SidebarItem 
-                icon={<Clock />} 
-                label="Working Hours & Days" 
-                active={view === 'availability'} 
-                onClick={() => { setView('availability'); setIsMobileMenuOpen(false); }} 
+              <SidebarItem
+                icon={<Clock />}
+                label="Working Hours & Days"
+                active={view === 'availability'}
+                onClick={() => { setView('availability'); setIsMobileMenuOpen(false); }}
               />
-              <SidebarItem 
-                icon={<Briefcase />} 
-                label="Services Boutique" 
+              <SidebarItem
+                icon={<Briefcase />}
+                label="Services Boutique"
                 badge={services.length > 0 ? `${services.length}` : undefined}
-                active={view === 'services'} 
-                onClick={() => { setView('services'); setIsMobileMenuOpen(false); }} 
+                active={view === 'services'}
+                onClick={() => { setView('services'); setIsMobileMenuOpen(false); }}
               />
-              <SidebarItem 
-                icon={<CreditCard />} 
-                label="Payouts & Bank" 
+              <SidebarItem
+                icon={<CreditCard />}
+                label="Payouts & Bank"
                 badge={bankStatus.isLocked ? `${bankStatus.daysRemaining}d` : 'Ready'}
                 badgeColor={bankStatus.isLocked ? 'bg-amber-500/10 text-amber-500' : 'bg-green-500/10 text-green-500'}
-                active={view === 'payouts'} 
-                onClick={() => { setView('payouts'); setIsMobileMenuOpen(false); }} 
+                active={view === 'payouts'}
+                onClick={() => { setView('payouts'); setIsMobileMenuOpen(false); }}
               />
-              <SidebarItem 
-                icon={<Star />} 
-                label="Client Reviews" 
+              <SidebarItem
+                icon={<Star />}
+                label="Client Reviews"
                 badge={reviews.length > 0 ? `${reviews.length}` : undefined}
-                active={view === 'reviews'} 
-                onClick={() => { setView('reviews'); setIsMobileMenuOpen(false); }} 
+                active={view === 'reviews'}
+                onClick={() => { setView('reviews'); setIsMobileMenuOpen(false); }}
               />
-              <SidebarItem 
-                icon={<Pencil />} 
-                label="Profile Studio" 
-                active={view === 'profile'} 
-                onClick={() => { setView('profile'); setIsMobileMenuOpen(false); }} 
+              <SidebarItem
+                icon={<Pencil />}
+                label="Profile Studio"
+                active={view === 'profile'}
+                onClick={() => { setView('profile'); setIsMobileMenuOpen(false); }}
               />
             </nav>
 
-            <motion.button 
+            <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={handleLogout}
               className="flex items-center space-x-3 p-3.5 text-brand-interactive font-black text-xs hover:bg-brand-interactive/5 rounded-2xl transition-all mt-6"
@@ -583,13 +637,9 @@ const AgentDashboard: React.FC = () => {
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl sm:text-4xl font-serif font-black text-[#1A1A1A] dark:text-white leading-tight">
                 {view === 'overview' && (
-                  <SkewedBounceTypewriter 
+                  <SkewedBounceTypewriter
                     text={overviewPrompts[promptIdx].text}
-                    trailingNode={
-                      overviewPrompts[promptIdx].hasSmile ? (
-                        <Smile className="w-6 h-6 sm:w-8 sm:h-8 inline text-amber-500 fill-amber-500/20 drop-shadow-sm ml-1" />
-                      ) : undefined
-                    }
+                    trailingNode={overviewPrompts[promptIdx].trailingNode}
                     triggerKey={`overview-${promptIdx}-${location.key}`}
                   />
                 )}
@@ -625,22 +675,20 @@ const AgentDashboard: React.FC = () => {
               type="button"
               onClick={() => setView('availability')}
               title="Click to view & edit appointment schedule"
-              className={`px-4 sm:px-5 py-2.5 rounded-2xl text-xs font-black flex items-center space-x-2.5 transition-all duration-300 backdrop-blur-2xl cursor-pointer select-none active:scale-95 hover:scale-[1.02] ${
-                availability.isEmergencyOff
+              className={`px-4 sm:px-5 py-2.5 rounded-2xl text-xs font-black flex items-center space-x-2.5 transition-all duration-300 backdrop-blur-2xl cursor-pointer select-none active:scale-95 hover:scale-[1.02] ${availability.isEmergencyOff
                   ? 'bg-rose-500/[0.08] dark:bg-rose-500/[0.14] text-rose-600 dark:text-rose-400 border border-rose-500/30 dark:border-rose-400/25 shadow-[inset_0_1px_2px_rgba(255,255,255,0.7),0_8px_20px_-4px_rgba(244,63,94,0.22),0_2px_6px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_-1px_2px_rgba(0,0,0,0.5),0_10px_24px_-4px_rgba(0,0,0,0.5)]'
                   : 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14] text-emerald-600 dark:text-emerald-400 border border-emerald-500/35 dark:border-emerald-400/25 shadow-[inset_0_1px_2px_rgba(255,255,255,0.8),0_8px_20px_-4px_rgba(16,185,129,0.24),0_2px_6px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),inset_0_-1px_2px_rgba(0,0,0,0.5),0_10px_24px_-4px_rgba(0,0,0,0.5)]'
-              }`}
+                }`}
             >
               <span className="relative flex h-2.5 w-2.5 items-center justify-center shrink-0">
                 {!availability.isEmergencyOff && (
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 )}
                 <span
-                  className={`relative inline-flex rounded-full h-2 w-2 ${
-                    availability.isEmergencyOff
+                  className={`relative inline-flex rounded-full h-2 w-2 ${availability.isEmergencyOff
                       ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.9)]'
                       : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.95)]'
-                  }`}
+                    }`}
                 />
               </span>
               <span className="tracking-tight">
@@ -648,7 +696,7 @@ const AgentDashboard: React.FC = () => {
               </span>
             </button>
 
-            <motion.button 
+            <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={loadData}
               className="p-3 bg-brand-background dark:bg-[#1A1A1A] border border-[#E9ECEF] dark:border-[#2D2D2D] rounded-2xl text-[#6C757D] hover:text-brand-interactive transition-all shadow-sm"
@@ -681,37 +729,43 @@ const AgentDashboard: React.FC = () => {
               {/* TAB 1: OVERVIEW */}
               {view === 'overview' && (
                 <div className="space-y-10">
-                  {/* KPI Cards with Scroll-Linked Scale Effect */}
+                  {/* KPI Cards with Scroll-Linked Scale Effect & Distinct Primary Colors (Green, Yellow, Red, White) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <ScrollScaleBox>
-                      <StatSquircle 
-                        label="Total Earnings" 
-                        value={`₦${totalRevenue.toLocaleString()}`} 
-                        highlightColor="text-green-500"
+                      <StatSquircle
+                        label="Total Earnings"
+                        value={`₦${totalRevenue.toLocaleString()}`}
+                        themeColor="green"
                         subtext="Completed appointments"
+                        typewriterDelay={0.05}
                       />
                     </ScrollScaleBox>
                     <ScrollScaleBox>
-                      <StatSquircle 
-                        label="Client Rating" 
-                        value={Number(averageRating) > 0 ? averageRating : 'New'} 
+                      <StatSquircle
+                        label="Client Rating"
+                        value={Number(averageRating) > 0 ? averageRating : 'New'}
                         hasStar={Number(averageRating) > 0}
+                        themeColor="yellow"
                         subtext={`${reviews.length} verified reviews`}
+                        typewriterDelay={0.2}
                       />
                     </ScrollScaleBox>
                     <ScrollScaleBox>
-                      <StatSquircle 
-                        label="Pending Requests" 
-                        value={pendingBookings.length.toString()} 
-                        highlight={pendingBookings.length > 0}
+                      <StatSquircle
+                        label="Pending Requests"
+                        value={pendingBookings.length.toString()}
+                        themeColor="red"
                         subtext="Requires your action"
+                        typewriterDelay={0.35}
                       />
                     </ScrollScaleBox>
                     <ScrollScaleBox>
-                      <StatSquircle 
-                        label="Active Offerings" 
-                        value={services.length.toString()} 
+                      <StatSquircle
+                        label="Active Offerings"
+                        value={services.length.toString()}
+                        themeColor="white"
                         subtext="Published in boutique"
+                        typewriterDelay={0.5}
                       />
                     </ScrollScaleBox>
                   </div>
@@ -756,8 +810,8 @@ const AgentDashboard: React.FC = () => {
                         <p className="text-xs text-[#6C757D]">Live client reservations awaiting service</p>
                       </div>
                       {bookings.length > 0 && (
-                        <button 
-                          onClick={() => setView('bookings')} 
+                        <button
+                          onClick={() => setView('bookings')}
                           className="text-brand-interactive font-black text-xs hover:underline flex items-center space-x-1"
                         >
                           <span>View Pipeline ({bookings.length})</span>
@@ -768,11 +822,11 @@ const AgentDashboard: React.FC = () => {
 
                     <div className="space-y-4">
                       {bookings.slice(0, 4).map(b => (
-                        <BookingCard 
-                          key={b.id} 
-                          booking={b} 
-                          onStatusChange={handleStatusChange} 
-                          onOpenChat={() => setActiveChatBooking(b)} 
+                        <BookingCard
+                          key={b.id}
+                          booking={b}
+                          onStatusChange={handleStatusChange}
+                          onOpenChat={() => setActiveChatBooking(b)}
                         />
                       ))}
                       {bookings.length === 0 && (
@@ -799,11 +853,10 @@ const AgentDashboard: React.FC = () => {
                         key={f}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setBookingFilter(f)}
-                        className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all border ${
-                          bookingFilter === f
+                        className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all border ${bookingFilter === f
                             ? 'bg-brand-interactive text-white border-brand-interactive shadow-lg shadow-brand-interactive/20'
                             : 'bg-brand-background dark:bg-[#1A1A1A] border-[#E9ECEF] dark:border-[#2D2D2D] text-[#6C757D] hover:border-brand-interactive/40'
-                        }`}
+                          }`}
                       >
                         {f === 'ALL' ? `All Appointments (${bookings.length})` : `${f} (${bookings.filter(b => b.status === f).length})`}
                       </motion.button>
@@ -814,18 +867,18 @@ const AgentDashboard: React.FC = () => {
                   <div className="space-y-4">
                     {filteredBookings.length > 0 ? (
                       filteredBookings.map(b => (
-                        <BookingCard 
-                          key={b.id} 
-                          booking={b} 
-                          onStatusChange={handleStatusChange} 
-                          onOpenChat={() => setActiveChatBooking(b)} 
+                        <BookingCard
+                          key={b.id}
+                          booking={b}
+                          onStatusChange={handleStatusChange}
+                          onOpenChat={() => setActiveChatBooking(b)}
                         />
                       ))
                     ) : (
-                      <div className="p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                        <Calendar className="w-10 h-10 opacity-30 mx-auto mb-3" />
-                        <h4 className="font-bold text-base mb-1">No appointments found in this view</h4>
-                        <p className="text-xs">Adjust filters above to see different appointment statuses.</p>
+                      <div className="p-12 sm:p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                        <AnimatedCalendarEmptyState />
+                        <h4 className="font-bold text-base sm:text-lg mb-1 text-[#1A1A1A] dark:text-white">No appointments found in this view</h4>
+                        <p className="text-xs sm:text-sm max-w-sm mx-auto text-[#6C757D] dark:text-[#A0AEC0]">Adjust filters above to see different appointment statuses.</p>
                       </div>
                     )}
                   </div>
@@ -836,11 +889,10 @@ const AgentDashboard: React.FC = () => {
               {view === 'availability' && (
                 <div className="max-w-3xl space-y-8">
                   {/* Emergency Toggle Card */}
-                  <div className={`p-6 sm:p-8 rounded-[2.5rem] border shadow-xl transition-all ${
-                    availability.isEmergencyOff 
-                      ? 'bg-red-500/5 border-red-500/20' 
+                  <div className={`p-6 sm:p-8 rounded-[2.5rem] border shadow-xl transition-all ${availability.isEmergencyOff
+                      ? 'bg-red-500/5 border-red-500/20'
                       : 'bg-brand-background dark:bg-[#1A1A1A] border-[#E9ECEF] dark:border-[#2D2D2D]'
-                  }`}>
+                    }`}>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center space-x-2 mb-1">
@@ -857,11 +909,10 @@ const AgentDashboard: React.FC = () => {
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setAvailability(prev => ({ ...prev, isEmergencyOff: !prev.isEmergencyOff }))}
-                        className={`px-6 py-3.5 rounded-2xl text-xs font-black transition-all shadow-md ${
-                          availability.isEmergencyOff
+                        className={`px-6 py-3.5 rounded-2xl text-xs font-black transition-all shadow-md ${availability.isEmergencyOff
                             ? 'bg-red-500 text-white shadow-red-500/25'
                             : 'bg-brand-surface dark:bg-white/10 text-[#1A1A1A] dark:text-white hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         {availability.isEmergencyOff ? 'Resume Accepting Bookings' : 'Set as Unavailable Today'}
                       </motion.button>
@@ -887,11 +938,10 @@ const AgentDashboard: React.FC = () => {
                               type="button"
                               whileTap={{ scale: 0.92 }}
                               onClick={() => toggleDay(day)}
-                              className={`p-3.5 rounded-2xl text-xs font-black flex flex-col items-center justify-center transition-all border ${
-                                isSelected
+                              className={`p-3.5 rounded-2xl text-xs font-black flex flex-col items-center justify-center transition-all border ${isSelected
                                   ? 'bg-[#6C35A6] text-white border-[#6C35A6] shadow-md shadow-[#6C35A6]/20'
                                   : 'bg-brand-surface dark:bg-white/5 text-[#6C757D] border-[#E9ECEF] dark:border-[#2D2D2D]'
-                              }`}
+                                }`}
                             >
                               <span>{day.slice(0, 3)}</span>
                               <div className="mt-1">
@@ -951,11 +1001,10 @@ const AgentDashboard: React.FC = () => {
                             type="button"
                             whileTap={{ scale: 0.94 }}
                             onClick={() => setAvailability(prev => ({ ...prev, bufferMinutes: mins }))}
-                            className={`p-3 rounded-2xl text-xs font-black border transition-all ${
-                              availability.bufferMinutes === mins
+                            className={`p-3 rounded-2xl text-xs font-black border transition-all ${availability.bufferMinutes === mins
                                 ? 'bg-brand-interactive text-white border-brand-interactive shadow-md'
                                 : 'bg-brand-surface dark:bg-white/5 border-[#E9ECEF] dark:border-[#2D2D2D] text-[#6C757D]'
-                            }`}
+                              }`}
                           >
                             {mins} Minutes
                           </motion.button>
@@ -1008,8 +1057,8 @@ const AgentDashboard: React.FC = () => {
                   {services.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                       {services.map(s => (
-                        <div 
-                          key={s.id} 
+                        <div
+                          key={s.id}
                           className="bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] p-5 shadow-xl flex flex-col justify-between group hover:border-brand-interactive/40 transition-all"
                         >
                           <div>
@@ -1070,15 +1119,15 @@ const AgentDashboard: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                      <Briefcase className="w-12 h-12 opacity-30 mx-auto mb-3" />
-                      <h4 className="font-bold text-lg mb-1">No Published Services</h4>
-                      <p className="text-xs mb-6 max-w-sm mx-auto">
+                    <div className="p-12 sm:p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                      <AnimatedServicesEmptyState />
+                      <h4 className="font-bold text-lg mb-1 text-[#1A1A1A] dark:text-white">No Published Services</h4>
+                      <p className="text-xs sm:text-sm mb-6 max-w-sm mx-auto text-[#6C757D] dark:text-[#A0AEC0]">
                         Publish your beauty specialties with pricing and duration so prospective clients can book your sessions.
                       </p>
                       <button
                         onClick={() => setIsCreateServiceOpen(true)}
-                        className="px-6 py-3 bg-brand-interactive text-white rounded-2xl text-xs font-black shadow-lg"
+                        className="px-7 py-3.5 bg-brand-interactive text-white rounded-2xl text-xs font-black shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
                       >
                         Publish First Service
                       </button>
@@ -1133,7 +1182,7 @@ const AgentDashboard: React.FC = () => {
                         <HelpCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
                         <span>
                           Have urgent payout questions or need priority verification? Please{' '}
-                          <a 
+                          <a
                             href="mailto:support@everythingbeauty.ng?subject=Urgent Payout Assistance - Agent ID"
                             className="font-black underline hover:text-amber-700 dark:hover:text-amber-100"
                           >
@@ -1295,11 +1344,10 @@ const AgentDashboard: React.FC = () => {
                               {[1, 2, 3, 4, 5].map(st => (
                                 <Star
                                   key={st}
-                                  className={`w-3.5 h-3.5 ${
-                                    st <= r.rating
+                                  className={`w-3.5 h-3.5 ${st <= r.rating
                                       ? 'text-amber-500 fill-amber-500'
                                       : 'text-gray-300 dark:text-gray-700'
-                                  }`}
+                                    }`}
                                 />
                               ))}
                             </div>
@@ -1312,10 +1360,10 @@ const AgentDashboard: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D]">
-                      <Star className="w-10 h-10 opacity-30 mx-auto mb-3" />
-                      <h4 className="font-bold text-base mb-1">No Client Reviews Yet</h4>
-                      <p className="text-xs max-w-sm mx-auto">
+                    <div className="p-12 sm:p-16 text-center text-[#6C757D] bg-brand-background dark:bg-[#1A1A1A] rounded-[2.5rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-sm">
+                      <AnimatedStarsEmptyState />
+                      <h4 className="font-bold text-base sm:text-lg mb-1 text-[#1A1A1A] dark:text-white">No Client Reviews Yet</h4>
+                      <p className="text-xs sm:text-sm max-w-sm mx-auto text-[#6C757D] dark:text-[#A0AEC0]">
                         Reviews will automatically populate once your clients complete their appointments.
                       </p>
                     </div>
@@ -1379,11 +1427,175 @@ const AgentDashboard: React.FC = () => {
 
 // --- Sub-components with Spring Bounce & Squircle rules ---
 
-const SidebarItem: React.FC<{ 
-  icon: React.ReactNode; 
-  label: string; 
-  active?: boolean; 
-  badge?: string; 
+/**
+ * Animated Empty State: Bookings
+ */
+const AnimatedCalendarEmptyState: React.FC = () => (
+  <div className="relative w-24 h-24 mx-auto mb-4 flex items-center justify-center select-none pointer-events-none">
+    {/* Ambient Glow */}
+    <motion.div
+      animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.35, 0.15] }}
+      transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+      className="absolute inset-0 rounded-3xl bg-brand-interactive blur-xl"
+    />
+
+    {/* Floating Glassmorphic Base */}
+    <motion.div
+      animate={{ y: [-4, 4, -4], rotate: [-1.5, 1.5, -1.5] }}
+      transition={{ repeat: Infinity, duration: 3.6, ease: 'easeInOut' }}
+      className="relative w-20 h-20 rounded-[1.75rem] bg-gradient-to-br from-brand-interactive/15 via-black/40 to-brand-primary/20 dark:from-white/10 dark:to-white/5 border border-brand-interactive/30 dark:border-white/15 backdrop-blur-xl shadow-xl flex items-center justify-center text-brand-interactive"
+    >
+      <Calendar className="w-9 h-9 text-brand-interactive drop-shadow-md" />
+
+      {/* Floating Mini Status Indicator */}
+      <motion.div
+        animate={{ scale: [0.9, 1.15, 0.9] }}
+        transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg border-2 border-brand-background dark:border-[#1A1A1A]"
+      >
+        <Clock className="w-2.5 h-2.5 text-white stroke-[2.5]" />
+      </motion.div>
+    </motion.div>
+  </div>
+);
+
+/**
+ * Animated Empty State: Services
+ */
+const AnimatedServicesEmptyState: React.FC = () => (
+  <div className="relative w-24 h-24 mx-auto mb-4 flex items-center justify-center select-none pointer-events-none">
+    {/* Ambient Glow */}
+    <motion.div
+      animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.45, 0.2] }}
+      transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
+      className="absolute inset-0 rounded-3xl bg-brand-interactive blur-xl"
+    />
+
+    {/* Floating Boutique Bag */}
+    <motion.div
+      animate={{ y: [-5, 5, -5], rotate: [-2, 2, -2] }}
+      transition={{ repeat: Infinity, duration: 3.8, ease: 'easeInOut' }}
+      className="relative w-20 h-20 rounded-[1.75rem] bg-gradient-to-br from-brand-interactive/20 via-brand-primary/20 to-black/30 dark:from-white/10 dark:to-white/5 border border-brand-interactive/35 dark:border-white/15 backdrop-blur-xl shadow-xl flex items-center justify-center text-brand-interactive"
+    >
+      <Briefcase className="w-9 h-9 text-brand-interactive drop-shadow-md" />
+
+      {/* Pulsing Plus Pill */}
+      <motion.div
+        animate={{ scale: [1, 1.25, 1], rotate: [0, 90, 0] }}
+        transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut' }}
+        className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-brand-interactive text-white flex items-center justify-center shadow-lg border-2 border-brand-background dark:border-[#1A1A1A]"
+      >
+        <Plus className="w-3 h-3 text-white stroke-[3]" />
+      </motion.div>
+    </motion.div>
+  </div>
+);
+
+/**
+ * Animated Empty State: Reviews
+ * Animated stars unfill/fill from the back with energetic bounce on repeat!
+ */
+const AnimatedStarsEmptyState: React.FC = () => (
+  <div className="relative w-28 h-28 mx-auto mb-4 flex items-center justify-center select-none pointer-events-none">
+    {/* Background Echo Star 1 - Deep Unfill/Fill Burst */}
+    <motion.div
+      animate={{
+        scale: [0.2, 1.5, 0.2],
+        opacity: [0, 0.75, 0],
+        rotate: [-35, 30, -35],
+      }}
+      transition={{
+        repeat: Infinity,
+        duration: 2.8,
+        ease: 'easeInOut',
+        times: [0, 0.5, 1],
+      }}
+      className="absolute inset-0 flex items-center justify-center"
+    >
+      <Star className="w-20 h-20 text-amber-400 fill-amber-400/20 stroke-[1.5]" />
+    </motion.div>
+
+    {/* Background Echo Star 2 - Offset Phase Unfill/Fill Bounce */}
+    <motion.div
+      animate={{
+        scale: [0.35, 1.75, 0.35],
+        opacity: [0, 0.55, 0],
+        rotate: [25, -35, 25],
+      }}
+      transition={{
+        repeat: Infinity,
+        duration: 3.2,
+        delay: 0.6,
+        ease: 'easeInOut',
+        times: [0, 0.5, 1],
+      }}
+      className="absolute inset-0 flex items-center justify-center"
+    >
+      <Star className="w-24 h-24 text-amber-500/40 fill-transparent stroke-[1.5]" />
+    </motion.div>
+
+    {/* Orbiting Accent Stars */}
+    <motion.div
+      animate={{
+        y: [-6, 6, -6],
+        x: [-4, 4, -4],
+        scale: [0.75, 1.15, 0.75],
+        opacity: [0.5, 1, 0.5],
+      }}
+      transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+      className="absolute top-1 left-2 text-amber-400"
+    >
+      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+    </motion.div>
+
+    <motion.div
+      animate={{
+        y: [5, -5, 5],
+        x: [3, -3, 3],
+        scale: [1.15, 0.75, 1.15],
+        opacity: [0.5, 0.95, 0.5],
+      }}
+      transition={{ repeat: Infinity, duration: 2.5, delay: 0.4, ease: 'easeInOut' }}
+      className="absolute bottom-2 right-2 text-amber-400"
+    >
+      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+    </motion.div>
+
+    {/* Foreground Main Star - Tactile Spring Bounce */}
+    <motion.div
+      animate={{
+        y: [-4, 4, -4],
+        scale: [0.96, 1.06, 0.96],
+        rotate: [-3, 3, -3],
+      }}
+      transition={{
+        repeat: Infinity,
+        duration: 2.4,
+        ease: 'easeInOut',
+      }}
+      className="relative z-10 w-16 h-16 rounded-2xl bg-amber-500/10 dark:bg-amber-400/10 border border-amber-500/35 backdrop-blur-xl flex items-center justify-center shadow-[0_8px_24px_rgba(245,158,11,0.25)]"
+    >
+      <motion.div
+        animate={{
+          scale: [1, 1.16, 1],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 1.4,
+          ease: 'easeInOut',
+        }}
+      >
+        <Star className="w-9 h-9 text-amber-400 fill-amber-400 drop-shadow-md" />
+      </motion.div>
+    </motion.div>
+  </div>
+);
+
+const SidebarItem: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+  badge?: string;
   badgeColor?: string;
   onClick?: () => void;
 }> = ({ icon, label, active, badge, badgeColor, onClick }) => (
@@ -1391,16 +1603,14 @@ const SidebarItem: React.FC<{
     whileTap={{ scale: 0.97 }}
     whileHover={{ x: 2 }}
     onClick={onClick}
-    className={`w-full flex items-center justify-between py-4 px-4.5 sm:py-4.5 sm:px-5 rounded-2xl font-bold transition-all text-left cursor-pointer group ${
-      active 
-        ? 'bg-[#6C35A6] text-white shadow-xl shadow-[#6C35A6]/30' 
+    className={`w-full flex items-center justify-between py-4 px-4.5 sm:py-4.5 sm:px-5 rounded-2xl font-bold transition-all text-left cursor-pointer group ${active
+        ? 'bg-[#6C35A6] text-white shadow-xl shadow-[#6C35A6]/30'
         : 'text-[#6C757D] hover:bg-brand-surface dark:hover:bg-white/5 hover:text-[#1A1A1A] dark:hover:text-white'
-    }`}
+      }`}
   >
     <div className="flex items-center space-x-4 min-w-0">
-      <div className={`w-6 h-6 flex items-center justify-center shrink-0 [&>svg]:w-5 [&>svg]:h-5 transition-transform duration-200 group-hover:scale-110 ${
-        active ? 'text-white' : 'text-[#6C757D] group-hover:text-brand-interactive'
-      }`}>
+      <div className={`w-6 h-6 flex items-center justify-center shrink-0 [&>svg]:w-5 [&>svg]:h-5 transition-transform duration-200 group-hover:scale-110 ${active ? 'text-white' : 'text-[#6C757D] group-hover:text-brand-interactive'
+        }`}>
         {icon}
       </div>
       <span className="text-sm font-bold tracking-tight truncate leading-tight">
@@ -1465,36 +1675,89 @@ export const ScrollScaleBox: React.FC<ScrollScaleBoxProps> = ({ children, contai
   );
 };
 
-const StatSquircle: React.FC<{ 
-  label: string; 
-  value: string; 
-  subtext?: string;
-  highlight?: boolean; 
-  highlightColor?: string; 
-  hasStar?: boolean;
-}> = ({ label, value, subtext, highlight, highlightColor, hasStar }) => (
-  <div 
-    className={`bg-brand-background/90 dark:bg-[#1A1A1A]/90 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-xl border transition-colors ${
-      highlight 
-        ? 'border-brand-interactive shadow-brand-interactive/10' 
-        : 'border-[#E9ECEF] dark:border-[#2D2D2D]'
-    }`}
-  >
-    <div className="text-[11px] font-black tracking-wider text-[#6C757D] dark:text-[#A0AEC0] mb-3 uppercase">{label}</div>
-    <div className={`text-2xl sm:text-3xl font-serif font-black flex items-center space-x-1.5 ${
-      highlightColor ? highlightColor : highlight ? 'text-brand-interactive' : 'text-[#1A1A1A] dark:text-white'
-    }`}>
-      <span>{value}</span>
-      {hasStar && <Star className="w-5 h-5 fill-amber-400 text-amber-400 inline" />}
-    </div>
-    {subtext && (
-      <div className="text-xs text-[#6C757D] dark:text-[#A0AEC0] mt-1.5 font-medium">{subtext}</div>
-    )}
-  </div>
-);
+const StatTypewriter: React.FC<{ value: string; delay?: number }> = ({ value, delay = 0 }) => {
+  const [typed, setTyped] = useState('');
 
-const BookingCard: React.FC<{ 
-  booking: Booking; 
+  useEffect(() => {
+    let index = 0;
+    setTyped('');
+
+    const startTimeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        index++;
+        if (index <= value.length) {
+          setTyped(value.slice(0, index));
+        } else {
+          clearInterval(interval);
+        }
+      }, 55);
+
+      return () => clearInterval(interval);
+    }, delay * 1000);
+
+    return () => clearTimeout(startTimeout);
+  }, [value, delay]);
+
+  return <span>{typed || value.charAt(0)}</span>;
+};
+
+const StatSquircle: React.FC<{
+  label: string;
+  value: string;
+  subtext?: string;
+  themeColor?: 'green' | 'yellow' | 'red' | 'white';
+  hasStar?: boolean;
+  typewriterDelay?: number;
+}> = ({ label, value, subtext, themeColor = 'white', hasStar, typewriterDelay = 0 }) => {
+  const themeStyles = {
+    green: {
+      card: 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.07] border-emerald-500/35 dark:border-emerald-500/40 hover:border-emerald-500/65 shadow-[0_8px_30px_rgba(16,185,129,0.06)] dark:shadow-[0_8px_30px_rgba(16,185,129,0.12)]',
+      value: 'text-emerald-500 dark:text-emerald-400',
+      label: 'text-emerald-700/90 dark:text-emerald-300',
+      subtext: 'text-emerald-700/70 dark:text-emerald-300/70',
+    },
+    yellow: {
+      card: 'bg-amber-500/[0.04] dark:bg-amber-500/[0.07] border-amber-500/35 dark:border-amber-500/40 hover:border-amber-500/65 shadow-[0_8px_30px_rgba(245,158,11,0.06)] dark:shadow-[0_8px_30px_rgba(245,158,11,0.12)]',
+      value: 'text-amber-500 dark:text-amber-400',
+      label: 'text-amber-700/90 dark:text-amber-300',
+      subtext: 'text-amber-700/70 dark:text-amber-300/70',
+    },
+    red: {
+      card: 'bg-rose-500/[0.04] dark:bg-rose-500/[0.07] border-rose-500/35 dark:border-rose-500/40 hover:border-rose-500/65 shadow-[0_8px_30px_rgba(244,63,94,0.06)] dark:shadow-[0_8px_30px_rgba(244,63,94,0.12)]',
+      value: 'text-rose-500 dark:text-rose-400',
+      label: 'text-rose-700/90 dark:text-rose-300',
+      subtext: 'text-rose-700/70 dark:text-rose-300/70',
+    },
+    white: {
+      card: 'bg-white/[0.04] dark:bg-white/[0.06] border-[#D1D5DB] dark:border-white/20 hover:border-[#1A1A1A] dark:hover:border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]',
+      value: 'text-[#1A1A1A] dark:text-white',
+      label: 'text-[#6C757D] dark:text-[#A0AEC0]',
+      subtext: 'text-[#6C757D] dark:text-[#A0AEC0]',
+    }
+  }[themeColor];
+
+  return (
+    <div
+      className={`relative overflow-hidden backdrop-blur-xl p-6 rounded-[2.5rem] border transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 ${themeStyles.card}`}
+    >
+      <div className={`relative z-10 text-[11px] font-black tracking-wider mb-3 uppercase ${themeStyles.label}`}>
+        {label}
+      </div>
+      <div className={`relative z-10 text-2xl sm:text-3xl font-serif font-black flex items-center space-x-1.5 ${themeStyles.value}`}>
+        <StatTypewriter value={value} delay={typewriterDelay} />
+        {hasStar && <Star className="w-5 h-5 fill-amber-400 text-amber-400 inline" />}
+      </div>
+      {subtext && (
+        <div className={`relative z-10 text-xs mt-1.5 font-medium ${themeStyles.subtext}`}>
+          {subtext}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const BookingCard: React.FC<{
+  booking: Booking;
   onStatusChange: (id: string, status: BookingStatus) => void;
   onOpenChat: () => void;
 }> = ({ booking, onStatusChange, onOpenChat }) => {
@@ -1507,7 +1770,7 @@ const BookingCard: React.FC<{
   };
 
   return (
-    <motion.div 
+    <motion.div
       whileHover={{ scale: 1.008 }}
       transition={springTransition}
       className="bg-brand-background dark:bg-[#1A1A1A] p-5 sm:p-6 rounded-[2rem] border border-[#E9ECEF] dark:border-[#2D2D2D] shadow-lg flex flex-col md:flex-row items-center gap-5 group hover:border-brand-interactive/30 transition-all"
@@ -1528,7 +1791,7 @@ const BookingCard: React.FC<{
               #{booking.id.slice(0, 8)}
             </span>
             {booking.customerPhone && (
-              <a 
+              <a
                 href={`tel:${booking.customerPhone}`}
                 className="inline-flex items-center text-[11px] font-bold text-brand-interactive hover:underline px-2 py-0.5 rounded-lg bg-brand-interactive/10"
                 title="Call client directly"
@@ -1583,18 +1846,18 @@ const BookingCard: React.FC<{
 
         {booking.status === BookingStatus.PENDING ? (
           <>
-            <motion.button 
+            <motion.button
               disabled={updating}
               whileTap={{ scale: 0.94 }}
-              onClick={() => handleAction(BookingStatus.CONFIRMED)} 
+              onClick={() => handleAction(BookingStatus.CONFIRMED)}
               className="flex-1 sm:flex-none px-5 py-3 bg-green-500 text-white rounded-xl font-black text-xs hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20"
             >
               {updating ? 'Updating...' : 'Accept'}
             </motion.button>
-            <motion.button 
+            <motion.button
               disabled={updating}
               whileTap={{ scale: 0.94 }}
-              onClick={() => handleAction(BookingStatus.CANCELLED)} 
+              onClick={() => handleAction(BookingStatus.CANCELLED)}
               className="flex-1 sm:flex-none px-4 py-3 bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-white rounded-xl font-bold text-xs hover:bg-gray-200 transition-colors"
             >
               Decline
@@ -1605,10 +1868,10 @@ const BookingCard: React.FC<{
             <span className="px-3 py-2 bg-green-500/10 text-green-500 rounded-xl text-xs font-black">
               Confirmed
             </span>
-            <motion.button 
+            <motion.button
               disabled={updating}
               whileTap={{ scale: 0.94 }}
-              onClick={() => handleAction(BookingStatus.COMPLETED)} 
+              onClick={() => handleAction(BookingStatus.COMPLETED)}
               className="flex-1 sm:flex-none px-5 py-3 bg-[#6C35A6] text-white rounded-xl font-black text-xs hover:bg-[#6C35A6]/90 transition-all shadow-md shadow-[#6C35A6]/20"
             >
               {updating ? 'Updating...' : 'Mark Completed'}

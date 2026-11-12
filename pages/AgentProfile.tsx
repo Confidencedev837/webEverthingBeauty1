@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, animate } from 'framer-motion';
 import {
   ShieldCheck,
@@ -26,7 +26,13 @@ import {
   Check,
   Copy,
   X,
-  Clock
+  Clock,
+  Rows3,
+  Tag,
+  ArrowRight,
+  Volume2,
+  VolumeX,
+  CheckCircle2
 } from 'lucide-react';
 import { Agent, Service, VerificationStatus } from '../types';
 import { smoothScrollTo } from '../components/SmoothScroll';
@@ -50,6 +56,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from '../components/Snackbar';
 import BookingModal from '../components/BookingModal';
+import LottieEmptyState from '../components/LottieEmptyState';
 
 export function getInitialsSvg(name: string) {
   const initials = name
@@ -124,6 +131,15 @@ const FacebookIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' 
 );
 
 // Custom Share Modal Component
+export const getAppBaseUrl = () => {
+  if (typeof window === 'undefined') return 'https://everythingbeauty.app';
+  const isLocal =
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '0.0.0.0';
+  return isLocal ? 'https://everythingbeauty.app' : window.location.origin;
+};
+
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -134,7 +150,7 @@ interface ShareModalProps {
 const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, agent, handle }) => {
   const [copied, setCopied] = useState(false);
   const { showSnackbar } = useSnackbar();
-  const shareUrl = window.location.href;
+  const shareUrl = `${getAppBaseUrl()}/#/agent/${agent.id}`;
   const shareText = `Check out ${agent.name} (${agent.specialty}) on Everything Beauty!`;
 
   if (!isOpen) return null;
@@ -302,9 +318,16 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, agent, handle 
 };
 
 // Auto-plays video tile when scrolled past/into viewport
-const AutoPlayVideoTile: React.FC<{ src: string; poster?: string }> = ({ src, poster }) => {
+const AutoPlayVideoTile: React.FC<{ src: string; poster?: string; muted?: boolean }> = ({ src, poster, muted = true }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = muted;
+    }
+  }, [muted]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -315,7 +338,7 @@ const AutoPlayVideoTile: React.FC<{ src: string; poster?: string }> = ({ src, po
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            video.play().catch(() => {});
+            video.play().catch(() => { });
           } else {
             video.pause();
           }
@@ -334,7 +357,7 @@ const AutoPlayVideoTile: React.FC<{ src: string; poster?: string }> = ({ src, po
         ref={videoRef}
         src={src}
         poster={poster}
-        muted
+        muted={muted}
         loop
         playsInline
         preload="metadata"
@@ -344,11 +367,320 @@ const AutoPlayVideoTile: React.FC<{ src: string; poster?: string }> = ({ src, po
   );
 };
 
+// Rich Instagram-Style Post Card for Services
+interface InstagramServicePostCardProps {
+  service: Service;
+  agent: Agent;
+  cleanHandle: string;
+  isLiked: boolean;
+  isFavorite: boolean;
+  onToggleLike: (e: React.MouseEvent) => void;
+  onToggleFavorite: (e: React.MouseEvent) => void;
+  onBookService: (service: Service) => void;
+  isNudged?: boolean;
+}
+
+const InstagramServicePostCard: React.FC<InstagramServicePostCardProps> = ({
+  service,
+  agent,
+  cleanHandle,
+  isLiked,
+  isFavorite,
+  onToggleLike,
+  onToggleFavorite,
+  onBookService,
+  isNudged = false
+}) => {
+  const { showSnackbar } = useSnackbar();
+  const [heartBurst, setHeartBurst] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isVideo = isVideoUrl(service.image);
+  const galleryVideos = (service.gallery || []).filter(
+    (item) => item.type === 'video' || isVideoUrl(item.url)
+  );
+  const firstVideoUrl = isVideo ? service.image : galleryVideos[0]?.url || null;
+  const hasVideo = Boolean(firstVideoUrl);
+
+  const handleMediaDoubleTap = (e: React.MouseEvent) => {
+    setHeartBurst(true);
+    setTimeout(() => setHeartBurst(false), 900);
+    if (!isLiked) {
+      onToggleLike(e);
+    }
+  };
+
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${getAppBaseUrl()}/#/services/${service.id}`;
+    navigator.clipboard.writeText(url);
+    showSnackbar?.(`Direct link to "${service.name}" copied!`, 'success');
+  };
+
+  const handleWhatsApp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!agent.phone) {
+      showSnackbar?.(`Direct chat with ${agent.name} is currently unavailable.`, 'info');
+      return;
+    }
+    const cleanPhone = formatPhoneNumberForWhatsApp(agent.phone);
+    const msg = `Hello ${agent.name}, I want to book your "${service.name}" service (₦${service.price.toLocaleString()}) via Everything Beauty.`;
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  return (
+    <motion.article
+      id={`post-service-${service.id}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`bg-white dark:bg-[#141414] rounded-3xl border transition-all duration-300 overflow-hidden ${isNudged
+          ? 'border-brand-interactive shadow-[0_0_30px_rgba(108,53,166,0.25)] ring-2 ring-brand-interactive/50'
+          : 'border-[#E9ECEF] dark:border-[#262626] shadow-[0_4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
+        }`}
+    >
+      {/* 1. POST HEADER (Instagram Style) */}
+      <div className="px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between border-b border-[#E9ECEF]/70 dark:border-[#222222]">
+        <div className="flex items-center space-x-3 min-w-0">
+          {/* Avatar with Instagram Gradient Ring */}
+          <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#F43F5E] shrink-0">
+            <div className="w-full h-full p-0.5 bg-white dark:bg-[#141414] rounded-full overflow-hidden">
+              <img
+                src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
+                alt={agent.name}
+                className="w-full h-full rounded-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = getInitialsSvg(agent.name);
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center space-x-1.5 flex-wrap">
+              <span className="font-bold text-xs sm:text-sm text-[#1A1A1A] dark:text-white truncate">
+                {cleanHandle}
+              </span>
+              <span className="text-[#8E8E8E] text-xs">•</span>
+              <span className="text-xs font-semibold text-brand-interactive truncate">
+                {service.category}
+              </span>
+            </div>
+            <p className="text-[11px] text-[#6C757D] dark:text-[#A0A0A0] flex items-center space-x-1 truncate">
+              <MapPin className="w-3 h-3 text-brand-interactive shrink-0" />
+              <span className="truncate">{service.agentLocation || agent.location || 'Doorstep Service'}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Top Right: Clean Unboxed Duration (No rounded box) */}
+        <div className="flex items-center space-x-1.5 shrink-0 text-amber-500 dark:text-amber-400 font-bold text-xs sm:text-sm">
+          <Clock className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
+          <span>{service.durationMins || 60}m</span>
+        </div>
+      </div>
+
+      {/* 2. POST MEDIA (Double-Tap to Like with Floating Shopping Tag) */}
+      <div
+        className="relative aspect-square sm:aspect-[4/3] max-h-[500px] bg-black/5 dark:bg-black/40 overflow-hidden cursor-pointer select-none group"
+        onDoubleClick={handleMediaDoubleTap}
+      >
+        {hasVideo && firstVideoUrl ? (
+          <AutoPlayVideoTile
+            src={firstVideoUrl}
+            poster={!isVideo ? service.image : undefined}
+            muted={isMuted}
+          />
+        ) : service.image ? (
+          <img
+            src={service.image}
+            alt={service.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = getInitialsSvg(service.name);
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-brand-surface dark:bg-[#1E1E1E]">
+            <span className="text-base font-black text-brand-interactive">
+              {service.name}
+            </span>
+          </div>
+        )}
+
+        {/* Double-Tap Heart Burst Animation */}
+        <AnimatePresence>
+          {heartBurst && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.3, 1], opacity: [0, 1, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.85, ease: 'easeOut' }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+            >
+              <Heart className="w-24 h-24 text-rose-500 fill-rose-500 drop-shadow-[0_4px_20px_rgba(244,63,94,0.6)]" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Floating Instagram Shopping Price Tag */}
+        <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full bg-black/80 backdrop-blur-md text-white text-xs font-black shadow-lg border border-white/20 flex items-center space-x-1.5 pointer-events-none z-10">
+          <Tag className="w-3.5 h-3.5 text-brand-accent" />
+          <span>₦{service.price.toLocaleString()}</span>
+        </div>
+
+        {/* Video Sound Toggle Button */}
+        {hasVideo && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMuted(!isMuted);
+            }}
+            className="absolute bottom-3 right-3 p-2 rounded-full bg-black/75 backdrop-blur-md text-white hover:bg-black/90 transition-colors z-10 cursor-pointer shadow-md border border-white/10"
+            title={isMuted ? 'Unmute video' : 'Mute video'}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+        )}
+      </div>
+
+      {/* 3. INSTAGRAM ACTION TOOLKIT BAR */}
+      <div className="px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between gap-3 border-b border-[#E9ECEF]/70 dark:border-[#222222]">
+        <div className="flex items-center space-x-3.5">
+          {/* Like */}
+          <button
+            type="button"
+            onClick={onToggleLike}
+            className="p-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 transition-transform cursor-pointer"
+            title={isLiked ? 'Unlike' : 'Like'}
+          >
+            <Heart
+              className={`w-6 h-6 transition-colors ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-[#1A1A1A] dark:text-white'
+                }`}
+            />
+          </button>
+
+          {/* WhatsApp / Chat */}
+          <button
+            type="button"
+            onClick={handleWhatsApp}
+            className="p-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 transition-transform text-[#1A1A1A] dark:text-white hover:text-emerald-500 cursor-pointer"
+            title="Chat on WhatsApp about this service"
+          >
+            <WhatsAppIcon className="w-5.5 h-5.5 fill-current" />
+          </button>
+
+          {/* Share */}
+          <button
+            type="button"
+            onClick={handleShareClick}
+            className="p-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 transition-transform text-[#1A1A1A] dark:text-white hover:text-brand-interactive cursor-pointer"
+            title="Share this service link"
+          >
+            <Share2 className="w-5.5 h-5.5" />
+          </button>
+
+          {/* Bookmark */}
+          <button
+            type="button"
+            onClick={onToggleFavorite}
+            className="p-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 active:scale-90 transition-transform cursor-pointer"
+            title={isFavorite ? 'Remove from saved' : 'Save service'}
+          >
+            <Bookmark
+              className={`w-6 h-6 transition-colors ${isFavorite ? 'text-amber-500 fill-amber-500' : 'text-[#1A1A1A] dark:text-white'
+                }`}
+            />
+          </button>
+        </div>
+
+        {/* PRIMARY CONVERSION CTA: Book This Service Button (With generous padding & arranged typography) */}
+        <button
+          onClick={() => onBookService(service)}
+          className="py-3 px-6 sm:py-3.5 sm:px-8 rounded-full bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white text-xs sm:text-sm font-black tracking-wide flex items-center space-x-2.5 shadow-[0_6px_22px_rgba(108,53,166,0.38)] hover:shadow-[0_8px_26px_rgba(108,53,166,0.5)] border-t border-white/25 active:scale-[0.98] transition-all cursor-pointer shrink-0"
+        >
+          <Calendar className="w-4 h-4 shrink-0" />
+          <span>Book This Service</span>
+        </button>
+      </div>
+
+      {/* 4. CAPTION & SERVICE SPECS */}
+      <div className="px-4 py-3 sm:px-5 sm:py-4 space-y-2.5">
+        {/* Rating summary */}
+        <div className="flex items-center space-x-2 text-xs font-black text-[#1A1A1A] dark:text-white">
+          <span>{isLiked ? 'You and others liked this' : 'Verified Appointment Service'}</span>
+          <span>•</span>
+          <span className="flex items-center text-amber-500">
+            <Star className="w-3.5 h-3.5 fill-current mr-1" />
+            {service.rating > 0 ? service.rating.toFixed(1) : '5.0'} ({service.reviewCount || 1})
+          </span>
+        </div>
+
+        {/* Caption */}
+        <div>
+          <p className="text-xs sm:text-sm leading-relaxed text-[#262626] dark:text-[#E0E0E0]">
+            <span className="font-black text-[#1A1A1A] dark:text-white mr-1.5">{cleanHandle}</span>
+            <span className="font-bold text-brand-interactive mr-1.5">{service.name}:</span>
+            <span>
+              {isExpanded || (service.description && service.description.length <= 130)
+                ? service.description
+                : `${(service.description || '').slice(0, 130)}...`}
+            </span>
+            {service.description && service.description.length > 130 && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="ml-1 text-xs font-bold text-[#6C757D] hover:text-brand-interactive cursor-pointer inline"
+              >
+                {isExpanded ? 'less' : 'more'}
+              </button>
+            )}
+          </p>
+        </div>
+
+        {/* Clean Flat Feature Tags (No rounded boxes) */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[11px] sm:text-xs">
+          <span className="inline-flex items-center font-bold text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Doorstep Available
+          </span>
+          <span className="text-gray-300 dark:text-[#444] font-black select-none">•</span>
+          <span className="font-bold text-brand-interactive dark:text-brand-accent">
+            Upfront Pricing
+          </span>
+          <span className="text-gray-300 dark:text-[#444] font-black select-none">•</span>
+          <span className="font-bold text-brand-interactive dark:text-brand-accent">
+            Live Availability
+          </span>
+        </div>
+
+        {/* Link to Full Specs */}
+        <div className="pt-2 border-t border-[#E9ECEF]/50 dark:border-[#222222]/50">
+          <Link
+            to={`/services/${service.id}`}
+            className="text-xs font-bold text-brand-interactive hover:underline inline-flex items-center space-x-1"
+          >
+            <span>View complete service portfolio & reviews</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
+    </motion.article>
+  );
+};
+
 const AgentProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, currentUser } = useAuth();
   const { showSnackbar } = useSnackbar();
+
+  const servicesSectionRef = useRef<HTMLDivElement>(null);
+  const [serviceViewMode, setServiceViewMode] = useState<'grid' | 'feed'>('grid');
+  const [isBookingNudgeActive, setIsBookingNudgeActive] = useState(false);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
 
   const [agent, setAgent] = useState<Agent | null>(null);
   const [services, setServices] = useState<Service[]>([]);
@@ -374,6 +706,55 @@ const AgentProfile: React.FC = () => {
 
   // Booking Modal
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
+
+  // Categories derived for filtering
+  const serviceCategories = useMemo(() => {
+    const cats = new Set<string>();
+    services.forEach((s) => {
+      if (s.category && s.category.trim() !== '') {
+        cats.add(s.category.trim());
+      }
+    });
+    return ['all', ...Array.from(cats)];
+  }, [services]);
+
+  const filteredServices = useMemo(() => {
+    if (selectedCategoryFilter === 'all') return services;
+    return services.filter((s) => s.category?.toLowerCase() === selectedCategoryFilter.toLowerCase());
+  }, [services, selectedCategoryFilter]);
+
+  // Book Now action: redirects & smoothly scrolls to transformed Instagram-style services feed
+  const handleBookNowClick = () => {
+    if (services.length === 0) {
+      showSnackbar?.('This specialist has not published any bookable services yet.', 'info');
+      return;
+    }
+    setActiveTab('services');
+    setServiceViewMode('feed');
+    setIsBookingNudgeActive(true);
+
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (servicesSectionRef.current) {
+          servicesSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 80);
+    });
+  };
+
+  // URL listener: supports /agent/:id?book=true and #services
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const shouldBook = searchParams.get('book') === 'true' || location.hash === '#services';
+    if (shouldBook && services.length > 0 && !loading) {
+      setActiveTab('services');
+      setServiceViewMode('feed');
+      setIsBookingNudgeActive(true);
+      setTimeout(() => {
+        servicesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+  }, [location.search, location.hash, services.length, loading]);
 
   // Fast initial social metrics (counts + my follow status only)
   const loadSocialCounts = async (agentId: string) => {
@@ -630,7 +1011,7 @@ const AgentProfile: React.FC = () => {
     : 'https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1600';
 
   return (
-    <div className="min-h-screen bg-brand-background dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white pb-20 pt-16 sm:pt-20 select-none transition-colors duration-200">
+    <div className="min-h-screen bg-brand-background dark:bg-[#0D0D0D] text-[#1A1A1A] dark:text-white pb-20 pt-16 sm:pt-20 transition-colors duration-200">
 
       {/* 1. MOBILE TOP NAVIGATION BAR (Clean, solid frosted bar, isolated from banner, opens custom ShareModal) */}
       <div className="md:hidden sticky top-16 z-30 px-3.5 py-2.5 flex items-center justify-between border-b border-[#E9ECEF] dark:border-[#222222] bg-white/95 dark:bg-[#0D0D0D]/95 backdrop-blur-md shadow-xs">
@@ -755,13 +1136,7 @@ const AgentProfile: React.FC = () => {
 
                   {/* Book Now Button with 3D tactile perspective skew & sideways jiggle */}
                   <button
-                    onClick={() => {
-                      if (services.length > 0) {
-                        setSelectedServiceForBooking(services[0]);
-                      } else {
-                        showSnackbar?.('No bookable services listed yet', 'info');
-                      }
-                    }}
+                    onClick={handleBookNowClick}
                     className="tactile-3d h-11 px-6 rounded-2xl text-sm font-black bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_4px_16px_rgba(108,53,166,0.35)] hover:shadow-[0_6px_22px_rgba(108,53,166,0.5)] border-t border-white/20 flex items-center space-x-2 cursor-pointer"
                   >
                     <Calendar className="w-4 h-4" />
@@ -1054,13 +1429,7 @@ const AgentProfile: React.FC = () => {
 
               {/* Book Now Button with generous padding and physical 3D tactile feedback */}
               <button
-                onClick={() => {
-                  if (services.length > 0) {
-                    setSelectedServiceForBooking(services[0]);
-                  } else {
-                    showSnackbar?.('No bookable services listed yet', 'info');
-                  }
-                }}
+                onClick={handleBookNowClick}
                 className="tactile-3d flex-1 py-3 px-4 min-h-[48px] rounded-2xl text-xs sm:text-sm font-black bg-brand-surface dark:bg-[#1E1E1E] text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D] hover:border-brand-interactive hover:text-brand-interactive flex items-center justify-center space-x-2 shadow-sm cursor-pointer"
               >
                 <Calendar className="w-4 h-4 text-brand-interactive" />
@@ -1091,7 +1460,11 @@ const AgentProfile: React.FC = () => {
       </div>
 
       {/* 3. MAIN CONTENT CONTAINER (Pure solid background for tabs and feeds) */}
-      <main className="max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 relative z-10 pt-2">
+      <main
+        ref={servicesSectionRef}
+        id="services-section"
+        className="max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 relative z-10 pt-2"
+      >
 
         {/* ======================================================== */}
         {/* 4. THE 4 TABS WITH ANIMATED SLIDER (ALL 4 VISIBLE & SHARP) */}
@@ -1208,139 +1581,246 @@ const AgentProfile: React.FC = () => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                {services.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-6 lg:gap-8">
-                    {services.map((service) => {
-                      const isVideo = isVideoUrl(service.image);
-                      const isLiked = likedIds.includes(service.id);
-                      const isFavorite = favoriteIds.includes(service.id);
-                      const galleryVideos = (service.gallery || []).filter(
-                        (item) => item.type === 'video' || isVideoUrl(item.url)
-                      );
-                      const videoCount = galleryVideos.length + (isVideo ? 1 : 0);
-                      const firstVideoUrl = isVideo
-                        ? service.image
-                        : galleryVideos[0]?.url || null;
-                      const hasAnyVideo = Boolean(firstVideoUrl);
-
-                      return (
-                        <div
-                          key={service.id}
-                          className="group relative aspect-square bg-gray-100 dark:bg-[#181818] overflow-hidden md:rounded-2xl md:shadow-md md:border md:border-[#E9ECEF] dark:md:border-[#222222] cursor-pointer"
-                          onClick={() => navigate(`/services/${service.id}`)}
-                        >
-                          {/* Media Thumbnail with broken image fallback */}
-                          {hasAnyVideo && firstVideoUrl ? (
-                            <AutoPlayVideoTile
-                              src={firstVideoUrl}
-                              poster={!isVideo ? service.image : undefined}
-                            />
-                          ) : service.image ? (
-                            <img
-                              src={service.image}
-                              alt={service.name}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.src = getInitialsSvg(service.name);
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-brand-surface dark:bg-[#1E1E1E]">
-                              <span className="text-[10px] md:text-sm font-black text-brand-interactive line-clamp-2">
-                                {service.name}
+                {/* 1. NUDGE TOOLKIT BANNER (when customer clicks Book Now or opens with ?book=true) */}
+                <AnimatePresence>
+                  {isBookingNudgeActive && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                      className="mb-6 p-4 sm:p-5 rounded-2xl md:rounded-3xl bg-gradient-to-r from-brand-interactive/15 via-[#32104D]/10 to-brand-interactive/10 border border-brand-interactive/30 shadow-lg relative overflow-hidden"
+                    >
+                      <div className="flex items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-start sm:items-center space-x-3.5">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-brand-interactive text-white flex items-center justify-center shrink-0 shadow-md">
+                            <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2 flex-wrap">
+                              <h3 className="text-sm sm:text-base font-black text-[#1A1A1A] dark:text-white">
+                                Choose Your Service
+                              </h3>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-interactive text-white">
+                                Booking Toolkit
                               </span>
                             </div>
-                          )}
-
-                          {/* Video Slate Indicator - Top Left (Shows multiple count or single play icon) */}
-                          {videoCount > 1 ? (
-                            <div className="absolute top-1.5 left-1.5 md:top-3 md:left-3 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-xl bg-black/75 text-white backdrop-blur-md pointer-events-none z-10 flex items-center space-x-1 text-[9px] md:text-xs font-black border border-white/20 shadow-md">
-                              <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-brand-interactive" />
-                              <span>{videoCount}</span>
-                            </div>
-                          ) : hasAnyVideo ? (
-                            <div className="absolute top-1.5 left-1.5 md:top-3 md:left-3 p-1 md:p-1.5 rounded-md md:rounded-xl bg-black/60 text-white backdrop-blur-sm pointer-events-none z-10 shadow-md">
-                              <Play className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 fill-current" />
-                            </div>
-                          ) : null}
-
-                          {/* Top-Right Quick Actions: Like & Favorite */}
-                          <div className="absolute top-1.5 right-1.5 md:top-3 md:right-3 flex items-center space-x-1 md:space-x-1.5 z-10">
-                            {/* Like Button */}
-                            <button
-                              type="button"
-                              onClick={(e) => handleToggleLike(service.id, e)}
-                              className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/50 text-white backdrop-blur-sm hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                              title={isLiked ? 'Unlike' : 'Like'}
-                            >
-                              <Heart
-                                className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'}`}
-                              />
-                            </button>
-
-                            {/* Favorite Button */}
-                            <button
-                              type="button"
-                              onClick={(e) => handleToggleFavorite(service.id, e)}
-                              className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/50 text-white backdrop-blur-sm hover:scale-110 active:scale-95 transition-transform cursor-pointer"
-                              title={isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
-                            >
-                              <Bookmark
-                                className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isFavorite ? 'text-amber-500 fill-amber-500' : 'text-white'}`}
-                              />
-                            </button>
-                          </div>
-
-                          {/* Price Overlay */}
-                          <div className="absolute bottom-1.5 left-1.5 md:bottom-3 md:left-3 px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-xl bg-black/80 backdrop-blur-md text-[10px] md:text-xs font-black text-white shadow-sm pointer-events-none">
-                            ₦{service.price >= 1000 ? `${(service.price / 1000).toFixed(0)}k` : service.price}
-                          </div>
-
-                          {/* PC Hover Overlay */}
-                          <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 lg:p-6 hidden md:flex flex-col justify-between text-white pointer-events-auto">
-                            <span className="text-xs font-black uppercase tracking-wider text-brand-accent line-clamp-1">
-                              {service.category}
-                            </span>
-                            <div>
-                              <h4 className="text-base lg:text-lg font-bold line-clamp-2 mb-3">
-                                {service.name}
-                              </h4>
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/services/${service.id}`);
-                                  }}
-                                  className="flex-1 py-2 bg-brand-interactive text-white rounded-xl text-xs font-black hover:bg-brand-interactive/90 transition-all text-center cursor-pointer shadow-md flex items-center justify-center space-x-1.5"
-                                >
-                                  <span>View Details & Book</span>
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedServiceForBooking(service);
-                                  }}
-                                  className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-bold text-white transition-colors cursor-pointer"
-                                  title="Quick Book"
-                                >
-                                  Quick Book
-                                </button>
-                              </div>
-                            </div>
+                            <p className="text-xs sm:text-sm text-[#4A4A4A] dark:text-[#CCCCCC] mt-0.5 font-medium leading-relaxed">
+                              Explore {agent.name.split(' ')[0]}'s services below. Tap <span className="font-bold text-brand-interactive">"Book This Service"</span> on any post to schedule your appointment.
+                            </p>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-16 px-4 text-center">
-                    <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-brand-interactive flex items-center justify-center">
-                      <LayoutGrid className="w-7 h-7" />
+                        <button
+                          onClick={() => setIsBookingNudgeActive(false)}
+                          className="p-1.5 rounded-xl text-[#6C757D] hover:text-[#1A1A1A] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer shrink-0"
+                          title="Dismiss guide"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {services.length > 0 ? (
+                  <>
+                    {/* View Switcher & Category Filter Bar */}
+                    <div className="flex items-center justify-between gap-3 mb-5 pb-3 border-b border-[#E9ECEF]/70 dark:border-[#222222]/70">
+                      {/* Categories (horizontal scrollable) */}
+                      <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-1">
+                        {serviceCategories.map((cat) => (
+                          <button
+                            key={cat}
+                            onClick={() => setSelectedCategoryFilter(cat)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${selectedCategoryFilter === cat
+                                ? 'bg-brand-interactive text-white shadow-sm'
+                                : 'bg-brand-surface dark:bg-[#1A1A1A] text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                              }`}
+                          >
+                            {cat === 'all' ? `All Services (${services.length})` : cat}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* View Mode Toggle: Grid vs Post Feed */}
+                      <div className="flex items-center space-x-1 bg-brand-surface dark:bg-[#1A1A1A] p-1 rounded-xl border border-[#E9ECEF] dark:border-[#262626] shrink-0">
+                        <button
+                          onClick={() => setServiceViewMode('feed')}
+                          className={`p-1.5 rounded-lg text-xs font-black flex items-center space-x-1.5 transition-all cursor-pointer ${serviceViewMode === 'feed'
+                              ? 'bg-brand-interactive text-white shadow-sm'
+                              : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                            }`}
+                          title="Instagram Post Feed"
+                        >
+                          <Rows3 className="w-4 h-4" />
+                          <span className="hidden sm:inline">Posts</span>
+                        </button>
+                        <button
+                          onClick={() => setServiceViewMode('grid')}
+                          className={`p-1.5 rounded-lg text-xs font-black flex items-center space-x-1.5 transition-all cursor-pointer ${serviceViewMode === 'grid'
+                              ? 'bg-brand-interactive text-white shadow-sm'
+                              : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                            }`}
+                          title="Grid View"
+                        >
+                          <LayoutGrid className="w-4 h-4" />
+                          <span className="hidden sm:inline">Grid</span>
+                        </button>
+                      </div>
                     </div>
-                    <p className="text-base font-bold text-[#1A1A1A] dark:text-white">No services listed yet</p>
-                    <p className="text-xs md:text-sm text-[#6C757D] mt-1">This specialist has not published service items yet.</p>
-                  </div>
+
+                    {/* Mode 1: Instagram Post Feed */}
+                    {serviceViewMode === 'feed' ? (
+                      <div className="max-w-xl mx-auto space-y-6 sm:space-y-8">
+                        {filteredServices.map((service, idx) => (
+                          <InstagramServicePostCard
+                            key={service.id}
+                            service={service}
+                            agent={agent}
+                            cleanHandle={cleanHandle}
+                            isLiked={likedIds.includes(service.id)}
+                            isFavorite={favoriteIds.includes(service.id)}
+                            onToggleLike={(e) => handleToggleLike(service.id, e)}
+                            onToggleFavorite={(e) => handleToggleFavorite(service.id, e)}
+                            onBookService={(s) => navigate(`/book/${s.id}`)}
+                            isNudged={isBookingNudgeActive && idx === 0}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      /* Mode 2: 3-Column Square Grid */
+                      <div className="grid grid-cols-3 gap-1 sm:gap-2 md:gap-6 lg:gap-8">
+                        {filteredServices.map((service) => {
+                          const isVideo = isVideoUrl(service.image);
+                          const isLiked = likedIds.includes(service.id);
+                          const isFavorite = favoriteIds.includes(service.id);
+                          const galleryVideos = (service.gallery || []).filter(
+                            (item) => item.type === 'video' || isVideoUrl(item.url)
+                          );
+                          const videoCount = galleryVideos.length + (isVideo ? 1 : 0);
+                          const firstVideoUrl = isVideo
+                            ? service.image
+                            : galleryVideos[0]?.url || null;
+                          const hasAnyVideo = Boolean(firstVideoUrl);
+
+                          return (
+                            <div
+                              key={service.id}
+                              className="group relative aspect-square bg-gray-100 dark:bg-[#181818] overflow-hidden md:rounded-2xl md:shadow-md md:border md:border-[#E9ECEF] dark:md:border-[#222222] cursor-pointer"
+                              onClick={() => {
+                                setServiceViewMode('feed');
+                                setTimeout(() => {
+                                  document.getElementById(`post-service-${service.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }, 60);
+                              }}
+                            >
+                              {/* Media Thumbnail with broken image fallback */}
+                              {hasAnyVideo && firstVideoUrl ? (
+                                <AutoPlayVideoTile
+                                  src={firstVideoUrl}
+                                  poster={!isVideo ? service.image : undefined}
+                                />
+                              ) : service.image ? (
+                                <img
+                                  src={service.image}
+                                  alt={service.name}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.src = getInitialsSvg(service.name);
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center bg-brand-surface dark:bg-[#1E1E1E]">
+                                  <span className="text-[10px] md:text-sm font-black text-brand-interactive line-clamp-2">
+                                    {service.name}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Video Slate Indicator - Top Left */}
+                              {videoCount > 1 ? (
+                                <div className="absolute top-1.5 left-1.5 md:top-3 md:left-3 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-xl bg-black/75 text-white backdrop-blur-md pointer-events-none z-10 flex items-center space-x-1 text-[9px] md:text-xs font-black border border-white/20 shadow-md">
+                                  <Layers className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-brand-interactive" />
+                                  <span>{videoCount}</span>
+                                </div>
+                              ) : hasAnyVideo ? (
+                                <div className="absolute top-1.5 left-1.5 md:top-3 md:left-3 p-1 md:p-1.5 rounded-md md:rounded-xl bg-black/60 text-white backdrop-blur-sm pointer-events-none z-10 shadow-md">
+                                  <Play className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 fill-current" />
+                                </div>
+                              ) : null}
+
+                              {/* Top-Right Quick Actions: Like & Favorite */}
+                              <div className="absolute top-1.5 right-1.5 md:top-3 md:right-3 flex items-center space-x-1 md:space-x-1.5 z-10">
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleToggleLike(service.id, e)}
+                                  className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/50 text-white backdrop-blur-sm hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                                  title={isLiked ? 'Unlike' : 'Like'}
+                                >
+                                  <Heart
+                                    className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'}`}
+                                  />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleToggleFavorite(service.id, e)}
+                                  className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-black/50 text-white backdrop-blur-sm hover:scale-110 active:scale-95 transition-transform cursor-pointer"
+                                  title={isFavorite ? 'Remove from Favorites' : 'Save to Favorites'}
+                                >
+                                  <Bookmark
+                                    className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isFavorite ? 'text-amber-500 fill-amber-500' : 'text-white'}`}
+                                  />
+                                </button>
+                              </div>
+
+                              {/* Price Overlay */}
+                              <div className="absolute bottom-1.5 left-1.5 md:bottom-3 md:left-3 px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-xl bg-black/80 backdrop-blur-md text-[10px] md:text-xs font-black text-white shadow-sm pointer-events-none">
+                                ₦{service.price >= 1000 ? `${(service.price / 1000).toFixed(0)}k` : service.price}
+                              </div>
+
+                              {/* PC Hover Overlay */}
+                              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 lg:p-6 hidden md:flex flex-col justify-between text-white pointer-events-auto">
+                                <span className="text-xs font-black uppercase tracking-wider text-brand-accent line-clamp-1">
+                                  {service.category}
+                                </span>
+                                <div>
+                                  <h4 className="text-base lg:text-lg font-bold line-clamp-2 mb-3">
+                                    {service.name}
+                                  </h4>
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setServiceViewMode('feed');
+                                        setTimeout(() => {
+                                          document.getElementById(`post-service-${service.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }, 60);
+                                      }}
+                                      className="flex-1 py-2 bg-brand-surface text-[#1A1A1A] rounded-xl text-xs font-black hover:bg-white transition-all text-center cursor-pointer shadow-md flex items-center justify-center space-x-1"
+                                    >
+                                      <span>View Post</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/book/${service.id}`);
+                                      }}
+                                      className="px-3 py-2 bg-brand-interactive hover:bg-brand-interactive/90 rounded-xl text-xs font-bold text-white transition-colors cursor-pointer shadow-md"
+                                      title="Book Appointment"
+                                    >
+                                      Book Now
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <LottieEmptyState type="services" />
                 )}
               </motion.div>
             )}
@@ -1387,13 +1867,7 @@ const AgentProfile: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-16 px-4 text-center">
-                    <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-brand-surface dark:bg-[#1E1E1E] text-brand-interactive flex items-center justify-center">
-                      <Film className="w-7 h-7" />
-                    </div>
-                    <p className="text-base font-bold text-[#1A1A1A] dark:text-white">No video reels yet</p>
-                    <p className="text-xs md:text-sm text-[#6C757D] mt-1">Video transformations and styling clips will appear here.</p>
-                  </div>
+                  <LottieEmptyState type="reels" />
                 )}
               </motion.div>
             )}
@@ -1482,17 +1956,15 @@ const AgentProfile: React.FC = () => {
                       );
                     })
                   ) : (
-                    <div className="py-12 text-center text-[#6C757D] dark:text-[#A0A0A0]">
-                      <Users className="w-10 h-10 mx-auto mb-2 text-[#ADB5BD] dark:text-[#555]" />
-                      <p className="text-sm font-bold text-[#1A1A1A] dark:text-white">
-                        {communitySubTab === 'followers' ? 'No followers yet' : 'Not following anyone yet'}
-                      </p>
-                      <p className="text-xs text-[#8E8E93] dark:text-[#777] mt-1">
-                        {communitySubTab === 'followers'
+                    <LottieEmptyState 
+                      type="community" 
+                      subType={communitySubTab}
+                      description={
+                        communitySubTab === 'followers'
                           ? `Be the first to follow ${agent?.name || 'this specialist'}`
-                          : `${agent?.name || 'This specialist'} hasn't followed any accounts yet`}
-                      </p>
-                    </div>
+                          : `${agent?.name || 'This specialist'} hasn't followed any accounts yet`
+                      }
+                    />
                   )}
                 </div>
               </motion.div>
@@ -1544,13 +2016,7 @@ const AgentProfile: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-16 px-4 text-center">
-                    <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
-                      <Heart className="w-7 h-7 fill-current" />
-                    </div>
-                    <p className="text-base font-bold text-[#1A1A1A] dark:text-white">No liked services yet</p>
-                    <p className="text-xs md:text-sm text-[#6C757D] mt-1">Items you like with the heart icon will appear here.</p>
-                  </div>
+                  <LottieEmptyState type="liked" />
                 )}
               </motion.div>
             )}

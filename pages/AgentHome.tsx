@@ -422,36 +422,38 @@ const AgentHome: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4.5">
             {services.map((service) => (
               <div
                 key={service.id}
-                className="p-5 rounded-[2.2rem] bg-white/85 dark:bg-[#151515]/85 backdrop-blur-xl border border-white/90 dark:border-white/10 shadow-sm hover:shadow-[0_16px_36px_rgba(108,53,166,0.15)] hover:border-brand-interactive/40 hover:-translate-y-1 hover:scale-[1.015] transition-all duration-200 ease-out flex flex-col justify-between"
+                className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-[#161616] border border-[#E9ECEF] dark:border-[#262626] shadow-sm hover:shadow-md hover:border-brand-interactive/35 transition-all duration-200 flex flex-col justify-between"
               >
-                <div className="flex items-start space-x-4 mb-4">
-                  <img
-                    src={service.image || 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=400'}
-                    alt={service.name}
-                    className="w-18 h-18 sm:w-20 sm:h-20 rounded-[1.4rem] object-cover shrink-0 shadow-xs"
-                  />
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-interactive bg-brand-interactive/10 px-3 py-1 rounded-full border border-brand-interactive/25 shadow-xs">
+                <div className="flex items-center space-x-3.5 mb-3">
+                  <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-xl overflow-hidden shrink-0 bg-black/10 border border-black/5 dark:border-white/5">
+                    <img
+                      src={service.image || 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=400'}
+                      alt={service.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-interactive bg-brand-interactive/10 px-2.5 py-0.5 rounded-md border border-brand-interactive/20 inline-block">
                       {service.category}
                     </span>
-                    <h4 className="font-bold text-sm sm:text-base text-[#1A1A1A] dark:text-white mt-1.5 line-clamp-1">
+                    <h4 className="font-bold text-sm sm:text-base text-[#1A1A1A] dark:text-white mt-1 truncate">
                       {service.name}
                     </h4>
-                    <span className="text-sm sm:text-base font-black text-brand-interactive mt-0.5 block">
+                    <span className="text-sm sm:text-base font-black text-brand-interactive block mt-0.5">
                       ₦{service.price?.toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-[#E9ECEF]/70 dark:border-[#262626] flex items-center justify-between text-xs">
-                  <span className="text-[#6C757D] font-medium">{service.durationMins || 60} mins duration</span>
+                <div className="pt-2.5 border-t border-[#E9ECEF]/70 dark:border-[#262626] flex items-center justify-between text-xs">
+                  <span className="text-[#6C757D] font-medium text-[11px]">{service.durationMins || 60} mins duration</span>
                   <Link
                     to="/agent/dashboard"
-                    className="px-3.5 py-1.5 rounded-full bg-brand-interactive/10 hover:bg-brand-interactive text-brand-interactive hover:text-white font-bold text-xs transition-all duration-200 hover:scale-105 active:scale-95"
+                    className="px-3 py-1 rounded-full bg-brand-interactive/10 hover:bg-brand-interactive text-brand-interactive hover:text-white font-bold text-xs transition-all active:scale-95"
                   >
                     Edit in Studio
                   </Link>

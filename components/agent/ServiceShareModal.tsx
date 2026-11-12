@@ -14,9 +14,17 @@ const ServiceShareModal: React.FC<ServiceShareModalProps> = ({ service, isOpen, 
 
   if (!isOpen || !service) return null;
 
-  // Generate direct shareable link
+  // Generate direct shareable link (live webapp origin, not fixed to localhost)
   const serviceId = service.id || '';
-  const shareUrl = `${window.location.origin}/#/services/${serviceId}`;
+  const getAppBaseUrl = () => {
+    if (typeof window === 'undefined') return 'https://everythingbeauty.app';
+    const { hostname, origin } = window.location;
+    if (!origin || hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0') {
+      return 'https://everythingbeauty.app';
+    }
+    return origin;
+  };
+  const shareUrl = `${getAppBaseUrl()}/#/services/${serviceId}`;
   const serviceTitle = service.name || 'New Beauty Service';
   const priceStr = service.price ? `₦${Number(service.price).toLocaleString()}` : '';
 
