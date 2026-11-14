@@ -183,8 +183,7 @@ const CustomerHome: React.FC = () => {
   };
 
   const handleBookService = (service: Service) => {
-    setSelectedServiceForBooking(service);
-    setIsBookingModalOpen(true);
+    navigate(`/book/${service.id}`);
   };
 
   const handleBookingSuccess = () => {

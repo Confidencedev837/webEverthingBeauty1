@@ -183,30 +183,28 @@ const StepProgress: React.FC<{ current: BookingStep }> = ({ current }) => (
         return (
           <li key={s.id} className="flex items-center flex-1 last:flex-none">
             <div
-              className={`flex items-center space-x-2 transition-colors ${
-                isCurrent
+              className={`flex items-center space-x-2 transition-colors ${isCurrent
                   ? 'text-brand-interactive'
                   : isDone
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-[#888] dark:text-[#666]'
-              }`}
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-[#888] dark:text-[#666]'
+                }`}
             >
               <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black border transition-all ${
-                  isCurrent
+                className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black border transition-all shrink-0 ${isCurrent
                     ? 'border-brand-interactive bg-brand-interactive/10 text-brand-interactive'
                     : isDone
-                    ? 'border-emerald-500 bg-emerald-500 text-white'
-                    : 'border-black/10 dark:border-white/10 text-[#888]'
-                }`}
+                      ? 'border-emerald-500 bg-emerald-500 text-white'
+                      : 'border-black/10 dark:border-white/10 text-[#888]'
+                  }`}
               >
                 {isDone ? <Check className="w-3.5 h-3.5" /> : <span>0{s.id}</span>}
               </div>
-              <span className="hidden sm:inline">{s.label}</span>
+              <span className="hidden lg:inline whitespace-nowrap text-[11px]">{s.label}</span>
             </div>
 
             {idx < STEPS.length - 1 && (
-              <div className="flex-1 mx-3 sm:mx-4 h-[1px] bg-black/10 dark:bg-white/10" />
+              <div className="flex-1 mx-2 sm:mx-3 h-[1px] bg-black/10 dark:bg-white/10 min-w-3" />
             )}
           </li>
         );
@@ -289,13 +287,12 @@ const ScheduleTimetableDiagram: React.FC<{
             type="button"
             disabled={!isOpen}
             onClick={() => onSelectSlot(slot)}
-            className={`p-3 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
-              !isOpen
+            className={`p-3 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${!isOpen
                 ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5 opacity-40 cursor-not-allowed text-[#888]'
                 : isSelected
-                ? 'bg-brand-interactive text-white border-brand-interactive shadow-md shadow-brand-interactive/20 scale-[1.01]'
-                : 'bg-white dark:bg-[#161616] text-[#1A1A1A] dark:text-white border-black/10 dark:border-white/10 hover:border-brand-interactive/50'
-            }`}
+                  ? 'bg-brand-interactive text-white border-brand-interactive shadow-md shadow-brand-interactive/20 scale-[1.01]'
+                  : 'bg-white dark:bg-[#161616] text-[#1A1A1A] dark:text-white border-black/10 dark:border-white/10 hover:border-brand-interactive/50'
+              }`}
           >
             <div className="flex items-center justify-between w-full mb-1">
               <span className="text-xs font-black tracking-tight">{slot}</span>
@@ -308,9 +305,8 @@ const ScheduleTimetableDiagram: React.FC<{
               )}
             </div>
             <span
-              className={`text-[10px] font-bold ${
-                isSelected ? 'text-white/80' : !isOpen ? 'text-gray-400' : 'text-[#6C757D] dark:text-[#888]'
-              }`}
+              className={`text-[10px] font-bold ${isSelected ? 'text-white/80' : !isOpen ? 'text-gray-400' : 'text-[#6C757D] dark:text-[#888]'
+                }`}
             >
               {label || 'Instant Confirm'}
             </span>
@@ -636,11 +632,20 @@ const Booking: React.FC = () => {
               <span className="text-xs font-bold hidden sm:inline">Back</span>
             </button>
 
-            <img
-              src={service.image}
-              alt=""
-              className="w-10 h-10 rounded-xl object-cover border border-black/10 dark:border-white/10 shadow-sm"
-            />
+            {service.image ? (
+              <img
+                src={service.image}
+                alt={service.name}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80';
+                }}
+                className="w-10 h-10 rounded-xl object-cover border border-black/10 dark:border-white/10 shadow-sm shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-brand-surface dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center shrink-0">
+                <CalendarIcon className="w-5 h-5 text-brand-interactive" />
+              </div>
+            )}
             <div>
               <h1 className="font-serif font-bold text-sm sm:text-base leading-tight truncate max-w-[160px] sm:max-w-xs md:max-w-md">
                 {service.name}
@@ -921,27 +926,24 @@ const Booking: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                       <div
-                        className={`flex items-center space-x-2 ${
-                          addressValidation.hasHouseNumber ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-[#888]'
-                        }`}
+                        className={`flex items-center space-x-2 ${addressValidation.hasHouseNumber ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-[#888]'
+                          }`}
                       >
                         <Check className={`w-3.5 h-3.5 ${addressValidation.hasHouseNumber ? 'text-emerald-600' : 'text-gray-400'}`} />
                         <span>House / Plot #</span>
                       </div>
 
                       <div
-                        className={`flex items-center space-x-2 ${
-                          addressValidation.hasArea ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-[#888]'
-                        }`}
+                        className={`flex items-center space-x-2 ${addressValidation.hasArea ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-[#888]'
+                          }`}
                       >
                         <Check className={`w-3.5 h-3.5 ${addressValidation.hasArea ? 'text-emerald-600' : 'text-gray-400'}`} />
                         <span>Specific Area</span>
                       </div>
 
                       <div
-                        className={`flex items-center space-x-2 ${
-                          addressValidation.validPhone ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-[#888]'
-                        }`}
+                        className={`flex items-center space-x-2 ${addressValidation.validPhone ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-[#888]'
+                          }`}
                       >
                         <Check className={`w-3.5 h-3.5 ${addressValidation.validPhone ? 'text-emerald-600' : 'text-gray-400'}`} />
                         <span>Valid Contact Phone</span>
@@ -1157,3 +1159,4 @@ const Booking: React.FC = () => {
 };
 
 export default Booking;
+

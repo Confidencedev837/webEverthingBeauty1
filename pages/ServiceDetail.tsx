@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useAnimationControls, useMotionValueEvent } from 'framer-motion';
 import { Star, Clock, MapPin, Heart, Bookmark, Share2, Check, ArrowRight, Calendar, Play, Pause, Volume2, VolumeX, Maximize, ChevronLeft, ChevronRight, MessageSquare, Send, AlertCircle, RefreshCw, User, X } from 'lucide-react';
 import { Service, Review, ServiceGalleryItem } from '../types';
@@ -22,6 +22,7 @@ import BookingModal from '../components/BookingModal';
 const ServiceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, currentUser } = useAuth();
   const { showSnackbar } = useSnackbar();
   const [service, setService] = useState<Service | null>(null);

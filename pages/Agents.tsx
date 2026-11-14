@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Briefcase, Users, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, User, X, Compass, Tag, Calendar } from 'lucide-react';
+import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Briefcase, Users, ChevronLeft, ChevronRight, ChevronDown, ArrowUp, RefreshCw, AlertCircle, User, X, Compass, Tag, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Agent, Service } from '../types';
 import { getAgents, getServices } from '../services/supabaseService';
@@ -24,10 +24,10 @@ const Agents: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('All');
   const [sortBy, setSortBy] = useState('relevance');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(10);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const ITEMS_PER_PAGE = 12;
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const loadData = async () => {
     if (agents.length === 0) {
@@ -109,11 +109,10 @@ const Agents: React.FC = () => {
   }, [intelligentResult.matches, sortBy]);
 
   const paginatedAgents = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sortedAgents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [sortedAgents, currentPage]);
+    return sortedAgents.slice(0, visibleCount);
+  }, [sortedAgents, visibleCount]);
 
-  const totalPages = Math.ceil(sortedAgents.length / ITEMS_PER_PAGE) || 1;
+  const hasMore = visibleCount < sortedAgents.length;
 
   // Real aggregate stats calculated from loaded agents
   const averageRating = useMemo(() => {
@@ -192,7 +191,7 @@ const Agents: React.FC = () => {
                 value={search}
                 onChange={(val) => {
                   setSearch(val);
-                  setCurrentPage(1);
+                  setVisibleCount(10);
                 }}
                 services={services}
                 agents={agents}
@@ -271,7 +270,7 @@ const Agents: React.FC = () => {
                           key={spec}
                           onClick={() => {
                             setSelectedSpecialty(spec);
-                            setCurrentPage(1);
+                            setVisibleCount(10);
                           }}
                           className={`px-3 sm:px-5 md:px-8 py-2 sm:py-3 md:py-4 rounded-xl md:rounded-[1.5rem] text-sm font-black transition-all whitespace-nowrap cursor-pointer ${selectedSpecialty.toLowerCase() === spec.toLowerCase()
                             ? 'bg-brand-interactive text-white shadow-lg'
@@ -321,7 +320,7 @@ const Agents: React.FC = () => {
                       key={query}
                       onClick={() => {
                         setSearch(query);
-                        setCurrentPage(1);
+                        setVisibleCount(10);
                       }}
                       className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-surface dark:bg-[#202020] text-[#1A1A1A] dark:text-white border border-[#E2E8F0] dark:border-[#333] hover:border-brand-interactive hover:text-brand-interactive transition-all shadow-sm active:scale-95 cursor-pointer flex items-center space-x-1.5"
                     >
@@ -497,30 +496,52 @@ const Agents: React.FC = () => {
           </div>
         )}
 
-        {/* Join CTA for Agents */}
-        <section className="mt-16 sm:mt-24 md:mt-32 p-6 sm:p-10 md:p-16 lg:p-24 bg-brand-interactive rounded-[3rem] md:rounded-[4rem] lg:rounded-[5rem] text-white relative overflow-hidden shadow-xl shadow-brand-interactive/30">
-          <div className="absolute top-0 right-0 w-1/2 h-full bg-white/10 -skew-x-12 translate-x-32 hidden md:block" />
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 items-center gap-8 sm:gap-12 md:gap-16">
-            <div>
-              <motion.div {...fadeInUp} className="text-white/90 text-xs sm:text-sm font-black uppercase tracking-[0.22em] mb-4 sm:mb-6">
-                Elite Expansion
-              </motion.div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-serif font-bold mb-4 sm:mb-6 md:mb-8 leading-tight">Are you an elite <br /> beauty artist?</h2>
-              <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-white/80 mb-6 sm:mb-8 md:mb-12 font-medium leading-relaxed">
+        {/* Load More Button */}
+        {hasMore && (
+          <div ref={loadMoreRef} className="flex justify-center mt-6 sm:mt-10 mb-8 sm:mb-12">
+            <motion.button
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => {
+                setVisibleCount(prev => prev + 10);
+                setTimeout(() => {
+                  if (loadMoreRef.current) {
+                    loadMoreRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }
+                }, 100);
+              }}
+              className="px-8 py-3.5 sm:px-10 sm:py-4 rounded-2xl bg-brand-background dark:bg-[#1A1A1A] hover:bg-brand-interactive hover:text-white dark:hover:bg-brand-interactive text-brand-interactive border-2 border-brand-interactive/30 hover:border-brand-interactive font-black text-xs sm:text-sm transition-all duration-300 flex items-center space-x-2.5 shadow-lg shadow-brand-interactive/10 hover:shadow-brand-interactive/25 cursor-pointer active:scale-95"
+            >
+              <span>Load More</span>
+              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300" />
+            </motion.button>
+          </div>
+        )}
+
+        {/* Join CTA for Agents - Sleek Compact Banner */}
+        <section className="mt-8 sm:mt-12 p-5 sm:p-7 md:p-8 bg-brand-interactive rounded-2xl sm:rounded-3xl text-white relative overflow-hidden shadow-lg shadow-brand-interactive/20">
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
+            <div className="max-w-xl">
+              <div className="text-white/80 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] mb-1.5 flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-brand-accent" />
+                <span>Elite Expansion</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold mb-1.5 leading-tight">
+                Are you an elite beauty artist?
+              </h2>
+              <p className="text-xs sm:text-sm text-white/85 font-medium leading-relaxed">
                 Join our vetted community and receive bookings from high-end clientele nationwide with zero hassle.
               </p>
-              <Link to="/auth" className="inline-flex items-center px-6 sm:px-8 md:px-10 lg:px-12 py-3 sm:py-4 md:py-5 lg:py-6 bg-brand-background text-brand-interactive rounded-2xl md:rounded-[2rem] font-black text-sm sm:text-base md:text-lg lg:text-xl hover:bg-brand-surface transition-all transform hover:scale-105 shadow-xl">
-                Become a Partner <ArrowRight className="ml-2 sm:ml-3 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
-              </Link>
             </div>
-            <div className="hidden lg:flex justify-center">
-              <div className="relative w-80 h-80 flex items-center justify-center">
-                <div className="absolute inset-0 bg-white/10 rounded-3xl animate-pulse" />
-                <div className="relative p-10 bg-brand-background rounded-3xl flex items-center justify-center shadow-2xl">
-                  <Award className="w-24 h-24 text-brand-interactive" />
-                </div>
-              </div>
-            </div>
+            <Link
+              to="/auth"
+              className="inline-flex items-center justify-center px-5 py-3 sm:px-6 sm:py-3.5 bg-brand-background text-brand-interactive rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm hover:bg-brand-surface transition-all shrink-0 active:scale-95 shadow-md"
+            >
+              <span>Become a Partner</span>
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
           </div>
         </section>
       </div>
