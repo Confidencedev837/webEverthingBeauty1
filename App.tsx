@@ -25,6 +25,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SmoothScroll from './components/SmoothScroll';
 import ScrollProgressBar from './components/ScrollProgressBar';
 import ScrollToTopButton from './components/ScrollToTopButton';
+import { supabase } from './lib/supabase';
 
 const App: React.FC = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
@@ -52,13 +53,35 @@ const App: React.FC = () => {
     }
   }, [themeMode]);
 
-  // Handle Supabase password recovery redirect (only when specifically type=recovery)
+  // Handle Supabase OAuth callback & password recovery in HashRouter
   useEffect(() => {
-    const hash = window.location.hash || '';
-    if (hash.includes('type=recovery')) {
-      if (!hash.startsWith('#/reset-password')) {
-        const cleanTokens = hash.replace(/^#/, '');
+    const rawHash = window.location.hash || '';
+
+    // Handle password recovery
+    if (rawHash.includes('type=recovery')) {
+      if (!rawHash.startsWith('#/reset-password')) {
+        const cleanTokens = rawHash.replace(/^#/, '');
         window.location.hash = `/reset-password?${cleanTokens}`;
+      }
+      return;
+    }
+
+    // Handle OAuth tokens (e.g. Google Sign-In)
+    if (rawHash.includes('access_token=') || rawHash.includes('refresh_token=')) {
+      const cleanHash = rawHash.replace(/^#\/?/, '').replace(/^#/, '');
+      const searchParams = new URLSearchParams(cleanHash);
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        }).then(({ data, error }) => {
+          if (!error && data.session) {
+            window.location.hash = '/auth';
+          }
+        });
       }
     }
   }, []);
