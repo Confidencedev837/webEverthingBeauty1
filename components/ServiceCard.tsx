@@ -18,9 +18,10 @@ interface ServiceCardProps {
   service: Service;
   index: number;
   onBook?: (service: Service) => void;
+  isHighlighted?: boolean;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => {
+const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHighlighted = false }) => {
   const { user } = useAuth();
   const { showSnackbar } = useSnackbar();
   const [videoError, setVideoError] = useState(false);
@@ -178,13 +179,26 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook }) => 
 
   return (
     <motion.div
+      id={`service-${service.id}`}
       ref={cardRef}
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
       viewport={{ once: true }}
-      className="group relative rounded-2xl sm:rounded-3xl overflow-hidden border border-white/40 dark:border-white/10 hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] hover:shadow-[0_16px_40px_rgba(108,53,166,0.22)] hover:-translate-y-1.5 flex flex-col h-full transform-gpu mb-4 sm:mb-6 md:mb-8 bg-gray-950"
+      className={`group relative rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] hover:shadow-[0_16px_40px_rgba(108,53,166,0.22)] hover:-translate-y-1.5 flex flex-col h-full transform-gpu mb-4 sm:mb-6 md:mb-8 bg-gray-950 ${
+        isHighlighted
+          ? 'ring-4 ring-brand-interactive border-brand-interactive shadow-[0_0_35px_rgba(108,53,166,0.55)] scale-[1.02]'
+          : 'border-white/40 dark:border-white/10 hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50'
+      }`}
     >
+      {/* Highlighted Badge for newly published service */}
+      {isHighlighted && (
+        <div className="absolute top-3 left-3 z-30 px-3 py-1 rounded-xl bg-brand-interactive text-white text-[11px] font-black shadow-lg uppercase tracking-wider flex items-center space-x-1.5 animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <span>New Service</span>
+        </div>
+      )}
+
       {/* 1. MEDIA CONTAINER (Underlying Layer extending behind the card) */}
       <div className="relative aspect-[4/3] overflow-hidden block bg-gray-950">
         <Link to={`/services/${service.id}`} className="absolute inset-0 block">

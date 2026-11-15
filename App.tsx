@@ -18,6 +18,7 @@ import AgentDashboard from './pages/AgentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import ResetPassword from './pages/ResetPassword';
 import Booking from './pages/Booking';
+import CreateService from './pages/CreateService';
 import { AuthProvider } from './context/AuthContext';
 import { SnackbarProvider } from './components/Snackbar';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -51,10 +52,10 @@ const App: React.FC = () => {
     }
   }, [themeMode]);
 
-  // Handle Supabase password recovery redirect
+  // Handle Supabase password recovery redirect (only when specifically type=recovery)
   useEffect(() => {
     const hash = window.location.hash || '';
-    if (hash.includes('type=recovery') || hash.includes('access_token')) {
+    if (hash.includes('type=recovery')) {
       if (!hash.startsWith('#/reset-password')) {
         const cleanTokens = hash.replace(/^#/, '');
         window.location.hash = `/reset-password?${cleanTokens}`;
@@ -97,9 +98,11 @@ const App: React.FC = () => {
                     <Route path="/privacy" element={<Legal />} />
                     <Route path="/partner-agreement" element={<Legal />} />
 
-                    {/* New Dashboard Routes */}
+                    {/* New Dashboard & Service Creation Routes */}
                     <Route path="/customer/dashboard" element={<CustomerDashboard />} />
                     <Route path="/agent/dashboard" element={<AgentDashboard />} />
+                    <Route path="/agent/create-service" element={<CreateService />} />
+                    <Route path="/create-service" element={<CreateService />} />
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/login" element={<Auth />} />
                     <Route path="/reset-password" element={<ResetPassword />} />

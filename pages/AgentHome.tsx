@@ -330,8 +330,8 @@ const AgentHome: React.FC = () => {
                           {booking.customerName}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${booking.status === BookingStatus.CONFIRMED
-                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
-                            : 'bg-amber-500/10 text-amber-500 border border-amber-500/25 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
+                          ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                          : 'bg-amber-500/10 text-amber-500 border border-amber-500/25 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
                           }`}>
                           {booking.status}
                         </span>
@@ -414,11 +414,11 @@ const AgentHome: React.FC = () => {
               </h2>
             </div>
             <Link
-              to="/agent/dashboard"
-              className="tactile-3d px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white text-xs sm:text-sm font-black shadow-[0_6px_20px_rgba(108,53,166,0.3)] hover:shadow-[0_8px_24px_rgba(108,53,166,0.45)] flex items-center space-x-2 cursor-pointer"
+              to="/agent/create-service"
+              className="tactile-3d px-5 py-2.5 sm:px-6 sm:py-3 rounded-2xl bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white text-xs sm:text-sm font-black shadow-[0_6px_20px_rgba(108,53,166,0.3)] hover:shadow-[0_8px_24px_rgba(108,53,166,0.45)] flex items-center space-x-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Service</span>
+              <span>Create Service</span>
             </Link>
           </div>
 
@@ -453,7 +453,7 @@ const AgentHome: React.FC = () => {
                   <span className="text-[#6C757D] font-medium text-[11px]">{service.durationMins || 60} mins duration</span>
                   <Link
                     to="/agent/dashboard"
-                    className="px-3 py-1 rounded-full bg-brand-interactive/10 hover:bg-brand-interactive text-brand-interactive hover:text-white font-bold text-xs transition-all active:scale-95"
+                    className="px-3 py-1 rounded-xl bg-brand-interactive/10 hover:bg-brand-interactive text-brand-interactive hover:text-white font-bold text-xs transition-all active:scale-95"
                   >
                     Edit in Studio
                   </Link>
@@ -463,6 +463,33 @@ const AgentHome: React.FC = () => {
           </div>
         </section>
 
+      </div>
+
+      {/* Floating Action Button (FAB) for Creating New Service */}
+      <div className="fixed bottom-40 right-4 sm:bottom-24 sm:right-8 z-50">
+        <div className="relative group">
+          {/* Tooltip Card (NO PILLS - sleek rounded-xl card) */}
+          <div
+            role="tooltip"
+            className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3.5 py-1.5 rounded-xl bg-brand-primary/95 dark:bg-[#1A1A1A]/95 backdrop-blur-xl border border-white/20 dark:border-white/10 text-white text-xs font-black tracking-wide shadow-xl opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap hidden sm:flex items-center space-x-1.5 translate-x-2 group-hover:translate-x-0"
+          >
+            <Plus className="w-3.5 h-3.5 text-brand-accent" />
+            <span>Create New Service</span>
+          </div>
+
+          {/* Tactile FAB Button with Spring Physics */}
+          <motion.button
+            onClick={() => navigate('/agent/create-service')}
+            whileHover={{ scale: 1.08, y: -2 }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+            aria-label="Create New Service"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_10px_25px_rgba(108,53,166,0.42)] hover:shadow-[0_14px_35px_rgba(108,53,166,0.55)] border border-white/25 flex items-center justify-center cursor-pointer tactile-3d transition-shadow"
+          >
+            <Plus className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.4] transition-transform duration-300 group-hover:rotate-90" />
+            <span className="sr-only">Create New Service</span>
+          </motion.button>
+        </div>
       </div>
     </div>
   );

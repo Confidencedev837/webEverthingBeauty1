@@ -253,8 +253,8 @@ const GuestHome: React.FC = () => {
                 title: "Curate",
                 desc: "Discover beauty professionals by category, price, and proximity.",
                 icon: <Search className="w-8 h-8" />,
-                image: "/images/steps/curate-man.png",
-                imageClassName: "w-[21rem] sm:w-[22rem] md:w-[23rem] -bottom-3 -right-3"
+                image: "/images/steps/curate-woman-phone.png",
+                imageClassName: "w-[15rem] sm:w-[16rem] md:w-[17rem] -bottom-3 -right-2"
               },
               {
                 step: "02",
@@ -277,8 +277,8 @@ const GuestHome: React.FC = () => {
                 title: "Radiate",
                 desc: "Your specialist arrives and delivers your transformation.",
                 icon: <Zap className="w-8 h-8" />,
-                image: "/images/steps/radiate-transformation.png",
-                imageClassName: "w-[17.5rem] sm:w-[18.5rem] md:w-[19.5rem] -bottom-3 -right-2"
+                image: "/images/steps/radiate-twists-profile.png",
+                imageClassName: "w-[12rem] sm:w-[13.5rem] md:w-[14.5rem] -bottom-3 -right-2"
               }
             ].map((item, idx) => (
               <motion.div

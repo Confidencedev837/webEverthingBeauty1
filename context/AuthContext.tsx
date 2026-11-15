@@ -10,6 +10,7 @@ interface AuthContextType {
   profile: any | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
+  signInWithGoogle: (roleIntent?: 'customer' | 'agent') => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, profileData: {
     fullName: string;
     userType: 'customer' | 'agent';
@@ -18,6 +19,17 @@ interface AuthContextType {
     specialization?: string;
     yearsExp?: number;
     serviceType?: string;
+    bio?: string;
+  }) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
+  completeProfile: (profileData: {
+    fullName: string;
+    userType: 'customer' | 'agent';
+    phone: string;
+    location: string;
+    specialization?: string;
+    yearsExp?: number;
+    serviceType?: string;
+    bio?: string;
   }) => Promise<{ success: boolean; error?: string; role?: UserRole }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -120,6 +132,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithGoogle = async (roleIntent: 'customer' | 'agent' = 'customer') => {
+    try {
+      sessionStorage.setItem('eb_auth_intent_role', roleIntent);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Google sign-in request failed' };
+    }
+  };
+
+  const completeProfile = async (profileData: {
+    fullName: string;
+    userType: 'customer' | 'agent';
+    phone: string;
+    location: string;
+    specialization?: string;
+    yearsExp?: number;
+    serviceType?: string;
+    bio?: string;
+  }) => {
+    if (!user?.id) {
+      return { success: false, error: 'No authenticated user session found.' };
+    }
+
+    try {
+      const updates = {
+        id: user.id,
+        user_type: profileData.userType,
+        full_name: profileData.fullName.trim(),
+        phone: profileData.phone.trim(),
+        location: profileData.location,
+        specialization: profileData.specialization?.trim() || '',
+        years_exp: profileData.yearsExp || 0,
+        service_type: profileData.serviceType || 'doorstep',
+        bio: profileData.bio?.trim() || '',
+        verification_status: profileData.userType === 'agent' ? 'pending' : 'verified',
+        email: user.email || '',
+        avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || '',
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(updates);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      const targetRole = profileData.userType === 'agent' ? UserRole.AGENT : UserRole.CUSTOMER;
+      setRole(targetRole);
+      setProfile((prev: any) => ({ ...prev, ...updates }));
+      await fetchProfile(user.id);
+      return { success: true, role: targetRole };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to complete profile' };
+    }
+  };
+
   const signUp = async (
     email: string, 
     password: string, 
@@ -131,6 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       specialization?: string;
       yearsExp?: number;
       serviceType?: string;
+      bio?: string;
     }
   ) => {
     try {
@@ -160,7 +240,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             location: profileData.location || '',
             specialization: profileData.specialization || '',
             years_exp: profileData.yearsExp || 0,
-            service_type: profileData.serviceType || 'hybrid',
+            service_type: profileData.serviceType || 'doorstep',
+            bio: profileData.bio || '',
             verification_status: profileData.userType === 'agent' ? 'pending' : 'verified',
             email: email,
             updated_at: new Date().toISOString()
@@ -204,7 +285,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile,
         loading,
         signIn,
+        signInWithGoogle,
         signUp,
+        completeProfile,
         signOut,
         refreshProfile
       }}

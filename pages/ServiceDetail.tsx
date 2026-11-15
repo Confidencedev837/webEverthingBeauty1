@@ -669,10 +669,7 @@ const ServiceDetail: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="hidden sm:flex items-center space-x-2 text-xs font-black uppercase tracking-wider text-[#6C757D] dark:text-gray-400">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Instant Doorstep Appointment Available</span>
-                  </div>
+                  <div className="hidden sm:block flex-1" />
                 )}
 
                 {/* The Radiant Book Now Button - Right where circled by the user */}

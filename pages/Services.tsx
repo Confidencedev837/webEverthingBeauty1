@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, MapPin, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, X, Compass, Tag, Heart, Bookmark } from 'lucide-react';
 import { Service, Agent } from '../types';
@@ -24,6 +25,29 @@ const Services: React.FC = () => {
   const [sortBy, setSortBy] = useState('relevance');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
+
+  const location = useLocation();
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  // Parse target highlighted service from URL query param (?highlight=id) or hash (#service-id)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const paramHighlight = params.get('highlight');
+    const hashHighlight = location.hash ? location.hash.replace('#service-', '').replace('#', '') : null;
+    const targetId = paramHighlight || hashHighlight;
+
+    if (targetId) {
+      setHighlightedId(targetId);
+      setSelectedCategory('All');
+      setSearch('');
+
+      // Auto-clear highlight after 6.5s
+      const timer = setTimeout(() => {
+        setHighlightedId(null);
+      }, 6500);
+      return () => clearTimeout(timer);
+    }
+  }, [location.search, location.hash]);
 
   const loadData = async () => {
     if (services.length === 0) {
@@ -127,6 +151,28 @@ const Services: React.FC = () => {
     return list;
   }, [intelligentResult?.matches, sortBy]);
 
+  // Smooth scroll and focus on newly published highlighted service
+  useEffect(() => {
+    if (!highlightedId || sortedServices.length === 0) return;
+
+    const targetIdx = sortedServices.findIndex((s) => s.id === highlightedId);
+    if (targetIdx >= 0) {
+      const targetPage = Math.floor(targetIdx / ITEMS_PER_PAGE) + 1;
+      if (currentPage !== targetPage) {
+        setCurrentPage(targetPage);
+      }
+    }
+
+    const scrollTimer = setTimeout(() => {
+      const el = document.getElementById(`service-${highlightedId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 450);
+
+    return () => clearTimeout(scrollTimer);
+  }, [highlightedId, sortedServices, currentPage]);
+
   const paginatedServices = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return sortedServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -214,11 +260,10 @@ const Services: React.FC = () => {
                 <div className="flex items-center gap-1 sm:gap-2 w-fit">
                   <button
                     onClick={() => { setSpecialFilter('all'); setCurrentPage(1); }}
-                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none active:scale-95 ${
-                      specialFilter === 'all'
+                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none active:scale-95 ${specialFilter === 'all'
                         ? 'text-white'
                         : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     {specialFilter === 'all' && (
                       <motion.div
@@ -237,11 +282,10 @@ const Services: React.FC = () => {
 
                   <button
                     onClick={() => { setSpecialFilter('favorites'); setCurrentPage(1); }}
-                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${
-                      specialFilter === 'favorites'
+                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${specialFilter === 'favorites'
                         ? 'text-white'
                         : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-amber-500'
-                    }`}
+                      }`}
                   >
                     {specialFilter === 'favorites' && (
                       <motion.div
@@ -261,11 +305,10 @@ const Services: React.FC = () => {
 
                   <button
                     onClick={() => { setSpecialFilter('liked'); setCurrentPage(1); }}
-                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${
-                      specialFilter === 'liked'
+                    className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${specialFilter === 'liked'
                         ? 'text-white'
                         : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-rose-500'
-                    }`}
+                      }`}
                   >
                     {specialFilter === 'liked' && (
                       <motion.div
@@ -323,11 +366,10 @@ const Services: React.FC = () => {
                           setSelectedCategory(cat);
                           setCurrentPage(1);
                         }}
-                        className={`relative px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap cursor-pointer select-none active:scale-95 ${
-                          isSelected
+                        className={`relative px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap cursor-pointer select-none active:scale-95 ${isSelected
                             ? 'text-white'
                             : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
-                        }`}
+                          }`}
                       >
                         {isSelected && (
                           <motion.div
@@ -415,7 +457,12 @@ const Services: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 mb-12">
             {sortedServices.length > 0 ? (
               paginatedServices.map((service, idx) => (
-                <ServiceCard key={service.id} service={service} index={idx} />
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  index={idx}
+                  isHighlighted={service.id === highlightedId}
+                />
               ))
             ) : (
               <div className="col-span-full py-16 sm:py-24 md:py-32 text-center bg-brand-background dark:bg-[#1A1A1A] rounded-3xl border border-[#E9ECEF] dark:border-[#2D2D2D] p-8 shadow-xl">

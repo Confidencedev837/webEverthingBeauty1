@@ -1420,6 +1420,33 @@ const AgentDashboard: React.FC = () => {
           currentUserName={currentUser?.name || 'Specialist'}
           currentUserRole="AGENT"
         />
+
+        {/* Floating Action Button (FAB) - Create New Service */}
+        <div className="fixed bottom-40 right-4 sm:bottom-24 sm:right-8 z-50">
+          <div className="relative group">
+            {/* Tooltip Card (NO PILLS - sleek rounded-xl card) */}
+            <div
+              role="tooltip"
+              className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3.5 py-1.5 rounded-xl bg-brand-primary/95 dark:bg-[#1A1A1A]/95 backdrop-blur-xl border border-white/20 dark:border-white/10 text-white text-xs font-black tracking-wide shadow-xl opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap hidden sm:flex items-center space-x-1.5 translate-x-2 group-hover:translate-x-0"
+            >
+              <Plus className="w-3.5 h-3.5 text-brand-accent" />
+              <span>Create New Service</span>
+            </div>
+
+            {/* Tactile FAB Button */}
+            <motion.button
+              onClick={() => navigate('/agent/create-service')}
+              whileHover={{ scale: 1.08, y: -2 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+              aria-label="Create New Service"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#32104D] via-[#6C35A6] to-[#7B3DB8] text-white shadow-[0_10px_25px_rgba(108,53,166,0.42)] hover:shadow-[0_14px_35px_rgba(108,53,166,0.55)] border border-white/25 flex items-center justify-center cursor-pointer tactile-3d transition-shadow"
+            >
+              <Plus className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.4] transition-transform duration-300 group-hover:rotate-90" />
+              <span className="sr-only">Create New Service</span>
+            </motion.button>
+          </div>
+        </div>
       </main>
     </div>
   );

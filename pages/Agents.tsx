@@ -520,30 +520,71 @@ const Agents: React.FC = () => {
           </div>
         )}
 
-        {/* Join CTA for Agents - Sleek Compact Banner */}
-        <section className="mt-8 sm:mt-12 p-5 sm:p-7 md:p-8 bg-brand-interactive rounded-2xl sm:rounded-3xl text-white relative overflow-hidden shadow-lg shadow-brand-interactive/20">
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
-            <div className="max-w-xl">
-              <div className="text-white/80 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] mb-1.5 flex items-center gap-1.5">
-                <Award className="w-3.5 h-3.5 text-brand-accent" />
-                <span>Elite Expansion</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold mb-1.5 leading-tight">
-                Are you an elite beauty artist?
-              </h2>
-              <p className="text-xs sm:text-sm text-white/85 font-medium leading-relaxed">
-                Join our vetted community and receive bookings from high-end clientele nationwide with zero hassle.
-              </p>
-            </div>
-            <Link
-              to="/auth"
-              className="inline-flex items-center justify-center px-5 py-3 sm:px-6 sm:py-3.5 bg-brand-background text-brand-interactive rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm hover:bg-brand-surface transition-all shrink-0 active:scale-95 shadow-md"
-            >
-              <span>Become a Partner</span>
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
+        {/* Join CTA for Agents - Glassmorphic Spring Bounce Banner */}
+        <motion.section
+          initial={{ opacity: 0, y: 40, scale: 0.94 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{
+            type: "spring",
+            stiffness: 260,
+            damping: 18,
+            mass: 0.8
+          }}
+          whileHover={{ y: -5, transition: { type: "spring", stiffness: 350, damping: 15 } }}
+          className="group mt-8 sm:mt-12 p-6 sm:p-8 md:p-9 rounded-2xl sm:rounded-3xl text-white relative overflow-hidden bg-gradient-to-tr from-[#32104D]/90 via-[#6C35A6]/80 to-[#7E42BD]/75 dark:from-[#200A33]/90 dark:via-[#4D2477]/80 dark:to-[#6C35A6]/70 backdrop-blur-2xl border border-white/25 dark:border-white/15 shadow-[0_20px_50px_rgba(108,53,166,0.3)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.6)]"
+        >
+          {/* Glass Specular Sheen & Frosted Reflections */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/30 pointer-events-none" />
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-white/15 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-brand-accent/25 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Left Side: Cutout Image shifted far to the left so the left edge clips off, pulling her face away from the text */}
+          <div className="absolute left-0 bottom-0 top-0 w-1/2 flex items-end pointer-events-none z-0">
+            <img
+              src="/images/agent-earnings.png"
+              alt="Beauty Agent Earnings"
+              className="h-[92%] sm:h-full w-auto max-w-none object-contain object-bottom-left -translate-x-[36%] sm:-translate-x-[18%] md:-translate-x-[8%] filter drop-shadow-[0_14px_28px_rgba(0,0,0,0.4)] pointer-events-none select-none"
+            />
           </div>
-        </section>
+
+          {/* Dark Contrast Scrim / Frosted Shadow Overlay for Crystal-Clear Text Readability */}
+          <div className="absolute inset-y-0 right-0 w-[80%] sm:w-[65%] md:w-[55%] bg-gradient-to-l from-[#180529]/95 via-[#220838]/85 to-transparent pointer-events-none z-[5]" />
+
+          <div className="relative z-10 flex flex-row items-end justify-end">
+            {/* Right Side: Text & CTA pushed cleanly to the far right with solid backdrop clarity */}
+            <div className="w-[60%] sm:w-[52%] md:w-[48%] ml-auto flex flex-col justify-center pb-1 sm:pb-3 space-y-2 sm:space-y-3 pl-2 sm:pl-4">
+              <div className="text-white/80 text-[9px] sm:text-[11px] md:text-xs font-black uppercase tracking-[0.18em] sm:tracking-[0.2em] flex items-center gap-1.5">
+                <Briefcase className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-accent shrink-0" />
+                <span>For Barbers & Beauty Agents</span>
+              </div>
+
+              <h2 className="text-base sm:text-xl md:text-2xl lg:text-3xl font-serif font-bold leading-tight drop-shadow-sm">
+                Cut hair, braid, do nails, or makeup?
+              </h2>
+
+              <p className="text-[11px] sm:text-xs md:text-sm text-white/85 font-medium leading-snug sm:leading-relaxed drop-shadow-sm">
+                Stop wasting hours answering DMs just to quote prices. Get booked by paying customers at your own rates, with guaranteed upfront payments sent straight to your bank account.
+              </p>
+
+              <div className="pt-1 sm:pt-2">
+                <motion.div
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                >
+                  <Link
+                    to="/auth"
+                    className="inline-flex items-center justify-center py-2.5 px-3.5 sm:py-3.5 sm:px-6 bg-white/95 dark:bg-white text-brand-primary rounded-xl sm:rounded-2xl font-black text-[11px] sm:text-xs md:text-sm hover:bg-white transition-all shadow-md active:scale-95 text-center cursor-pointer"
+                  >
+                    <span>Register as a Beauty Agent</span>
+                    <ArrowRight className="ml-1.5 sm:ml-2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-interactive shrink-0" />
+                  </Link>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </motion.section>
       </div>
 
       {/* Booking Modal */}

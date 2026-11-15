@@ -1,14 +1,16 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- ── Primary SEO & Brand Ranking Metadata ── -->
     <title>Everything Beauty | Verified On-Demand Beauty Professionals</title>
-    <meta name="description" content="Discover and book vetted beauty specialists, makeup artists, hairstylists, and nail technicians on-demand. Luxury door-to-door salon appointments with instant confirmation.">
-    <meta name="keywords" content="Everything Beauty, beauty services, makeup artist on-demand, home salon, hairstylist, nail specialist, bridal makeup, luxury beauty marketplace, doorstep beauty, beauty bookings">
+    <meta name="description"
+        content="Discover and book vetted beauty specialists, makeup artists, hairstylists, and nail technicians on-demand. Luxury door-to-door salon appointments with instant confirmation.">
+    <meta name="keywords"
+        content="Everything Beauty, beauty services, makeup artist on-demand, home salon, hairstylist, nail specialist, bridal makeup, luxury beauty marketplace, doorstep beauty, beauty bookings">
     <meta name="author" content="Everything Beauty Marketplace">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="https://everythingbeauty.app/">
@@ -35,7 +37,8 @@
     <meta property="og:site_name" content="Everything Beauty">
     <meta property="og:url" content="https://everythingbeauty.app/">
     <meta property="og:title" content="Everything Beauty | Verified On-Demand Beauty Professionals">
-    <meta property="og:description" content="Book top-rated makeup artists, hairstylists, and nail specialists directly to your doorstep with guaranteed professional results.">
+    <meta property="og:description"
+        content="Book top-rated makeup artists, hairstylists, and nail specialists directly to your doorstep with guaranteed professional results.">
     <meta property="og:image" content="/logo.jpg">
     <meta property="og:image:width" content="600">
     <meta property="og:image:height" content="600">
@@ -47,7 +50,8 @@
     <meta name="twitter:site" content="@everythingbeauty">
     <meta name="twitter:creator" content="@everythingbeauty">
     <meta name="twitter:title" content="Everything Beauty | Verified On-Demand Beauty Professionals">
-    <meta name="twitter:description" content="Book vetted makeup artists, hairstylists, and nail specialists right to your doorstep.">
+    <meta name="twitter:description"
+        content="Book vetted makeup artists, hairstylists, and nail specialists right to your doorstep.">
     <meta name="twitter:image" content="/logo.jpg">
 
     <!-- ── Google Rich Results Structured Data (JSON-LD) ── -->
@@ -111,24 +115,34 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,400;1,500;1,600;1,700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"></script>
     <style>
         :root {
-            --color-brand-primary: #32104D;     /* Deep Plum */
-            --color-brand-interactive: #6C35A6; /* Royal Violet */
-            --color-brand-accent: #A78BCE;      /* Soft Lavender */
-            --color-brand-surface: #F3EDF8;     /* Lavender Mist */
-            --color-brand-background: #FDFBFF;  /* Pearl White */
+            --color-brand-primary: #32104D;
+            /* Deep Plum */
+            --color-brand-interactive: #6C35A6;
+            /* Royal Violet */
+            --color-brand-accent: #A78BCE;
+            /* Soft Lavender */
+            --color-brand-surface: #F3EDF8;
+            /* Lavender Mist */
+            --color-brand-background: #FDFBFF;
+            /* Pearl White */
         }
+
         /* Royal Violet text on dark surfaces lacks contrast; use Soft Lavender there */
         .dark .text-brand-interactive {
             color: var(--color-brand-accent);
         }
+
         :focus-visible {
             outline: 2px solid var(--color-brand-interactive);
             outline-offset: 2px;
         }
+
         .dark :focus-visible {
             outline-color: var(--color-brand-accent);
         }
@@ -138,18 +152,24 @@
             scroll-behavior: smooth;
             -webkit-text-size-adjust: 100%;
         }
-        html.lenis, html.lenis body {
+
+        html.lenis,
+        html.lenis body {
             height: auto;
         }
+
         .lenis.lenis-smooth {
             scroll-behavior: auto !important;
         }
+
         .lenis.lenis-smooth [data-lenis-prevent] {
             overscroll-behavior: contain;
         }
+
         .lenis.lenis-stopped {
             overflow: hidden;
         }
+
         .lenis.lenis-smooth iframe {
             pointer-events: none;
         }
@@ -162,7 +182,12 @@
             text-rendering: optimizeLegibility;
             -webkit-overflow-scrolling: touch;
         }
-        h1, h2, h3, h4, .font-elegant {
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .font-elegant {
             font-family: 'Plus Jakarta Sans', sans-serif;
             letter-spacing: 0.02em;
         }
@@ -172,30 +197,38 @@
             width: 6px;
             height: 6px;
         }
+
         ::-webkit-scrollbar-track {
             background: transparent;
         }
+
         ::-webkit-scrollbar-thumb {
             background: rgba(108, 53, 166, 0.28);
             border-radius: 9999px;
             transition: background 0.25s ease;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(108, 53, 166, 0.7);
         }
+
         .dark ::-webkit-scrollbar-thumb {
             background: rgba(167, 139, 206, 0.3);
         }
+
         .dark ::-webkit-scrollbar-thumb:hover {
             background: rgba(167, 139, 206, 0.75);
         }
+
         * {
             scrollbar-width: thin;
             scrollbar-color: rgba(108, 53, 166, 0.3) transparent;
         }
+
         .dark * {
             scrollbar-color: rgba(167, 139, 206, 0.35) transparent;
         }
+
         /* .glass {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
@@ -204,18 +237,29 @@
         .dark .glass {
             background: rgba(13, 13, 13, 0.8);
         }
-        .stagger-child > * {
+
+        .stagger-child>* {
             opacity: 0;
             transform: translateY(20px);
         }
-   @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
 
-.animate-marquee {
-  animation: marquee 20s linear infinite;
-}
+        @keyframes marquee {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            animation: marquee 20s linear infinite;
+        }
+
+        .font-editorial {
+            font-family: 'Playfair Display', Georgia, serif;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -232,12 +276,13 @@
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
                         serif: ['Plus Jakarta Sans', 'sans-serif'],
+                        editorial: ['"Playfair Display"', 'Georgia', 'serif'],
                     }
                 }
             }
         }
     </script>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.4",
@@ -249,11 +294,13 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
-<link rel="stylesheet" href="/mobile-scaling.css">
+    <link rel="stylesheet" href="/index.css">
+    <link rel="stylesheet" href="/mobile-scaling.css">
 </head>
+
 <body class="bg-brand-background text-[#1A1A1A] dark:bg-[#0D0D0D] dark:text-white overflow-x-hidden">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>

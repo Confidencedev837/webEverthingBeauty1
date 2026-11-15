@@ -119,13 +119,18 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 md:h-20">
             {/* Logo */}
-            <Link to="/" onClick={handleHomeClick} className="flex items-center space-x-2 group min-w-0">
+            <Link to="/" onClick={handleHomeClick} className="flex items-center space-x-2.5 sm:space-x-3 group min-w-0">
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 group-hover:rotate-3 transition-transform duration-300 overflow-hidden shrink-0">
                 <img src="/logo.jpg" alt="Everything Beauty Logo" className="w-full h-full object-cover" />
               </div>
-              <span className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-brand-primary dark:text-white truncate">
-                Everything<span className="text-brand-interactive ml-1">Beauty</span>
-              </span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xl md:text-2xl font-serif font-bold tracking-tighter text-brand-primary dark:text-white leading-none truncate">
+                  Everything<span className="text-brand-interactive ml-1">Beauty</span>
+                </span>
+                <span className="text-[10px] sm:text-[11px] md:text-xs italic font-editorial text-[#6C757D] dark:text-[#A78BCE] tracking-tight leading-tight mt-0.5 select-none whitespace-nowrap">
+                  where beauty comes to you
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Navigation Links */}
