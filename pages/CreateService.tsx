@@ -51,27 +51,27 @@ interface CategoryOption {
 
 const CATEGORIES: CategoryOption[] = [
   {
-    id: 'Hair Styling',
-    name: 'Hair Styling',
-    subtitle: 'Braids, weaves, locs & wigs',
-    icon: Scissors,
-    suggestedTitles: [
-      'Goddess Knotless Box Braids (Mid-Back)',
-      'Frontal Wig Installation & Custom Plucking',
-      'Boho Island Twists with Curls',
-      'Traditional Cornrows & Feed-In Braids'
-    ]
-  },
-  {
-    id: 'Makeup Artistry',
-    name: 'Makeup Artistry',
-    subtitle: 'Soft glam, studio & editorial',
+    id: 'Makeup',
+    name: 'Makeup',
+    subtitle: 'Soft glam, bridal, gele & editorial',
     icon: Palette,
     suggestedTitles: [
       'Signature Soft Glam with Mink Lashes',
       'Full Bridal Reception Makeup',
       'Clean Editorial Studio Makeup',
-      'Natural Everyday Birthday Glam'
+      'Traditional Gele Tying & Glam'
+    ]
+  },
+  {
+    id: 'Hair Styling & Braids',
+    name: 'Hair Styling & Braids',
+    subtitle: 'Knotless, cornrows, twists & locs',
+    icon: Scissors,
+    suggestedTitles: [
+      'Goddess Knotless Box Braids (Mid-Back)',
+      'Boho Island Twists with Curls',
+      'Traditional Cornrows & Feed-In Braids',
+      'Loc Maintenance & Retwist'
     ]
   },
   {
@@ -87,81 +87,45 @@ const CATEGORIES: CategoryOption[] = [
     ]
   },
   {
-    id: 'Skincare & Spa',
-    name: 'Skincare & Spa',
-    subtitle: 'Deep cleansing, facials & peels',
-    icon: Smile,
-    suggestedTitles: [
-      'Deep Cleansing Hydrating Facial',
-      'Microdermabrasion Glow Therapy',
-      'Acne Purifying Extraction Treatment',
-      'Dermaplaning & Brightening Mask'
-    ]
-  },
-  {
-    id: 'Barbering',
-    name: 'Barbering',
-    subtitle: 'Fades, beard sculpt & waves',
+    id: 'Barbing & Haircuts',
+    name: 'Barbing & Haircuts',
+    subtitle: 'Fades, beard sculpt, cuts & grooming',
     icon: UserCheck,
     suggestedTitles: [
       'Signature Low Drop Fade & Hot Towel',
       'Beard Sculpting & Razor Edge Definition',
-      'Kids Precision Haircut with Styling',
-      'Full Executive Cut with Charcoal Mask'
+      'Executive Haircut with Charcoal Mask',
+      'Kids Precision Haircut with Styling'
     ]
   },
   {
-    id: 'Lashes & Brows',
-    name: 'Lashes & Brows',
-    subtitle: 'Extensions, lamination & tint',
-    icon: Eye,
-    suggestedTitles: [
-      'Hybrid Volume Eyelash Extensions',
-      'Brow Lamination & Tinting Duo',
-      'Wispy Mega-Volume Lash Set',
-      'Microshading Ombré Powder Brows'
-    ]
-  },
-  {
-    id: 'Bridal Glam',
-    name: 'Bridal Glam',
-    subtitle: 'Full bridal party packages',
+    id: 'Wig Installation & Styling',
+    name: 'Wig Installation & Styling',
+    subtitle: 'Frontals, closures, revamping & melting',
     icon: Crown,
     suggestedTitles: [
-      'Traditional Wedding Bride Package',
-      'White Wedding Glam & Touch-Up Kit',
-      'Bridesmaids Group Makeup & Lashes',
-      'Bridal Consultation & Trial Session'
-    ]
-  },
-  {
-    id: 'Massage & Wellness',
-    name: 'Massage & Wellness',
-    subtitle: 'Deep tissue, Swedish & detox',
-    icon: Flower2,
-    suggestedTitles: [
-      '60-Min Swedish Full Body Relaxation',
-      'Deep Tissue Muscle Relief Therapy',
-      'Hot Stone Tension Release Massage',
-      'Post-Work Aromatherapy Body Scrub'
+      'Frontal Wig Installation & Custom Plucking',
+      'Glueless Closure Wig Install & Silk Press',
+      'Wig Revamp, Deep Wash & Styling',
+      'HD Lace Customization & Melting'
     ]
   }
 ];
 
 const PRESET_FEATURES: Record<string, string[]> = {
-  'Hair Styling': [
-    'One-on-one consultation',
-    'Sanitized tools & parting combs',
-    'Braiding hair prep included',
-    'Finishing mousse & scalp oil',
-    'Edge control styling'
-  ],
-  'Makeup Artistry': [
+  'Makeup': [
     'Full skin prep & primer',
     'Luxury mink eyelashes included',
     'Custom lipstick blend',
     'Setting spray long-wear seal',
     'Touch-up sponge kit'
+  ],
+  'Hair Styling & Braids': [
+    'One-on-one consultation',
+    'Sanitized tools & parting combs',
+    'Braiding hair prep included',
+    'Finishing mousse & scalp oil',
+    'Edge control styling'
   ],
   'Nails & Pedicure': [
     'Sanitized drill bits & files',
@@ -170,40 +134,35 @@ const PRESET_FEATURES: Record<string, string[]> = {
     'Non-toxic nail prep',
     'Free nail repair within 3 days'
   ],
-  'Skincare & Spa': [
-    'Skin type analysis',
-    'Double cleanse & warm steam',
-    'Custom antioxidant serum',
-    'Cooling jade roller massage',
-    'SPF sun protection finish'
-  ],
-  'Barbering': [
+  'Barbing & Haircuts': [
     'Sterilised clipper blades',
     'Hot towel treatment',
     'Beard oil massage',
     'Razor sharp hairline finish',
     'Scalp antiseptic spritz'
   ],
-  'Lashes & Brows': [
-    'Hypoallergenic medical glue',
-    'Individual lash mapping',
-    'Free spoolie brush to go',
-    'Soothing under-eye patches',
-    'Lash bath shampoo prep'
+  'Wig Installation & Styling': [
+    'Custom plucking & hairline shaping',
+    'Lace bleaching & tinting',
+    'HD melting band application',
+    'Silk press or custom curls',
+    'Maintenance care instructions'
   ],
-  'Bridal Glam': [
-    'Premium waterproof formulas',
-    'Touch-up emergency kit',
-    'Veil & accessory placement',
-    'Chest & collarbone glow',
-    'Photo-ready 16-hour wear'
+  // Legacy aliases
+  'Hair Styling': [
+    'One-on-one consultation',
+    'Sanitized tools & parting combs',
+    'Finishing mousse & scalp oil'
   ],
-  'Massage & Wellness': [
-    'Organic essential oils',
-    'Calming ambient soundscape',
-    'Heated massage table',
-    'Pressure level customized',
-    'Herbal tea post-session'
+  'Makeup Artistry': [
+    'Full skin prep & primer',
+    'Luxury eyelashes included',
+    'Setting spray seal'
+  ],
+  'Barbering': [
+    'Sterilised clipper blades',
+    'Hot towel treatment',
+    'Razor sharp hairline finish'
   ]
 };
 

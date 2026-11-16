@@ -7,12 +7,13 @@ import {
   CheckCircle, Info, AlertCircle, Ban, ArrowRight, ArrowLeft,
   ShieldCheck, Check, Building, Navigation, Lock, User, Phone, LocateFixed
 } from 'lucide-react';
-import { Service, AgentAvailability } from '../types';
+import { Service, AgentAvailability, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from '../components/Snackbar';
 import LoadingState from '../components/LoadingState';
 import { getServiceById, createBooking, getAgentAvailability, getBookedSlots } from '../services/supabaseService';
 import { dispatchBookingCreatedAlert } from '../services/whatsappService';
+import { humanizeError } from '../services/errorFormatter';
 
 const ALL_TIME_SLOTS = [
   '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
@@ -184,18 +185,18 @@ const StepProgress: React.FC<{ current: BookingStep }> = ({ current }) => (
           <li key={s.id} className="flex items-center flex-1 last:flex-none">
             <div
               className={`flex items-center space-x-2 transition-colors ${isCurrent
-                  ? 'text-brand-interactive'
-                  : isDone
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : 'text-[#888] dark:text-[#666]'
+                ? 'text-brand-interactive'
+                : isDone
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-[#888] dark:text-[#666]'
                 }`}
             >
               <div
                 className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black border transition-all shrink-0 ${isCurrent
-                    ? 'border-brand-interactive bg-brand-interactive/10 text-brand-interactive'
-                    : isDone
-                      ? 'border-emerald-500 bg-emerald-500 text-white'
-                      : 'border-black/10 dark:border-white/10 text-[#888]'
+                  ? 'border-brand-interactive bg-brand-interactive/10 text-brand-interactive'
+                  : isDone
+                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                    : 'border-black/10 dark:border-white/10 text-[#888]'
                   }`}
               >
                 {isDone ? <Check className="w-3.5 h-3.5" /> : <span>0{s.id}</span>}
@@ -288,10 +289,10 @@ const ScheduleTimetableDiagram: React.FC<{
             disabled={!isOpen}
             onClick={() => onSelectSlot(slot)}
             className={`p-3 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${!isOpen
-                ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5 opacity-40 cursor-not-allowed text-[#888]'
-                : isSelected
-                  ? 'bg-brand-interactive text-white border-brand-interactive shadow-md shadow-brand-interactive/20 scale-[1.01]'
-                  : 'bg-white dark:bg-[#161616] text-[#1A1A1A] dark:text-white border-black/10 dark:border-white/10 hover:border-brand-interactive/50'
+              ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/5 dark:border-white/5 opacity-40 cursor-not-allowed text-[#888]'
+              : isSelected
+                ? 'bg-brand-interactive text-white border-brand-interactive shadow-md shadow-brand-interactive/20 scale-[1.01]'
+                : 'bg-white dark:bg-[#161616] text-[#1A1A1A] dark:text-white border-black/10 dark:border-white/10 hover:border-brand-interactive/50'
               }`}
           >
             <div className="flex items-center justify-between w-full mb-1">
@@ -320,7 +321,7 @@ const ScheduleTimetableDiagram: React.FC<{
 const Booking: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, currentUser } = useAuth();
+  const { user, currentUser, role, signOut } = useAuth();
   const { showSnackbar } = useSnackbar();
 
   const [service, setService] = useState<Service | null>(null);
@@ -542,7 +543,20 @@ const Booking: React.FC = () => {
     setIsLoading(true);
     setErrorMessage('');
 
-    const customerId = user?.id || currentUser?.id || 'guest-client';
+    if (!user) {
+      setIsLoading(false);
+      showSnackbar('Please sign in or create a customer account to finalize your booking.', 'info');
+      navigate(`/auth?redirect=/book/${service.id}`);
+      return;
+    }
+
+    if (role === UserRole.AGENT || (currentUser as any)?.role === UserRole.AGENT) {
+      setIsLoading(false);
+      setErrorMessage('Specialist accounts cannot book appointments. Please sign in with a client account.');
+      return;
+    }
+
+    const customerId = user.id;
     const agentId = service.agentId;
     const fullAddress = `${streetLine.trim()}, ${area.trim()}, ${stateLabel(stateName)}`;
 
@@ -587,9 +601,45 @@ const Booking: React.FC = () => {
       showSnackbar('Appointment booked successfully!', 'success');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      setErrorMessage(result.error || 'Failed to complete appointment booking. Please retry.');
+      setErrorMessage(humanizeError(result.error, 'Failed to complete appointment booking. Please retry.'));
     }
   };
+
+  // Specialist Account Restriction View
+  if (user && (role === UserRole.AGENT || (currentUser as any)?.role === UserRole.AGENT)) {
+    return (
+      <div className="min-h-screen pt-28 pb-20 px-4 bg-brand-background dark:bg-[#0D0D0D] flex items-center justify-center">
+        <div className="max-w-md w-full bg-white dark:bg-[#161616] p-8 rounded-3xl border border-[#E9ECEF] dark:border-[#262626] shadow-xl text-center space-y-5">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-serif font-bold text-[#1A1A1A] dark:text-white">
+            Client Account Required
+          </h2>
+          <p className="text-sm text-[#6C757D] dark:text-[#A0A0A0] leading-relaxed">
+            You are currently signed in with a Beauty Specialist profile. Specialist accounts are designated for publishing and providing beauty services. To book an appointment, please sign in with a client account.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => navigate('/services')}
+              className="flex-1 py-3.5 px-4 bg-brand-surface dark:bg-[#222] text-[#1A1A1A] dark:text-white rounded-2xl text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+            >
+              Browse Services
+            </button>
+            <button
+              onClick={async () => {
+                await signOut();
+                navigate(`/auth?redirect=/book/${id}`);
+              }}
+              className="flex-1 py-3.5 px-4 bg-brand-interactive text-white rounded-2xl text-xs font-bold hover:bg-brand-interactive/90 transition-all shadow-md shadow-brand-interactive/20"
+            >
+              Switch Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loadingService) {
     return (

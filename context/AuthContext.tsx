@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, UserRole, VerificationStatus } from '../types';
 import { mapVerificationStatus } from '../services/supabaseService';
+import { humanizeError } from '../services/errorFormatter';
 
 interface AuthContextType {
   user: any | null;
@@ -117,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: humanizeError(error) };
       }
 
       if (data.user) {
@@ -128,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err?.message || 'Login request failed' };
+      return { success: false, error: humanizeError(err, 'Sign in request failed. Please check your network and try again.') };
     }
   };
 
@@ -142,11 +143,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: humanizeError(error) };
       }
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err?.message || 'Google sign-in request failed' };
+      return { success: false, error: humanizeError(err, 'Google sign-in request failed. Please try again.') };
     }
   };
 
@@ -161,11 +162,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     bio?: string;
   }) => {
     if (!user?.id) {
-      return { success: false, error: 'No authenticated user session found.' };
+      return { success: false, error: 'No active session found. Please sign in again.' };
     }
 
     try {
-      const updates = {
+      // Normalize service_type for database constraint ('mobile' | 'studio' | 'hybrid' | null)
+      let dbServiceType: 'mobile' | 'studio' | 'hybrid' | null = null;
+      if (profileData.userType === 'agent') {
+        const raw = (profileData.serviceType || '').toLowerCase();
+        if (raw === 'in_shop' || raw === 'studio' || raw === 'salon') {
+          dbServiceType = 'studio';
+        } else if (raw === 'hybrid') {
+          dbServiceType = 'hybrid';
+        } else {
+          dbServiceType = 'mobile';
+        }
+      } else {
+        dbServiceType = null;
+      }
+
+      const updates: any = {
         id: user.id,
         user_type: profileData.userType,
         full_name: profileData.fullName.trim(),
@@ -173,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         location: profileData.location,
         specialization: profileData.specialization?.trim() || '',
         years_exp: profileData.yearsExp || 0,
-        service_type: profileData.serviceType || 'doorstep',
+        service_type: dbServiceType,
         bio: profileData.bio?.trim() || '',
         verification_status: profileData.userType === 'agent' ? 'pending' : 'verified',
         email: user.email || '',
@@ -186,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .upsert(updates);
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: humanizeError(error) };
       }
 
       const targetRole = profileData.userType === 'agent' ? UserRole.AGENT : UserRole.CUSTOMER;
@@ -195,13 +211,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetchProfile(user.id);
       return { success: true, role: targetRole };
     } catch (err: any) {
-      return { success: false, error: err?.message || 'Failed to complete profile' };
+      return { success: false, error: humanizeError(err, 'Failed to complete profile. Please try again.') };
     }
   };
 
   const signUp = async (
-    email: string, 
-    password: string, 
+    email: string,
+    password: string,
     profileData: {
       fullName: string;
       userType: 'customer' | 'agent';
@@ -226,10 +242,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: humanizeError(error) };
       }
 
       if (data.user) {
+        let dbServiceType: 'mobile' | 'studio' | 'hybrid' | null = null;
+        if (profileData.userType === 'agent') {
+          const raw = (profileData.serviceType || '').toLowerCase();
+          if (raw === 'in_shop' || raw === 'studio' || raw === 'salon') {
+            dbServiceType = 'studio';
+          } else if (raw === 'hybrid') {
+            dbServiceType = 'hybrid';
+          } else {
+            dbServiceType = 'mobile';
+          }
+        } else {
+          dbServiceType = null;
+        }
+
         const { error: profileErr } = await supabase
           .from('profiles')
           .upsert({
@@ -240,7 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             location: profileData.location || '',
             specialization: profileData.specialization || '',
             years_exp: profileData.yearsExp || 0,
-            service_type: profileData.serviceType || 'doorstep',
+            service_type: dbServiceType,
             bio: profileData.bio || '',
             verification_status: profileData.userType === 'agent' ? 'pending' : 'verified',
             email: email,
@@ -248,7 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
         if (profileErr) {
-          console.warn('Profile sync notice:', profileErr.message);
+          console.error('[Everything Beauty System Error]:', profileErr);
         }
 
         setUser(data.user);
@@ -259,7 +289,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { success: true, role: profileData.userType === 'agent' ? UserRole.AGENT : UserRole.CUSTOMER };
     } catch (err: any) {
-      return { success: false, error: err?.message || 'Registration failed' };
+      return { success: false, error: humanizeError(err, 'Registration failed. Please check your internet and try again.') };
     }
   };
 

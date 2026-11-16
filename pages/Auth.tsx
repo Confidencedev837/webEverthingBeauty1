@@ -26,6 +26,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
 import { supabase } from '../lib/supabase';
+import { humanizeError } from '../services/errorFormatter';
+import { CANONICAL_SERVICE_CATEGORIES } from '../constants';
 
 type AuthView = 'login' | 'signup' | 'forgot' | 'onboarding';
 
@@ -37,14 +39,7 @@ const NIGERIAN_STATES = [
   'Taraba', 'Yobe', 'Zamfara'
 ];
 
-const POPULAR_SPECIALTIES = [
-  'Hair Braiding & Styling',
-  'Makeup Artistry',
-  'Nail Tech & Pedicure',
-  'Barbering & Grooming',
-  'Skincare & Spa',
-  'Lashes & Brows'
-];
+const POPULAR_SPECIALTIES = CANONICAL_SERVICE_CATEGORIES;
 
 const GoogleIcon: React.FC<{ className?: string }> = ({ className = 'w-5 h-5' }) => (
   <svg className={className} viewBox="0 0 24 24">
@@ -128,11 +123,11 @@ const Auth: React.FC = () => {
     try {
       const res = await signInWithGoogle(userType);
       if (!res.success) {
-        setErrorMsg(res.error || 'Failed to authenticate with Google.');
+        setErrorMsg(humanizeError(res.error, 'Failed to authenticate with Google.'));
         setGoogleLoading(false);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'An error occurred during Google sign-in.');
+      setErrorMsg(humanizeError(err, 'An error occurred during Google sign-in.'));
       setGoogleLoading(false);
     }
   };
@@ -215,7 +210,7 @@ const Auth: React.FC = () => {
         } else {
           clearInterval(progressInterval);
           setSubmitProgress(0);
-          setErrorMsg(res.error || 'Failed to sign in. Please verify your credentials.');
+          setErrorMsg(humanizeError(res.error, 'Failed to sign in. Please verify your credentials.'));
           setLoading(false);
         }
       } else {
@@ -247,14 +242,14 @@ const Auth: React.FC = () => {
         } else {
           clearInterval(progressInterval);
           setSubmitProgress(0);
-          setErrorMsg(res.error || 'Failed to register account.');
+          setErrorMsg(humanizeError(res.error, 'Failed to register account.'));
           setLoading(false);
         }
       }
     } catch (err: any) {
       clearInterval(progressInterval);
       setSubmitProgress(0);
-      setErrorMsg(err.message || 'An unexpected authentication error occurred.');
+      setErrorMsg(humanizeError(err, 'An unexpected authentication error occurred.'));
       setLoading(false);
     }
   };
@@ -325,13 +320,13 @@ const Auth: React.FC = () => {
       } else {
         clearInterval(progressInterval);
         setSubmitProgress(0);
-        setErrorMsg(res.error || 'Failed to complete profile.');
+        setErrorMsg(humanizeError(res.error, 'Failed to complete profile.'));
         setLoading(false);
       }
     } catch (err: any) {
       clearInterval(progressInterval);
       setSubmitProgress(0);
-      setErrorMsg(err.message || 'An unexpected error occurred.');
+      setErrorMsg(humanizeError(err, 'An unexpected error occurred.'));
       setLoading(false);
     }
   };
@@ -349,14 +344,14 @@ const Auth: React.FC = () => {
         redirectTo: `${window.location.origin}/#/reset-password`,
       });
       if (error) {
-        setErrorMsg(error.message);
+        setErrorMsg(humanizeError(error, 'Failed to send password reset email.'));
         setLoading(false);
         return;
       }
       setLoading(false);
       setForgotSuccess(true);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to send password reset email');
+      setErrorMsg(humanizeError(err, 'Failed to send password reset email.'));
       setLoading(false);
     }
   };

@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { getBookingsForUser, updateBookingStatus, getAgents, getFavoriteServices, getLikedServices } from '../services/supabaseService';
 import BookingChatDrawer from '../components/BookingChatDrawer';
 import ServiceCard from '../components/ServiceCard';
+import { getLastAgentId, getLastServiceId } from '../services/navigationState';
 
 type CustomerTab = 'active' | 'history' | 'favorites' | 'liked';
 
@@ -177,12 +178,12 @@ const CustomerDashboard: React.FC = () => {
               <SidebarItem
                 icon={<Compass />}
                 label="Explore Services"
-                onClick={() => navigate('/services')}
+                onClick={() => navigate(getLastServiceId() ? `/services/${getLastServiceId()}` : '/services')}
               />
               <SidebarItem
                 icon={<Users />}
                 label="Specialists"
-                onClick={() => navigate('/agents')}
+                onClick={() => navigate(getLastAgentId() ? `/agent/${getLastAgentId()}` : '/agents')}
               />
             </nav>
 
@@ -212,7 +213,7 @@ const CustomerDashboard: React.FC = () => {
             >
               <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <Link to="/services" className="px-10 py-5 bg-brand-interactive text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-interactive/20 hover:scale-105 transition-all">
+            <Link to={getLastServiceId() ? `/services/${getLastServiceId()}` : '/services'} className="px-10 py-5 bg-brand-interactive text-white rounded-2xl font-black text-sm shadow-xl shadow-brand-interactive/20 hover:scale-105 transition-all">
               Book New Service
             </Link>
           </div>
@@ -501,7 +502,7 @@ const CustomerDashboard: React.FC = () => {
           <section>
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-3xl font-serif font-bold">Featured Specialists</h2>
-              <Link to="/agents" className="text-brand-interactive font-black text-xs hover:underline">
+              <Link to="/agents?all=true" className="text-brand-interactive font-black text-xs hover:underline">
                 View All
               </Link>
             </div>

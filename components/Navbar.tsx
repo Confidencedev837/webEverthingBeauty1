@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Home, 
-  LayoutGrid, 
-  Users, 
-  Info, 
-  MessageSquare, 
-  User as UserIcon, 
-  LogOut, 
+import {
+  Home,
+  LayoutGrid,
+  Users,
+  Info,
+  MessageSquare,
+  User as UserIcon,
+  LogOut,
   ChevronDown
 } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { ThemeMode, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useNavigationState } from '../services/navigationState';
 
 interface NavbarProps {
   themeMode: ThemeMode;
@@ -92,13 +93,48 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
     }
   };
 
+  const { lastAgentId, lastServiceId } = useNavigationState();
+
+  const servicesPath = lastServiceId ? `/services/${lastServiceId}` : '/services';
+  const agentsPath = lastAgentId ? `/agent/${lastAgentId}` : '/agents';
+
   const navLinks = [
-    { name: 'Home', path: '/', icon: <Home className="w-5 h-5" /> },
-    { name: 'Services', path: '/services', icon: <LayoutGrid className="w-5 h-5" /> },
-    { name: 'Agents', path: '/agents', icon: <Users className="w-5 h-5" /> },
-    { name: 'FAQ', path: '/faq', icon: <MessageSquare className="w-5 h-5" /> },
-    { name: 'Why EB?', path: '/about', icon: <Info className="w-5 h-5" /> },
-    { name: 'Contact', path: '/contact', icon: <MessageSquare className="w-5 h-5" /> },
+    {
+      name: 'Home',
+      path: '/',
+      icon: <Home className="w-5 h-5" />,
+      checkActive: () => location.pathname === '/'
+    },
+    {
+      name: 'Services',
+      path: servicesPath,
+      icon: <LayoutGrid className="w-5 h-5" />,
+      checkActive: () => location.pathname.startsWith('/services')
+    },
+    {
+      name: 'Agents',
+      path: agentsPath,
+      icon: <Users className="w-5 h-5" />,
+      checkActive: () => location.pathname.startsWith('/agent') || location.pathname.startsWith('/agents')
+    },
+    {
+      name: 'FAQ',
+      path: '/faq',
+      icon: <MessageSquare className="w-5 h-5" />,
+      checkActive: () => location.pathname === '/faq'
+    },
+    {
+      name: 'Why EB?',
+      path: '/about',
+      icon: <Info className="w-5 h-5" />,
+      checkActive: () => location.pathname === '/about'
+    },
+    {
+      name: 'Contact',
+      path: '/contact',
+      icon: <MessageSquare className="w-5 h-5" />,
+      checkActive: () => location.pathname === '/contact'
+    },
   ];
 
   const handleSignOut = async () => {
@@ -110,11 +146,10 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
     <>
       {/* --- TOP HEADER (Desktop & Mobile) --- */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
             ? 'bg-white/90 dark:bg-[#0D0D0D]/90 backdrop-blur-md shadow-sm border-b border-black/5 dark:border-white/5'
             : 'bg-transparent'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 md:h-20">
@@ -135,20 +170,20 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
 
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  onClick={link.path === '/' ? handleHomeClick : undefined}
-                  className={({ isActive }) =>
-                    `text-sm font-bold transition-all duration-200 hover:text-brand-interactive hover:-translate-y-0.5 ${
-                      isActive ? 'text-brand-interactive font-extrabold' : 'text-[#6C757D] dark:text-[#B0B0B0]'
-                    }`
-                  }
-                >
-                  {link.name}
-                </NavLink>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = link.checkActive();
+                return (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={link.path === '/' ? handleHomeClick : undefined}
+                    className={`text-sm font-bold transition-all duration-200 hover:text-brand-interactive hover:-translate-y-0.5 ${isActive ? 'text-brand-interactive font-extrabold' : 'text-[#6C757D] dark:text-[#B0B0B0]'
+                      }`}
+                  >
+                    {link.name}
+                  </NavLink>
+                );
+              })}
             </div>
 
             {/* Action Buttons */}
@@ -197,9 +232,8 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
                     </div>
 
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-[#6C757D] dark:text-[#A0A0A0] transition-transform duration-300 hidden sm:block ${
-                        isProfileMenuOpen ? 'rotate-180 text-brand-interactive' : ''
-                      }`}
+                      className={`w-3.5 h-3.5 text-[#6C757D] dark:text-[#A0A0A0] transition-transform duration-300 hidden sm:block ${isProfileMenuOpen ? 'rotate-180 text-brand-interactive' : ''
+                        }`}
                     />
                   </button>
 
@@ -316,8 +350,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
             to="/"
             onClick={handleHomeClick}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${
-                isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
               }`
             }
           >
@@ -326,10 +359,9 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
           </NavLink>
 
           <NavLink
-            to="/services"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${
-                isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+            to={servicesPath}
+            className={() =>
+              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${location.pathname.startsWith('/services') ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
               }`
             }
           >
@@ -338,10 +370,9 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
           </NavLink>
 
           <NavLink
-            to="/agents"
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${
-                isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+            to={agentsPath}
+            className={() =>
+              `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${location.pathname.startsWith('/agent') || location.pathname.startsWith('/agents') ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
               }`
             }
           >
@@ -353,8 +384,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
             <NavLink
               to={getDashboardPath()}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${
-                  isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
                 }`
               }
             >
@@ -365,8 +395,7 @@ const Navbar: React.FC<NavbarProps> = ({ themeMode, toggleTheme }) => {
             <NavLink
               to="/auth"
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${
-                  isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
+                `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 active:scale-90 ${isActive ? 'text-brand-interactive font-black scale-105' : 'text-[#6C757D] dark:text-[#A0A0A0]'
                 }`
               }
             >

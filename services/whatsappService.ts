@@ -15,6 +15,7 @@ export const APP_LIVE_URL = typeof window !== 'undefined' && window.location.ori
 export interface WhatsAppNotificationPayload {
   recipientType: 'customer' | 'agent' | 'concierge';
   recipientPhone?: string;
+  messageText?: string;
   booking: {
     id: string;
     serviceName: string;
@@ -245,30 +246,51 @@ export function openWhatsAppChat(phone: string, text: string): void {
  * if configured in environment variables. Falls back gracefully without blocking.
  */
 export async function sendAutomatedWhatsAppApi(payload: WhatsAppNotificationPayload): Promise<{ sent: boolean; reason?: string }> {
-  const apiUrl = import.meta.env.VITE_WHATSAPP_API_URL as string | undefined;
+  const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || 'https://oldcuvmiwnvrtypnxwou.supabase.co';
+  const defaultEdgeUrl = `${supabaseUrl}/functions/v1/dispatch-whatsapp`;
+  const apiUrl = (import.meta.env.VITE_WHATSAPP_API_URL as string) || defaultEdgeUrl;
 
-  if (!apiUrl) {
-    // Cloud API endpoint not set; system operates in direct bridge mode
-    return { sent: false, reason: 'No VITE_WHATSAPP_API_URL configured. Operating in direct WhatsApp bridge mode.' };
+  const targetPhone = payload.recipientPhone || OFFICIAL_EB_WHATSAPP;
+  const outboundMessage = payload.messageText || (
+    payload.booking ? buildWhatsAppMessage(
+      payload.recipientType === 'agent' ? 'BOOKING_CREATED_AGENT' : 'BOOKING_CREATED_CLIENT',
+      payload.booking
+    ) : ''
+  );
+
+  if (!outboundMessage) {
+    return { sent: false, reason: 'Empty outbound message body.' };
   }
+
+  const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || 'sb_publishable_5_65_nDIk9Y8yLmK8-IOIg_OSQPGEMc';
+  const authToken = (import.meta.env.VITE_WHATSAPP_API_KEY as string) || supabaseAnonKey;
 
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_WHATSAPP_API_KEY || ''}`
+        'Authorization': `Bearer ${authToken}`,
+        'apikey': supabaseAnonKey
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        recipientPhone: targetPhone,
+        message: outboundMessage,
+        recipientType: payload.recipientType,
+        bookingId: payload.booking?.id
+      })
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      return { sent: false, reason: `WhatsApp Cloud API returned ${response.status}: ${errText}` };
+      console.warn(`WhatsApp dispatch returned ${response.status}:`, errText);
+      return { sent: false, reason: `WhatsApp API returned ${response.status}: ${errText}` };
     }
 
+    const data = await response.json().catch(() => ({}));
     return { sent: true };
   } catch (err: any) {
+    console.warn('Network error calling WhatsApp API:', err?.message);
     return { sent: false, reason: err?.message || 'Network error calling WhatsApp API' };
   }
 }
@@ -315,6 +337,7 @@ export async function dispatchBookingCreatedAlert(params: {
   sendAutomatedWhatsAppApi({
     recipientType: 'customer',
     recipientPhone: params.customerPhone,
+    messageText: clientText,
     booking: {
       id: params.booking?.id || '',
       serviceName: params.serviceName,
@@ -331,6 +354,7 @@ export async function dispatchBookingCreatedAlert(params: {
   sendAutomatedWhatsAppApi({
     recipientType: 'agent',
     recipientPhone: params.agentPhone,
+    messageText: agentText,
     booking: {
       id: params.booking?.id || '',
       serviceName: params.serviceName,
@@ -397,6 +421,7 @@ export async function dispatchBookingStatusUpdate(params: {
   sendAutomatedWhatsAppApi({
     recipientType: 'customer',
     recipientPhone: params.customerPhone,
+    messageText: messageText,
     booking: {
       id: params.bookingId,
       serviceName: params.serviceName,

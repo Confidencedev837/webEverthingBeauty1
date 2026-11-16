@@ -19,6 +19,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ResetPassword from './pages/ResetPassword';
 import Booking from './pages/Booking';
 import CreateService from './pages/CreateService';
+import NotFound from './pages/NotFound';
 import { AuthProvider } from './context/AuthContext';
 import { SnackbarProvider } from './components/Snackbar';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -129,6 +130,7 @@ const App: React.FC = () => {
                     <Route path="/admin/dashboard" element={<AdminDashboard />} />
                     <Route path="/admin/login" element={<Auth />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="*" element={<NotFound />} />
                   </Routes>
                 </ErrorBoundary>
               </main>

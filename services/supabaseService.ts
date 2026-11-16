@@ -63,10 +63,14 @@ const inFlightRequests = new Map<string, Promise<any>>();
 
 function getStorageCache<T>(key: string): CacheEntry<T> | null {
   try {
-    if (typeof window === 'undefined' || !window.sessionStorage) return null;
-    const item = window.sessionStorage.getItem(STORAGE_PREFIX + key);
-    if (!item) return null;
-    return JSON.parse(item) as CacheEntry<T>;
+    if (typeof window === 'undefined') return null;
+    const isCatalog = key.startsWith('services:') || key.startsWith('agents:') || key.startsWith('agent:');
+    const primaryStorage = isCatalog ? window.localStorage : window.sessionStorage;
+    const secondaryStorage = isCatalog ? window.sessionStorage : window.localStorage;
+    
+    const raw = primaryStorage?.getItem(STORAGE_PREFIX + key) || secondaryStorage?.getItem(STORAGE_PREFIX + key);
+    if (!raw) return null;
+    return JSON.parse(raw) as CacheEntry<T>;
   } catch {
     return null;
   }
@@ -74,8 +78,16 @@ function getStorageCache<T>(key: string): CacheEntry<T> | null {
 
 function setStorageCache<T>(key: string, entry: CacheEntry<T>): void {
   try {
-    if (typeof window === 'undefined' || !window.sessionStorage) return;
-    window.sessionStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(entry));
+    if (typeof window === 'undefined') return;
+    const serialized = JSON.stringify(entry);
+    const isCatalog = key.startsWith('services:') || key.startsWith('agents:') || key.startsWith('agent:');
+    
+    if (isCatalog && window.localStorage) {
+      window.localStorage.setItem(STORAGE_PREFIX + key, serialized);
+    }
+    if (window.sessionStorage) {
+      window.sessionStorage.setItem(STORAGE_PREFIX + key, serialized);
+    }
   } catch {
     // Quota safety or private browsing
   }
@@ -121,13 +133,16 @@ export function invalidateCache(prefix?: string): void {
   if (!prefix) {
     memoryCache.clear();
     try {
-      if (typeof window !== 'undefined' && window.sessionStorage) {
-        const toDelete: string[] = [];
-        for (let i = 0; i < window.sessionStorage.length; i++) {
-          const k = window.sessionStorage.key(i);
-          if (k && k.startsWith(STORAGE_PREFIX)) toDelete.push(k);
-        }
-        toDelete.forEach(k => window.sessionStorage.removeItem(k));
+      if (typeof window !== 'undefined') {
+        [window.sessionStorage, window.localStorage].forEach(storage => {
+          if (!storage) return;
+          const toDelete: string[] = [];
+          for (let i = 0; i < storage.length; i++) {
+            const k = storage.key(i);
+            if (k && k.startsWith(STORAGE_PREFIX)) toDelete.push(k);
+          }
+          toDelete.forEach(k => storage.removeItem(k));
+        });
       }
     } catch {}
     return;
@@ -138,14 +153,17 @@ export function invalidateCache(prefix?: string): void {
     }
   }
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
+    if (typeof window !== 'undefined') {
       const targetPrefix = STORAGE_PREFIX + prefix;
-      const toDelete: string[] = [];
-      for (let i = 0; i < window.sessionStorage.length; i++) {
-        const k = window.sessionStorage.key(i);
-        if (k && k.startsWith(targetPrefix)) toDelete.push(k);
-      }
-      toDelete.forEach(k => window.sessionStorage.removeItem(k));
+      [window.sessionStorage, window.localStorage].forEach(storage => {
+        if (!storage) return;
+        const toDelete: string[] = [];
+        for (let i = 0; i < storage.length; i++) {
+          const k = storage.key(i);
+          if (k && k.startsWith(targetPrefix)) toDelete.push(k);
+        }
+        toDelete.forEach(k => storage.removeItem(k));
+      });
     }
   } catch {}
 }
@@ -215,6 +233,7 @@ async function executeFetchServices(CACHE_KEY: string): Promise<{ data: Service[
       supabase
         .from('reviews')
         .select('service_id, rating')
+        .limit(300)
     ]);
 
     if (servicesRes.error) {
@@ -432,7 +451,7 @@ async function executeFetchAgents(CACHE_KEY: string): Promise<{ data: Agent[]; e
     const [agentsRes, servicesRes, reviewsRes] = await Promise.all([
       supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, specialization, years_exp, avatar_url, banner_url, bio, location, phone, service_type, gallery, verification_status')
         .eq('user_type', 'agent'),
       supabase
         .from('services')
@@ -440,6 +459,7 @@ async function executeFetchAgents(CACHE_KEY: string): Promise<{ data: Agent[]; e
       supabase
         .from('reviews')
         .select('service_id, rating')
+        .limit(300)
     ]);
 
     if (agentsRes.error) {

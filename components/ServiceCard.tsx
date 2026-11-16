@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Star, ChevronRight, ChevronLeft, Play, Video as VideoIcon, User, Heart, Bookmark, Layers, Clock, Calendar } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Service } from '../types';
-import { 
-  isVideoUrl, 
-  setServiceLike, 
-  setServiceFavorite, 
-  getLikedServiceIds, 
-  getFavoriteServiceIds, 
-  getServiceLikeCount 
+import { Link, useNavigate } from 'react-router-dom';
+import { Service, UserRole } from '../types';
+import {
+  isVideoUrl,
+  setServiceLike,
+  setServiceFavorite,
+  getLikedServiceIds,
+  getFavoriteServiceIds,
+  getServiceLikeCount
 } from '../services/supabaseService';
 import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from './Snackbar';
@@ -22,8 +22,21 @@ interface ServiceCardProps {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHighlighted = false }) => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
+
+  const handleBookClick = () => {
+    if (role === UserRole.AGENT) {
+      showSnackbar('Specialist accounts cannot book appointments. Please sign in with a client account.', 'error');
+      return;
+    }
+    if (onBook) {
+      onBook(service);
+    } else {
+      navigate(`/services/${service.id}?book=true`);
+    }
+  };
   const [videoError, setVideoError] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [isLiked, setIsLiked] = useState(Boolean(service.isLiked));
@@ -173,7 +186,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
   // Ensure playback continues when cycling between multiple videos if in view
   useEffect(() => {
     if (videoRef.current && isPlaying) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.play().catch(() => { });
     }
   }, [currentVideoIdx, isPlaying]);
 
@@ -185,11 +198,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
       viewport={{ once: true }}
-      className={`group relative rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] hover:shadow-[0_16px_40px_rgba(108,53,166,0.22)] hover:-translate-y-1.5 flex flex-col h-full transform-gpu mb-4 sm:mb-6 md:mb-8 bg-gray-950 ${
-        isHighlighted
+      className={`group relative rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-500 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] hover:shadow-[0_16px_40px_rgba(108,53,166,0.22)] hover:-translate-y-1.5 flex flex-col h-full transform-gpu mb-4 sm:mb-6 md:mb-8 bg-gray-950 ${isHighlighted
           ? 'ring-4 ring-brand-interactive border-brand-interactive shadow-[0_0_35px_rgba(108,53,166,0.55)] scale-[1.02]'
           : 'border-white/40 dark:border-white/10 hover:border-brand-interactive/50 dark:hover:border-brand-interactive/50'
-      }`}
+        }`}
     >
       {/* Highlighted Badge for newly published service */}
       {isHighlighted && (
@@ -233,11 +245,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
                         e.stopPropagation();
                         setCurrentVideoIdx(i);
                       }}
-                      className={`h-1 rounded-full transition-all duration-300 ${
-                        i === currentVideoIdx
+                      className={`h-1 rounded-full transition-all duration-300 ${i === currentVideoIdx
                           ? 'w-4 bg-brand-interactive shadow-md'
                           : 'w-1.5 bg-white/60 hover:bg-white'
-                      }`}
+                        }`}
                       aria-label={`View video clip ${i + 1}`}
                       title={`Video clip ${i + 1} of ${videoList.length}`}
                     />
@@ -278,13 +289,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
               )}
             </div>
           ) : primaryImage && !imgError ? (
-            <img 
-              src={primaryImage} 
+            <img
+              src={primaryImage}
               loading="lazy"
               decoding="async"
               onError={() => setImgError(true)}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-              alt={service.name} 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              alt={service.name}
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-brand-interactive/20 via-black to-black text-brand-interactive p-4 text-center">
@@ -314,9 +325,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
             aria-label={isLiked ? "Unlike service" : "Like service"}
             className="p-2.5 rounded-full bg-black/65 hover:bg-black/85 backdrop-blur-md text-white border border-white/20 transition-transform active:scale-90 cursor-pointer shadow-md"
           >
-            <Heart className={`w-6 h-6 transition-colors ${
-              isLiked ? 'fill-rose-500 text-rose-500' : 'text-white'
-            }`} />
+            <Heart className={`w-6 h-6 transition-colors ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-white'
+              }`} />
           </button>
           <button
             type="button"
@@ -325,14 +335,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
             aria-label={isFavorite ? "Remove from Favorites" : "Save to Favorites"}
             className="p-2.5 rounded-full bg-black/65 hover:bg-black/85 backdrop-blur-md text-white border border-white/20 transition-transform active:scale-90 cursor-pointer shadow-md"
           >
-            <Bookmark className={`w-6 h-6 transition-colors ${
-              isFavorite ? 'fill-amber-500 text-amber-500' : 'text-white'
-            }`} />
+            <Bookmark className={`w-6 h-6 transition-colors ${isFavorite ? 'fill-amber-500 text-amber-500' : 'text-white'
+              }`} />
           </button>
         </div>
 
       </div>
-      
+
       {/* 2. GLASSMORPHIC BOTTOM HALF - Frosted glass layer with underlying media blurred behind it */}
       <div className="relative -mt-6 sm:-mt-8 z-10 bg-white/50 dark:bg-[#121212]/55 backdrop-blur-2xl rounded-t-3xl border-t border-white/60 dark:border-white/10 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.35)] p-5 sm:p-6 flex flex-col flex-grow justify-between gap-5">
         <div className="space-y-3.5">
@@ -350,7 +359,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
               const isLongName = agentName.length > 14;
 
               return (
-                <Link 
+                <Link
                   to={`/agent/${service?.agentId || ''}`}
                   className="flex items-center space-x-2.5 min-w-0 shrink max-w-[62%] justify-end group/agent"
                   title={agentName}
@@ -358,10 +367,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
                   {/* If the name is too long, show ONLY the name so it doesn't push the profile pic too far */}
                   {!isLongName && (
                     service?.agentImage ? (
-                      <img 
-                        src={service.agentImage} 
-                        className="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-full object-cover border-2 border-white dark:border-[#2D2D2D] shadow-sm shrink-0 group-hover/agent:scale-105 transition-transform" 
-                        alt={agentName} 
+                      <img
+                        src={service.agentImage}
+                        className="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-full object-cover border-2 border-white dark:border-[#2D2D2D] shadow-sm shrink-0 group-hover/agent:scale-105 transition-transform"
+                        alt={agentName}
                       />
                     ) : (
                       <div className="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-full bg-brand-surface dark:bg-[#252525] text-brand-interactive flex items-center justify-center font-bold border border-brand-interactive/20 shrink-0">
@@ -435,24 +444,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, index, onBook, isHig
 
         {/* 3. BOOK NOW BUTTON */}
         <div className="pt-4 border-t border-[#E9ECEF]/70 dark:border-[#262626]">
-          {onBook ? (
-            <button 
-              type="button"
-              onClick={() => onBook(service)}
-              className="w-full py-3.5 sm:py-4 px-8 bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white rounded-2xl sm:rounded-full font-black text-xs sm:text-sm flex items-center justify-center space-x-2.5 shadow-[0_6px_22px_rgba(108,53,166,0.38)] hover:shadow-[0_8px_26px_rgba(108,53,166,0.5)] border-t border-white/20 transition-all active:scale-[0.98] cursor-pointer"
-            >
-              <Calendar className="w-4 h-4 shrink-0" />
-              <span>Book Now</span>
-            </button>
-          ) : (
-            <Link 
-              to={`/services/${service.id}?book=true`}
-              className="w-full py-3.5 sm:py-4 px-8 bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white rounded-2xl sm:rounded-full font-black text-xs sm:text-sm flex items-center justify-center space-x-2.5 shadow-[0_6px_22px_rgba(108,53,166,0.38)] hover:shadow-[0_8px_26px_rgba(108,53,166,0.5)] border-t border-white/20 transition-all active:scale-[0.98] text-center"
-            >
-              <Calendar className="w-4 h-4 shrink-0" />
-              <span>Book Now</span>
-            </Link>
-          )}
+          <button
+            type="button"
+            onClick={handleBookClick}
+            className="w-full py-3.5 sm:py-4 px-8 bg-gradient-to-r from-[#6C35A6] to-[#7B3DB8] text-white rounded-2xl sm:rounded-full font-black text-xs sm:text-sm flex items-center justify-center space-x-2.5 shadow-[0_6px_22px_rgba(108,53,166,0.38)] hover:shadow-[0_8px_26px_rgba(108,53,166,0.5)] border-t border-white/20 transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <Calendar className="w-4 h-4 shrink-0" />
+            <span>Book Now</span>
+          </button>
         </div>
       </div>
     </motion.div>

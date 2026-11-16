@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useAnimationControls, useMotionValueEvent } from 'framer-motion';
 import { Star, Clock, MapPin, Heart, Bookmark, Share2, Check, ArrowRight, Calendar, Play, Pause, Volume2, VolumeX, Maximize, ChevronLeft, ChevronRight, MessageSquare, Send, AlertCircle, RefreshCw, User, X } from 'lucide-react';
-import { Service, Review, ServiceGalleryItem } from '../types';
+import { Service, Review, ServiceGalleryItem, UserRole } from '../types';
 import {
   getServiceById,
   getReviewsForService,
@@ -18,12 +18,13 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from '../components/Snackbar';
 import BookingModal from '../components/BookingModal';
+import { setLastServiceId, clearLastServiceId } from '../services/navigationState';
 
 const ServiceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, currentUser } = useAuth();
+  const { user, currentUser, role } = useAuth();
   const { showSnackbar } = useSnackbar();
   const [service, setService] = useState<Service | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -97,10 +98,12 @@ const ServiceDetail: React.FC = () => {
       getReviewsForService(id)
     ]);
 
-    if (serviceRes.error) {
-      setError(serviceRes.error);
+    if (serviceRes.error || !serviceRes.data) {
+      setError(serviceRes.error || 'Service not found');
+      clearLastServiceId();
     } else {
       setService(serviceRes.data);
+      setLastServiceId(id);
     }
 
     if (reviewsRes.data) {
@@ -306,10 +309,25 @@ const ServiceDetail: React.FC = () => {
     if (!loading && service) {
       const searchParams = new URLSearchParams(location.search);
       if (searchParams.get('book') === 'true') {
+        if (role === UserRole.AGENT) {
+          showSnackbar('Specialist accounts cannot book appointments. Please sign in with a client account.', 'error');
+          navigate(`/services/${service.id}`, { replace: true });
+          return;
+        }
         navigate(`/book/${service.id}`);
       }
     }
-  }, [loading, service, location.search, navigate]);
+  }, [loading, service, location.search, navigate, role, showSnackbar]);
+
+  const handleBookClick = () => {
+    if (role === UserRole.AGENT) {
+      showSnackbar('Specialist accounts cannot book appointments. Please sign in with a client account.', 'error');
+      return;
+    }
+    if (service) {
+      navigate(`/book/${service.id}`);
+    }
+  };
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -385,7 +403,11 @@ const ServiceDetail: React.FC = () => {
             >
               Retry
             </button>
-            <Link to="/services" className="px-6 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold text-[#6C757D]">
+            <Link 
+              to="/services?all=true" 
+              onClick={() => clearLastServiceId()} 
+              className="px-6 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs font-bold text-[#6C757D]"
+            >
               All Services
             </Link>
           </div>
@@ -407,7 +429,13 @@ const ServiceDetail: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Breadcrumbs */}
         <nav className="flex space-x-2 text-sm text-[#6C757D] mb-8">
-          <Link to="/services" className="hover:text-brand-interactive">Services</Link>
+          <Link 
+            to="/services?all=true" 
+            onClick={() => clearLastServiceId()} 
+            className="hover:text-brand-interactive"
+          >
+            Services
+          </Link>
           <span>/</span>
           <span className="text-brand-interactive font-bold">{service.category}</span>
         </nav>
@@ -676,7 +704,7 @@ const ServiceDetail: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => navigate(`/book/${service.id}`)}
+                  onClick={handleBookClick}
                   onMouseEnter={triggerShimmer}
                   className="relative overflow-hidden group shrink-0 py-4 sm:py-5 px-7 sm:px-10 rounded-[2.2rem] bg-gradient-to-r from-[#6C35A6] via-[#8238CA] to-[#32104D] text-white tracking-wide shadow-[0_16px_40px_rgba(108,53,166,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_20px_48px_rgba(108,53,166,0.65)] border border-white/35 active:outline-none transition-all flex items-center justify-between gap-6 sm:gap-9 cursor-pointer active:translate-y-0.5"
                 >
@@ -1001,7 +1029,7 @@ const ServiceDetail: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => navigate(`/book/${service.id}`)}
+                  onClick={handleBookClick}
                   className="w-full py-3.5 px-4 bg-brand-interactive text-white rounded-xl font-bold text-sm sm:text-base hover:bg-brand-interactive/90 transition-all shadow-md shadow-brand-interactive/20 active:scale-[0.98] flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4" />

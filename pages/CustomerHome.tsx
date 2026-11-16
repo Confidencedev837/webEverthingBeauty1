@@ -29,6 +29,7 @@ import { Service, Agent, Booking, BookingStatus } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { getServices, getAgents, getBookingsForUser, isVideoUrl } from '../services/supabaseService';
 import { searchServicesIntelligently, searchAgentsIntelligently } from '../services/intelligentSearch';
+import { CANONICAL_SERVICE_CATEGORIES, canonicalizeCategory } from '../constants';
 import ServiceCard from '../components/ServiceCard';
 import BookingModal from '../components/BookingModal';
 import Pagination from '../components/Pagination';
@@ -37,15 +38,7 @@ import IntelligentSearchBar from '../components/IntelligentSearchBar';
 import UsernameTypewriter from '../components/UsernameTypewriter';
 import HeroPsychologyTypewriter from '../components/HeroPsychologyTypewriter';
 
-const QUICK_CATEGORIES = [
-  'All',
-  'Hair Styling',
-  'Makeup Artistry',
-  'Nails & Pedicure',
-  'Skincare & Spa',
-  'Barbering',
-  'Lashes & Brows'
-];
+const QUICK_CATEGORIES = ['All', ...CANONICAL_SERVICE_CATEGORIES];
 
 const CustomerHome: React.FC = () => {
   const { user, currentUser } = useAuth();
@@ -122,11 +115,9 @@ const CustomerHome: React.FC = () => {
       return searchServicesIntelligently(services, search);
     }
     const matched = services.filter(service => {
-      const matchesCat =
-        selectedCategory === 'All' ||
-        (service.category || '').toLowerCase().includes(selectedCategory.toLowerCase()) ||
-        selectedCategory.toLowerCase().includes((service.category || '').toLowerCase());
-      return matchesCat;
+      if (selectedCategory === 'All') return true;
+      const canonical = canonicalizeCategory(service.category);
+      return canonical === selectedCategory;
     });
     return {
       matches: matched,

@@ -57,6 +57,8 @@ import { useAuth } from '../context/AuthContext';
 import { useSnackbar } from '../components/Snackbar';
 import BookingModal from '../components/BookingModal';
 import LottieEmptyState from '../components/LottieEmptyState';
+import { setLastAgentId, clearLastAgentId } from '../services/navigationState';
+import { canonicalizeCategory } from '../constants';
 
 export function getInitialsSvg(name: string) {
   const initials = name
@@ -435,8 +437,8 @@ const InstagramServicePostCard: React.FC<InstagramServicePostCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={`bg-white dark:bg-[#141414] rounded-3xl border transition-all duration-300 overflow-hidden ${isNudged
-          ? 'border-brand-interactive shadow-[0_0_30px_rgba(108,53,166,0.25)] ring-2 ring-brand-interactive/50'
-          : 'border-[#E9ECEF] dark:border-[#262626] shadow-[0_4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
+        ? 'border-brand-interactive shadow-[0_0_30px_rgba(108,53,166,0.25)] ring-2 ring-brand-interactive/50'
+        : 'border-[#E9ECEF] dark:border-[#262626] shadow-[0_4px_24px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
         }`}
     >
       {/* 1. POST HEADER (Instagram Style) */}
@@ -707,12 +709,13 @@ const AgentProfile: React.FC = () => {
   // Booking Modal
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
 
-  // Categories derived for filtering
+  // Categories derived for filtering - normalized to canonical pillars
   const serviceCategories = useMemo(() => {
     const cats = new Set<string>();
     services.forEach((s) => {
-      if (s.category && s.category.trim() !== '') {
-        cats.add(s.category.trim());
+      const canonical = canonicalizeCategory(s.category);
+      if (canonical) {
+        cats.add(canonical);
       }
     });
     return ['all', ...Array.from(cats)];
@@ -720,7 +723,10 @@ const AgentProfile: React.FC = () => {
 
   const filteredServices = useMemo(() => {
     if (selectedCategoryFilter === 'all') return services;
-    return services.filter((s) => s.category?.toLowerCase() === selectedCategoryFilter.toLowerCase());
+    return services.filter((s) => {
+      const canonical = canonicalizeCategory(s.category);
+      return canonical?.toLowerCase() === selectedCategoryFilter.toLowerCase();
+    });
   }, [services, selectedCategoryFilter]);
 
   // Book Now action: redirects & smoothly scrolls to transformed Instagram-style services feed
@@ -805,10 +811,12 @@ const AgentProfile: React.FC = () => {
 
     if (agentRes.error || !agentRes.data) {
       setError(agentRes.error || 'Artist profile not found');
+      clearLastAgentId();
       setLoading(false);
     } else {
       setAgent(agentRes.data);
       setServices(agentServicesRes.data || []);
+      setLastAgentId(id);
       setLoading(false);
       // Fast non-blocking social counts
       void loadSocialCounts(agentRes.data.id);
@@ -995,7 +1003,8 @@ const AgentProfile: React.FC = () => {
               Retry
             </button>
             <Link
-              to="/agents"
+              to="/agents?all=true"
+              onClick={() => clearLastAgentId()}
               className="px-5 py-2.5 bg-brand-surface dark:bg-[#252525] rounded-xl text-xs md:text-sm font-bold text-[#1A1A1A] dark:text-white border border-[#E9ECEF] dark:border-[#2D2D2D]"
             >
               All Specialists
@@ -1016,8 +1025,11 @@ const AgentProfile: React.FC = () => {
       {/* 1. MOBILE TOP NAVIGATION BAR (Clean, solid frosted bar, isolated from banner, opens custom ShareModal) */}
       <div className="md:hidden sticky top-16 z-30 px-3.5 py-2.5 flex items-center justify-between border-b border-[#E9ECEF] dark:border-[#222222] bg-white/95 dark:bg-[#0D0D0D]/95 backdrop-blur-md shadow-xs">
         <button
-          onClick={() => navigate(-1)}
-          aria-label="Go back"
+          onClick={() => {
+            clearLastAgentId();
+            navigate('/agents?all=true');
+          }}
+          aria-label="Back to all specialists"
           className="p-1.5 -ml-1 text-[#1A1A1A] dark:text-white rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -1063,6 +1075,20 @@ const AgentProfile: React.FC = () => {
 
         {/* Profile Content */}
         <div className="relative z-10 max-w-5xl lg:max-w-6xl mx-auto px-3.5 sm:px-4 md:px-8 lg:px-12 pt-3 sm:pt-5 pb-4 sm:pb-6">
+
+          {/* Desktop Breadcrumb Navigation */}
+          <div className="hidden md:flex items-center space-x-2 text-xs font-bold text-[#6C757D] dark:text-[#A0A0A0] mb-4">
+            <Link
+              to="/agents?all=true"
+              onClick={() => clearLastAgentId()}
+              className="hover:text-brand-interactive transition-colors inline-flex items-center space-x-1"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>All Specialists</span>
+            </Link>
+            <span>/</span>
+            <span className="text-[#1A1A1A] dark:text-white truncate max-w-xs">{agent.name}</span>
+          </div>
 
           {/* ======================================================== */}
           {/* DESKTOP (PC) PROFILE HEADER (md:flex, bigger components) */}
@@ -1632,8 +1658,8 @@ const AgentProfile: React.FC = () => {
                             key={cat}
                             onClick={() => setSelectedCategoryFilter(cat)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${selectedCategoryFilter === cat
-                                ? 'bg-brand-interactive text-white shadow-sm'
-                                : 'bg-brand-surface dark:bg-[#1A1A1A] text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                              ? 'bg-brand-interactive text-white shadow-sm'
+                              : 'bg-brand-surface dark:bg-[#1A1A1A] text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
                               }`}
                           >
                             {cat === 'all' ? `All Services (${services.length})` : cat}
@@ -1646,8 +1672,8 @@ const AgentProfile: React.FC = () => {
                         <button
                           onClick={() => setServiceViewMode('feed')}
                           className={`p-1.5 rounded-lg text-xs font-black flex items-center space-x-1.5 transition-all cursor-pointer ${serviceViewMode === 'feed'
-                              ? 'bg-brand-interactive text-white shadow-sm'
-                              : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                            ? 'bg-brand-interactive text-white shadow-sm'
+                            : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
                             }`}
                           title="Instagram Post Feed"
                         >
@@ -1657,8 +1683,8 @@ const AgentProfile: React.FC = () => {
                         <button
                           onClick={() => setServiceViewMode('grid')}
                           className={`p-1.5 rounded-lg text-xs font-black flex items-center space-x-1.5 transition-all cursor-pointer ${serviceViewMode === 'grid'
-                              ? 'bg-brand-interactive text-white shadow-sm'
-                              : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                            ? 'bg-brand-interactive text-white shadow-sm'
+                            : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
                             }`}
                           title="Grid View"
                         >
@@ -1956,8 +1982,8 @@ const AgentProfile: React.FC = () => {
                       );
                     })
                   ) : (
-                    <LottieEmptyState 
-                      type="community" 
+                    <LottieEmptyState
+                      type="community"
                       subType={communitySubTab}
                       description={
                         communitySubTab === 'followers'

@@ -1,13 +1,20 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Star, ShieldCheck, MapPin, Award, ArrowRight, Briefcase, Users, ChevronLeft, ChevronRight, ChevronDown, ArrowUp, RefreshCw, AlertCircle, User, X, Compass, Tag, Calendar } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Agent, Service } from '../types';
 import { getAgents, getServices } from '../services/supabaseService';
 import { searchAgentsIntelligently } from '../services/intelligentSearch';
 import LoadingState from '../components/LoadingState';
 import IntelligentSearchBar from '../components/IntelligentSearchBar';
 import BookingModal from '../components/BookingModal';
+import { CANONICAL_SERVICE_CATEGORIES, canonicalizeCategory } from '../constants';
+import {
+  getLastAgentId,
+  clearLastAgentId,
+  getAgentsFilterState,
+  setAgentsFilterState
+} from '../services/navigationState';
 
 export function getInitialsSvg(name: string) {
   const initials = name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'A';
@@ -17,36 +24,72 @@ export function getInitialsSvg(name: string) {
 
 const Agents: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isViewAllExplicit = searchParams.get('all') === 'true' || searchParams.get('view') === 'all';
+
+  // Navigation state persistence
+  const savedFilters = useMemo(() => getAgentsFilterState(), []);
+
   const [agents, setAgents] = useState<Agent[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState('All');
-  const [sortBy, setSortBy] = useState('relevance');
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [search, setSearch] = useState(savedFilters?.search || '');
+  const [selectedSpecialty, setSelectedSpecialty] = useState(savedFilters?.specialty || 'All');
+  const [sortBy, setSortBy] = useState(savedFilters?.sortBy || 'relevance');
+  const [visibleCount, setVisibleCount] = useState(savedFilters?.visibleCount || 10);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<Service | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Resume last viewed agent profile if user returns to Agents without explicitly clicking "View All"
+  useEffect(() => {
+    if (!isViewAllExplicit) {
+      const lastAgentId = getLastAgentId();
+      if (lastAgentId) {
+        navigate(`/agent/${lastAgentId}`, { replace: true });
+        return;
+      }
+    } else {
+      clearLastAgentId();
+    }
+  }, [isViewAllExplicit, navigate]);
+
+  // Persist filter and search state across unmounts
+  useEffect(() => {
+    setAgentsFilterState({
+      search,
+      specialty: selectedSpecialty,
+      sortBy,
+      visibleCount
+    });
+  }, [search, selectedSpecialty, sortBy, visibleCount]);
 
   const loadData = async () => {
     if (agents.length === 0) {
       setLoading(true);
     }
     setError(null);
-    const [agentRes, servRes] = await Promise.all([
-      getAgents(),
-      getServices()
-    ]);
-    if (agentRes.error) {
-      setError(agentRes.error);
-    } else {
-      setAgents(agentRes.data);
+    try {
+      // Primary: load agents immediately to display content without network bottleneck
+      const agentRes = await getAgents();
+      if (agentRes.error) {
+        setError(agentRes.error);
+      } else {
+        setAgents(agentRes.data || []);
+      }
+    } finally {
+      setLoading(false);
     }
-    if (servRes.data) {
-      setServices(servRes.data);
-    }
-    setLoading(false);
+
+    // Secondary: fetch services asynchronously in background without blocking UI
+    getServices().then(servRes => {
+      if (servRes.data) {
+        setServices(servRes.data);
+      }
+    }).catch(err => {
+      console.warn('Background services prefetch:', err);
+    });
   };
 
   useEffect(() => {
@@ -75,11 +118,10 @@ const Agents: React.FC = () => {
     }
   };
 
-  // Derive specializations dynamically from real registered agents
+  // Single source of truth: 5 canonical pillars - gibberish free
   const specializations = useMemo(() => {
-    const unique = Array.from(new Set(agents.map(a => a.specialty).filter(Boolean)));
-    return ['All', ...unique];
-  }, [agents]);
+    return ['All', ...CANONICAL_SERVICE_CATEGORIES];
+  }, []);
 
   const isSearchActive = search.trim().length > 0;
 
@@ -89,8 +131,9 @@ const Agents: React.FC = () => {
       return searchAgentsIntelligently(agents, search);
     }
     const matched = agents.filter(agent => {
-      const matchesSpecialty = selectedSpecialty === 'All' || agent.specialty.toLowerCase() === selectedSpecialty.toLowerCase();
-      return matchesSpecialty;
+      if (selectedSpecialty === 'All') return true;
+      const canonical = canonicalizeCategory(agent.specialty);
+      return canonical === selectedSpecialty;
     });
     return {
       matches: matched,
@@ -357,6 +400,8 @@ const Agents: React.FC = () => {
                       <img
                         src={agent.banner}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover opacity-15 dark:opacity-15 filter blur-[0.5px] scale-105 group-hover:scale-110 transition-transform duration-700"
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
@@ -377,6 +422,8 @@ const Agents: React.FC = () => {
                             <img
                               src={agent.image && agent.image.trim() !== '' ? agent.image : getInitialsSvg(agent.name)}
                               alt={agent.name}
+                              loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover object-center rounded-full block group-hover:scale-105 transition-transform duration-500"
                               onError={(e) => { e.currentTarget.src = getInitialsSvg(agent.name); }}
                             />

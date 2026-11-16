@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, MapPin, ChevronLeft, ChevronRight, ArrowUp, RefreshCw, AlertCircle, X, Compass, Tag, Heart, Bookmark } from 'lucide-react';
 import { Service, Agent } from '../types';
@@ -9,25 +9,63 @@ import { useAuth } from '../context/AuthContext';
 import ServiceCard from '../components/ServiceCard';
 import IntelligentSearchBar from '../components/IntelligentSearchBar';
 import { smoothScrollTo } from '../components/SmoothScroll';
+import { CANONICAL_SERVICE_CATEGORIES, canonicalizeCategory } from '../constants';
+import {
+  getLastServiceId,
+  clearLastServiceId,
+  getServicesFilterState,
+  setServicesFilterState
+} from '../services/navigationState';
 
 const Services: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isViewAllExplicit = searchParams.get('all') === 'true' || searchParams.get('view') === 'all';
+
+  const savedFilters = useMemo(() => getServicesFilterState(), []);
+
   const [services, setServices] = useState<Service[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [search, setSearch] = useState(savedFilters?.search || '');
+  const [selectedCategory, setSelectedCategory] = useState(savedFilters?.category || 'All');
   const [specialFilter, setSpecialFilter] = useState<'all' | 'favorites' | 'liked'>('all');
   const [userFavIds, setUserFavIds] = useState<string[]>([]);
   const [userLikedIds, setUserLikedIds] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState(500000);
-  const [sortBy, setSortBy] = useState('relevance');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState(savedFilters?.sortBy || 'relevance');
+  const [currentPage, setCurrentPage] = useState(savedFilters?.page || 1);
   const ITEMS_PER_PAGE = 12;
 
-  const location = useLocation();
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  // Resume last viewed service if user returns to Services without explicitly clicking "View All"
+  useEffect(() => {
+    const hasHighlight = location.search.includes('highlight') || location.hash.includes('service-');
+    if (!isViewAllExplicit && !hasHighlight) {
+      const lastServiceId = getLastServiceId();
+      if (lastServiceId) {
+        navigate(`/services/${lastServiceId}`, { replace: true });
+        return;
+      }
+    } else if (isViewAllExplicit) {
+      clearLastServiceId();
+    }
+  }, [isViewAllExplicit, location.search, location.hash, navigate]);
+
+  // Persist filter state across unmounts
+  useEffect(() => {
+    setServicesFilterState({
+      search,
+      category: selectedCategory,
+      sortBy,
+      priceRange: String(priceRange),
+      page: currentPage
+    });
+  }, [search, selectedCategory, sortBy, priceRange, currentPage]);
 
   // Parse target highlighted service from URL query param (?highlight=id) or hash (#service-id)
   useEffect(() => {
@@ -54,24 +92,34 @@ const Services: React.FC = () => {
       setLoading(true);
     }
     setError(null);
+
+    try {
+      // Primary: load services immediately to populate the catalog without network delay
+      const servRes = await getServices();
+      if (servRes.error) {
+        setError(servRes.error);
+      } else {
+        setServices(servRes.data || []);
+      }
+    } finally {
+      setLoading(false);
+    }
+
+    // Secondary: fetch background enhancements concurrently without blocking catalog display
     const targetUserId = user?.id || 'guest_user';
-    const [servRes, agentRes, favIds, likedIds] = await Promise.all([
-      getServices(),
+    Promise.all([
       getAgents(),
       getFavoriteServiceIds(targetUserId),
       getLikedServiceIds(targetUserId)
-    ]);
-    if (servRes.error) {
-      setError(servRes.error);
-    } else {
-      setServices(servRes.data);
-    }
-    if (agentRes.data) {
-      setAgents(agentRes.data);
-    }
-    setUserFavIds(favIds || []);
-    setUserLikedIds(likedIds || []);
-    setLoading(false);
+    ]).then(([agentRes, favIds, likedIds]) => {
+      if (agentRes.data) {
+        setAgents(agentRes.data);
+      }
+      setUserFavIds(favIds || []);
+      setUserLikedIds(likedIds || []);
+    }).catch(err => {
+      console.warn('Background services metadata prefetch:', err);
+    });
   };
 
   useEffect(() => {
@@ -106,11 +154,10 @@ const Services: React.FC = () => {
     };
   }, [user]);
 
-  // Derive categories dynamically from Supabase services
+  // Single source of truth: 5 canonical pillars - gibberish free
   const categories = useMemo(() => {
-    const unique = Array.from(new Set((services || []).map(s => s?.category).filter(Boolean)));
-    return ['All', ...unique];
-  }, [services]);
+    return ['All', ...CANONICAL_SERVICE_CATEGORIES];
+  }, []);
 
   const isSearchActive = search.trim().length > 0;
 
@@ -129,8 +176,7 @@ const Services: React.FC = () => {
       if (!service) return false;
       if (specialFilter === 'favorites' && !userFavIds.includes(service.id)) return false;
       if (specialFilter === 'liked' && !userLikedIds.includes(service.id)) return false;
-      const sCat = (service.category || '').toLowerCase();
-      const matchesCategory = selectedCategory === 'All' || sCat === (selectedCategory || '').toLowerCase();
+      const matchesCategory = selectedCategory === 'All' || canonicalizeCategory(service.category) === selectedCategory;
       const matchesPrice = (service.price ?? 0) <= priceRange;
       return matchesCategory && matchesPrice;
     });
@@ -261,8 +307,8 @@ const Services: React.FC = () => {
                   <button
                     onClick={() => { setSpecialFilter('all'); setCurrentPage(1); }}
                     className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none active:scale-95 ${specialFilter === 'all'
-                        ? 'text-white'
-                        : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                      ? 'text-white'
+                      : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
                       }`}
                   >
                     {specialFilter === 'all' && (
@@ -283,8 +329,8 @@ const Services: React.FC = () => {
                   <button
                     onClick={() => { setSpecialFilter('favorites'); setCurrentPage(1); }}
                     className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${specialFilter === 'favorites'
-                        ? 'text-white'
-                        : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-amber-500'
+                      ? 'text-white'
+                      : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-amber-500'
                       }`}
                   >
                     {specialFilter === 'favorites' && (
@@ -306,8 +352,8 @@ const Services: React.FC = () => {
                   <button
                     onClick={() => { setSpecialFilter('liked'); setCurrentPage(1); }}
                     className={`relative px-3.5 sm:px-4 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors flex items-center space-x-1.5 cursor-pointer select-none active:scale-95 ${specialFilter === 'liked'
-                        ? 'text-white'
-                        : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-rose-500'
+                      ? 'text-white'
+                      : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-rose-500'
                       }`}
                   >
                     {specialFilter === 'liked' && (
@@ -367,8 +413,8 @@ const Services: React.FC = () => {
                           setCurrentPage(1);
                         }}
                         className={`relative px-4 sm:px-5 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap cursor-pointer select-none active:scale-95 ${isSelected
-                            ? 'text-white'
-                            : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
+                          ? 'text-white'
+                          : 'text-[#6C757D] dark:text-[#A0A0A0] hover:text-[#1A1A1A] dark:hover:text-white'
                           }`}
                       >
                         {isSelected && (
